@@ -4,16 +4,16 @@
  * See LICENSE and AUTHORS files for details */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\TestCase;
+namespace MensBeam\HTML\DOM\TestCase;
 
-use MensBeam\HTML\Document;
-use MensBeam\HTML\Parser;
-use MensBeam\HTML\TemplateElement;
+use MensBeam\HTML\DOM\Document;
+use MensBeam\HTML\DOM\Parser;
+use MensBeam\HTML\DOM\TemplateElement;
 
 class TestDOM extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideNamespacedElements
-     * @covers \MensBeam\HTML\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      */
     public function testCreateNamespacedElements(?string $nsIn, string $nameIn, ?string $nsOut, string $local, string $prefix): void {
         $d = new Document;
@@ -43,7 +43,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
     }
     /**
      * @dataProvider provideBareElements
-     * @covers \MensBeam\HTML\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
      */
     public function testCreateBareElements(string $nameIn, $nameOut): void {
         $d = new Document;
@@ -62,7 +62,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-    /** @covers \MensBeam\HTML\Document::createElementNS */
+    /** @covers \MensBeam\HTML\DOM\Document::createElementNS */
     public function testCreateTemplateElements(): void {
         $d = new Document;
         $t = $d->createElement("template");
@@ -87,7 +87,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideNamespacedAttributeCreations
-     * @covers \MensBeam\HTML\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
      */
     public function testCreateNamespacedAttributes(?string $nsIn, string $nameIn, string $local, string $prefix): void {
         $d = new Document;
@@ -114,7 +114,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideBareAttributeCreations
-     * @covers \MensBeam\HTML\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
      */
     public function testCreateBareAttributes(string $nameIn, string $nameOut): void {
         $d = new Document;
@@ -135,7 +135,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideNamespacedAttributeSettings
-     * @covers \MensBeam\HTML\Element::setAttributeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
      */
     public function testSetNamespoacedAttributes(?string $elementNS, ?string $attrNS, string $nameIn, string $nameOut): void {
         $d = new Document;
@@ -171,7 +171,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideBareAttributeSettings
-     * @covers \MensBeam\HTML\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
      */
     public function testSetBareAttributes(?string $elementNS, string $nameIn, string $nameOut): void {
         $d = new Document;
@@ -201,8 +201,8 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideAttributeNodeSettings
-     * @covers \MensBeam\HTML\Element::setAttributeNode
-     * @covers \MensBeam\HTML\Element::setAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
      */
     public function testSetAttributeNodes(bool $ns, ?string $elementNS, ?string $attrNS, string $name): void {
         $d = new Document;
@@ -259,9 +259,9 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @covers \MensBeam\HTML\Element::hasAttribute
-     * @covers \MensBeam\HTML\Element::getAttribute
-     * @covers \MensBeam\HTML\Element::getAttributeNS
+     * @covers \MensBeam\HTML\DOM\Element::hasAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNS
      */
     public function testCheckForAttribute(): void {
         $d = new Document;
@@ -305,7 +305,7 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
         $this->assertSame("ack", $e->getAttributeNS("fake_ns", "eek"));
     }
 
-    /** @covers \MensBeam\HTML\Element::__get */
+    /** @covers \MensBeam\HTML\DOM\Element::__get */
     public function testGetInnerAndOuterHtml(): void {
         $d = new Document;
         $d->appendChild($d->createElement("html"));

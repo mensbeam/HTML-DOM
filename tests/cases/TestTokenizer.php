@@ -4,31 +4,31 @@
  * See LICENSE and AUTHORS files for details */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\TestCase;
+namespace MensBeam\HTML\DOM\TestCase;
 
-use MensBeam\HTML\Data;
-use MensBeam\HTML\EOFToken;
-use MensBeam\HTML\OpenElementsStack;
-use MensBeam\HTML\ParseError;
-use MensBeam\HTML\Tokenizer;
-use MensBeam\HTML\CharacterToken;
-use MensBeam\HTML\CommentToken;
-use MensBeam\HTML\DOCTYPEToken;
-use MensBeam\HTML\EndTagToken;
-use MensBeam\HTML\NullCharacterToken;
-use MensBeam\HTML\StartTagToken;
-use MensBeam\HTML\TokenAttr;
-use MensBeam\HTML\WhitespaceToken;
+use MensBeam\HTML\DOM\Data;
+use MensBeam\HTML\DOM\EOFToken;
+use MensBeam\HTML\DOM\OpenElementsStack;
+use MensBeam\HTML\DOM\ParseError;
+use MensBeam\HTML\DOM\Tokenizer;
+use MensBeam\HTML\DOM\CharacterToken;
+use MensBeam\HTML\DOM\CommentToken;
+use MensBeam\HTML\DOM\DOCTYPEToken;
+use MensBeam\HTML\DOM\EndTagToken;
+use MensBeam\HTML\DOM\NullCharacterToken;
+use MensBeam\HTML\DOM\StartTagToken;
+use MensBeam\HTML\DOM\TokenAttr;
+use MensBeam\HTML\DOM\WhitespaceToken;
 
 /** 
- * @covers \MensBeam\HTML\Data
- * @covers \MensBeam\HTML\Tokenizer
- * @covers \MensBeam\HTML\CharacterToken
- * @covers \MensBeam\HTML\CommentToken
- * @covers \MensBeam\HTML\DataToken
- * @covers \MensBeam\HTML\TagToken
- * @covers \MensBeam\HTML\DOCTYPEToken
- * @covers \MensBeam\HTML\TokenAttr
+ * @covers \MensBeam\HTML\DOM\Data
+ * @covers \MensBeam\HTML\DOM\Tokenizer
+ * @covers \MensBeam\HTML\DOM\CharacterToken
+ * @covers \MensBeam\HTML\DOM\CommentToken
+ * @covers \MensBeam\HTML\DOM\DataToken
+ * @covers \MensBeam\HTML\DOM\TagToken
+ * @covers \MensBeam\HTML\DOM\DOCTYPEToken
+ * @covers \MensBeam\HTML\DOM\TokenAttr
  */
 class TestTokenizer extends \PHPUnit\Framework\TestCase {
     const STATE_MAP = [
@@ -87,8 +87,8 @@ class TestTokenizer extends \PHPUnit\Framework\TestCase {
         $tests = [];
         $blacklist = ["xmlViolation.test"];
         $files = new \AppendIterator();
-        $files->append(new \GlobIterator(\MensBeam\HTML\BASE."tests/html5lib-tests/tokenizer/*.test", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
-        $files->append(new \GlobIterator(\MensBeam\HTML\BASE."tests/cases/tokenizer/*.test", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/html5lib-tests/tokenizer/*.test", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/tokenizer/*.test", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
         foreach ($files as $file) {
             if (!in_array(basename($file), $blacklist)) {
                 $tests[] = $file;

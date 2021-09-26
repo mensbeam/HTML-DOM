@@ -4,19 +4,19 @@
  * See LICENSE and AUTHORS files for details */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\TestCase;
+namespace MensBeam\HTML\DOM\TestCase;
 
-use MensBeam\HTML\Document;
-use MensBeam\HTML\Parser;
+use MensBeam\HTML\DOM\Document;
+use MensBeam\HTML\DOM\Parser;
 
 /** 
- * @covers \MensBeam\HTML\Document
- * @covers \MensBeam\HTML\DocumentFragment
- * @covers \MensBeam\HTML\Element
- * @covers \MensBeam\HTML\TemplateElement
- * @covers \MensBeam\HTML\Comment
- * @covers \MensBeam\HTML\Text
- * @covers \MensBeam\HTML\ProcessingInstruction
+ * @covers \MensBeam\HTML\DOM\Document
+ * @covers \MensBeam\HTML\DOM\DocumentFragment
+ * @covers \MensBeam\HTML\DOM\Element
+ * @covers \MensBeam\HTML\DOM\TemplateElement
+ * @covers \MensBeam\HTML\DOM\Comment
+ * @covers \MensBeam\HTML\DOM\Text
+ * @covers \MensBeam\HTML\DOM\ProcessingInstruction
  */
 class TestSerializer extends \PHPUnit\Framework\TestCase {
     /** @dataProvider provideStandardSerializerTests */
@@ -28,7 +28,7 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
     public function provideStandardSerializerTests(): iterable {
         $blacklist = [];
         $files = new \AppendIterator();
-        $files->append(new \GlobIterator(\MensBeam\HTML\BASE."tests/cases/serializer/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/serializer/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
         foreach ($files as $file) {
             $index = 0;
             $l = 0;

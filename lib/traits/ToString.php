@@ -10,6 +10,6 @@ trait ToString {
     public function __toString(): string {
         $frag = $this->ownerDocument->createDocumentFragment();
         $frag->appendChild($this->cloneNode(true));
-        return $this->ownerDocument->serialize($frag);
+        return $this->ownerDocument->saveHTML($frag);
     }
 }

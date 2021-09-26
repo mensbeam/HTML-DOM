@@ -19,7 +19,7 @@ trait MoonwalkShallow {
         $childNodesLength = $node->childNodes->length;
         for ($childNodesLength = $node->childNodes->length, $i = $childNodesLength - 1; $i >= 0; $i--) {
             $child = $node->childNodes[$i];
-            if ($filter === null || $filter($child)) {
+            if ($filter === null || $filter($child) === true) {
                 yield $child;
             }
         }

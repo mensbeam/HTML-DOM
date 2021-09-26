@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 /** Class specifically for template elements to handle its content property. */
-class TemplateElement extends Element {
+class HTMLTemplateElement extends Element {
     public $content = null;
 
     public function __construct(Document $ownerDocument, string $qualifiedName, ?string $value = null, string $namespace = '') {

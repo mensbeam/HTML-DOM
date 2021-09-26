@@ -15,7 +15,7 @@ trait Moonwalk {
     private function moonwalkGenerator(\DOMNode $node, ?\Closure $filter = null) {
         do {
             while (true) {
-                if ($filter === null || $filter($node)) {
+                if ($filter === null || $filter($node) === true) {
                     yield $node;
                 }
 

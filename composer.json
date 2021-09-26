@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "php": ">=7.1",
-        "ext-dom": "*"
+        "ext-dom": "*",
+        "mensbeam/html-parser": "dev-master"
     },
     "scripts": {
         "post-install-cmd": ["@composer bin all install"],

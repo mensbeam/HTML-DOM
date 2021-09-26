@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0e733e74b1b163aa4cd80329ff9c71d0",
+    "content-hash": "0301f6145278bf69bbcca49992befa89",
     "packages": [],
     "packages-dev": [
         {
@@ -533,6 +533,167 @@
                 "source": "https://github.com/thephpleague/plates/tree/v3.4.0"
             },
             "time": "2020-12-25T05:00:37+00:00"
+        },
+        {
+            "name": "mensbeam/html-parser",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://code.mensbeam.com/MensBeam/HTML-Parser",
+                "reference": "8115ac07d55b96d866da996f6329f6287f09bc49"
+            },
+            "require": {
+                "ext-dom": "*",
+                "mensbeam/intl": ">=0.9.0",
+                "mensbeam/mimesniff": "^0.2.0",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.3",
+                "masterminds/html5": "^2.7"
+            },
+            "suggest": {
+                "ext-ctype": "Improved performance"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MensBeam\\HTML\\": [
+                        "lib/"
+                    ]
+                },
+                "classmap": [
+                    "lib/Parser/Token.php"
+                ],
+                "files": [
+                    "lib/Parser/ctype.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dustin Wilson",
+                    "email": "dustin@dustinwilson.com",
+                    "homepage": "https://dustinwilson.com/"
+                },
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "Parses modern HTML text into a PHP DOMDocument",
+            "time": "2021-09-26T20:09:27+00:00"
+        },
+        {
+            "name": "mensbeam/intl",
+            "version": "0.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mensbeam/intl.git",
+                "reference": "de037b182ce99aaa90ebc09b0ee0457ddf1d07bc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mensbeam/intl/zipball/de037b182ce99aaa90ebc09b0ee0457ddf1d07bc",
+                "reference": "de037b182ce99aaa90ebc09b0ee0457ddf1d07bc",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "*",
+                "ext-intl": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MensBeam\\Intl\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "A set of dependency-free basic internationalization tools",
+            "keywords": [
+                "WHATWG",
+                "charset",
+                "encoding",
+                "internationalization",
+                "intl",
+                "unicode",
+                "utf-8",
+                "utf8"
+            ],
+            "support": {
+                "issues": "https://github.com/mensbeam/intl/issues",
+                "source": "https://github.com/mensbeam/intl/tree/0.9.0"
+            },
+            "time": "2021-03-25T19:08:04+00:00"
+        },
+        {
+            "name": "mensbeam/mimesniff",
+            "version": "0.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mensbeam/mime.git",
+                "reference": "c19be2496ab1e27fbf9c3483c2a9faa2781796cd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mensbeam/mime/zipball/c19be2496ab1e27fbf9c3483c2a9faa2781796cd",
+                "reference": "c19be2496ab1e27fbf9c3483c2a9faa2781796cd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1",
+                "psr/http-message": "^1.0"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.3",
+                "ext-intl": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MensBeam\\Mime\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "J. King",
+                    "email": "jking@jkingweb.ca",
+                    "homepage": "https://jkingweb.ca/"
+                }
+            ],
+            "description": "An implementation of the WHATWG MIME Sniffing specification",
+            "keywords": [
+                "WHATWG",
+                "mime",
+                "mimesniff"
+            ],
+            "support": {
+                "issues": "https://github.com/mensbeam/mime/issues",
+                "source": "https://github.com/mensbeam/mime/tree/0.2.1"
+            },
+            "time": "2021-03-07T03:58:00+00:00"
         },
         {
             "name": "psr/container",
@@ -2294,7 +2455,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "mensbeam/html-parser": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

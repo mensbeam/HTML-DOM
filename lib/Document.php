@@ -4,10 +4,16 @@
  * See LICENSE and AUTHORS files for details */
 
 declare(strict_types=1);
-namespace MensBeam\HTML;
+namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\Parser,
+    MensBeam\HTML\Parser\Data;
+
 
 class Document extends AbstractDocument {
     protected ?Element $_body = null;
+    /** Nonstandard */
+    protected ?string $_documentEncoding;
+    protected int $_quirksMode = 0;
     /** Nonstandard */
     protected ?\DOMXPath $_xpath = null;
 
@@ -94,6 +100,14 @@ class Document extends AbstractDocument {
         $this->_body = $value;
     }
 
+    public function __get_documentEncoding(): ?string {
+        return $this->_documentEncoding;
+    }
+
+    public function __get_quirksMode(): int {
+        return $this->_quirksMode;
+    }
+
     public function __get_xpath(): \DOMXPath {
         if ($this->_xpath === null) {
             $this->_xpath = new \DOMXPath($this);
@@ -102,34 +116,26 @@ class Document extends AbstractDocument {
     }
 
 
-    public function __construct($source = null, ?string $encodingOrContentType = null) {
+    public function __construct($source = null, ?string $encoding = null, int $quirksMode = 0) {
         // Because we cannot have union types until php 8... :)
         if ($source !== null && !$source instanceof \DOMDocument && !is_string($source)) {
             throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string|\DOMDocument', gettype($source));
-        } elseif ($source instanceof self) {
-            return $source;
         }
 
         parent::__construct();
 
-        $this->registerNodeClass('DOMDocument', '\MensBeam\HTML\Document');
-        $this->registerNodeClass('DOMComment', '\MensBeam\HTML\Comment');
-        $this->registerNodeClass('DOMDocumentFragment', '\MensBeam\HTML\DocumentFragment');
-        $this->registerNodeClass('DOMElement', '\MensBeam\HTML\Element');
-        $this->registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\ProcessingInstruction');
-        $this->registerNodeClass('DOMText', '\MensBeam\HTML\Text');
+        $this->registerNodeClass('DOMDocument', '\MensBeam\HTML\DOM\Document');
+        $this->registerNodeClass('DOMComment', '\MensBeam\HTML\DOM\Comment');
+        $this->registerNodeClass('DOMDocumentFragment', '\MensBeam\HTML\DOM\DocumentFragment');
+        $this->registerNodeClass('DOMElement', '\MensBeam\HTML\DOM\Element');
+        $this->registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\DOM\ProcessingInstruction');
+        $this->registerNodeClass('DOMText', '\MensBeam\HTML\DOM\Text');
 
         if ($source !== null) {
             if (is_string($source)) {
-                $source = Parser::parse($source, null, $encodingOrContentType);
-            }
-
-            foreach ($source->childNodes as $child) {
-                if (!$child instanceof \DOMDocumentType) {
-                    $this->appendChild($this->importNode($child, true));
-                } else {
-                    $this->appendChild($this->implementation->createDocumentType($child->name ?? ' ', $child->public ?? '', $child->system ?? ''));
-                }
+                $this->loadHTML($source, null, $encoding);
+            } else {
+                $this->loadDOM($source, $encoding, $quirksMode);
             }
         }
     }
@@ -178,7 +184,7 @@ class Document extends AbstractDocument {
             if ($qualifiedName !== 'template' || $namespaceURI !== null) {
                 $e = parent::createElementNS($namespaceURI, $qualifiedName, $value);
             } else {
-                $e = new TemplateElement($this, $qualifiedName, $value);
+                $e = new HTMLTemplateElement($this, $qualifiedName, $value);
                 // Template elements need to have a reference kept in userland
                 ElementMap::set($e);
                 $e->content = $this->createDocumentFragment();
@@ -203,23 +209,38 @@ class Document extends AbstractDocument {
         return false;
     }
 
-    public function load($filename, $options = null, ?string $encodingOrContentType = null): bool {
-        $data = Parser::fetchFile($filename, $encodingOrContentType);
+    public function importNode(\DOMNode $node, bool $deep = false) {
+        $node = parent::importNode($node, $deep);
+
+        if ($node instanceof \DOMElement) {
+            $node = $this->convertElementToSubClass($node);
+        }
+
+        return $node;
+    }
+
+    public function load($filename, $options = null, ?string $encoding = null): bool {
+        $data = Parser::fetchFile($filename, $encoding);
         if (!$data) {
             return false;
         }
         [$data, $encodingOrContentType] = $data;
-        Parser::parse($data, $this, $encodingOrContentType, null, (string)$filename);
+        $this->loadHTML($data, null, $encoding);
         return true;
     }
 
-    public function loadHTML($source, $options = null, ?string $encodingOrContentType = null): bool {
-        if (!is_string($source)) {
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', gettype($source));
+    public function loadDOM(\DOMDocument $source, ?string $encoding = null, int $quirksMode = 0) {
+        if (!$source instanceof \DOMDocument) {
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument', gettype($source));
         }
 
-        if (is_string($source)) {
-            $source = Parser::parse($source, null, $encodingOrContentType);
+        $this->_documentEncoding = $encoding;
+        $this->_quirksMode = $quirksMode;
+
+        // If there are already existing child nodes then remove them before loading the
+        // DOM.
+        while ($this->hasChildNodes()) {
+            $this->removeChild($this->firstChild);
         }
 
         foreach ($source->childNodes as $child) {
@@ -230,13 +251,32 @@ class Document extends AbstractDocument {
             }
         }
 
-        assert(is_string($source), new DOMException(DOMException::STRING_EXPECTED, 'source', gettype($source)));
-        Parser::parse($source, $this, $encodingOrContentType);
+        $templates = $this->walk(function($n) {
+            if ($n instanceof Element && $n->namespaceURI === null && $n->nodeName === 'template') {
+                return true;
+            }
+        });
+
+        foreach ($templates as $template) {
+            $template->replaceWith($this->convertElementToSubClass($template));
+        }
+
         return true;
     }
 
-    public function loadHTMLFile($filename, $options = null, ?string $encodingOrContentType = null): bool {
-        return $this->load($filename, $options, $encodingOrContentType);
+    public function loadHTML($source, $options = null, ?string $encoding = null): bool {
+        if (!is_string($source)) {
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', gettype($source));
+        }
+
+        $source = Parser::parse($source, $encoding, null);
+        $this->loadDOM($source->document, $source->encoding, $source->quirksMode);
+
+        return true;
+    }
+
+    public function loadHTMLFile($filename, $options = null, ?string $encoding = null): bool {
+        return $this->load($filename, $options, $encoding);
     }
 
     public function loadXML($source, $options = null): bool {
@@ -248,18 +288,6 @@ class Document extends AbstractDocument {
     }
 
     public function saveHTML(\DOMNode $node = null): string {
-        return $node->serialize($node);
-    }
-
-    public function saveHTMLFile($filename): int {
-        return $this->save($filename);
-    }
-
-    public function saveXML(?\DOMNode $node = null, $options = null): bool {
-        return false;
-    }
-
-    public function serialize(\DOMNode $node = null): string {
         $node = $node ?? $this;
         $formatOutput = $this->formatOutput;
 
@@ -295,6 +323,14 @@ class Document extends AbstractDocument {
         }
 
         return $this->serializeFragment($node, $formatOutput);
+    }
+
+    public function saveHTMLFile($filename): int {
+        return $this->save($filename);
+    }
+
+    public function saveXML(?\DOMNode $node = null, $options = null): bool {
+        return false;
     }
 
     public function validate(): bool {
@@ -433,7 +469,7 @@ class Document extends AbstractDocument {
 
         # 3. If the node is a template element, then let the node instead be the
         # template element’s template contents (a DocumentFragment node).
-        if ($node instanceof TemplateElement) {
+        if ($node instanceof HTMLTemplateElement) {
             $node = $node->content;
         }
 
@@ -749,7 +785,25 @@ class Document extends AbstractDocument {
     }
 
 
+    private function convertElementToSubClass(\DOMElement $element): \DOMElement {
+        if ($element->namespaceURI === null && $element->nodeName === 'template') {
+            $template = $this->createElement('template');
+
+            while ($element->attributes->length > 0) {
+                $template->setAttributeNode($element->attributes->item(0));
+            }
+            while ($element->hasChildNodes()) {
+                $template->content->appendChild($element->firstChild);
+            }
+
+            $element = $template;
+        }
+
+        return $element;
+    }
+
+
     public function __toString() {
-        return $this->serialize();
+        return $this->saveHTML();
     }
 }

@@ -16,7 +16,7 @@ trait WalkShallow {
         $node = (!$this instanceof TemplateElement) ? $this : $this->content;
 
         foreach ($node->childNodes as $child) {
-            if ($filter === null || $filter($child)) {
+            if ($filter === null || $filter($child) === true) {
                 yield $child;
             }
         }

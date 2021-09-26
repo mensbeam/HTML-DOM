@@ -13,7 +13,7 @@ trait Walk {
     }
 
     private function walkGenerator(\DOMNode $node, ?\Closure $filter = null) {
-        if ($filter === null || $filter($node)) {
+        if ($filter === null || $filter($node) === true) {
             yield $node;
         }
 

@@ -30,7 +30,7 @@ class Document extends AbstractDocument {
     protected const VOID_ELEMENTS = [ 'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'embed', 'frame', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
 
-    public function __get_body(): \DOMNode {
+    protected function __get_body(): \DOMNode {
         if ($this->documentElement === null || $this->documentElement->childNodes->length === 0) {
             return null;
         }
@@ -63,7 +63,7 @@ class Document extends AbstractDocument {
         return null;
     }
 
-    public function __set_body($value) {
+    protected function __set_body($value) {
         # On setting, the following algorithm must be run:
         #
         # 1. If the new value is not a body or frameset element, then throw a
@@ -100,15 +100,15 @@ class Document extends AbstractDocument {
         $this->_body = $value;
     }
 
-    public function __get_documentEncoding(): ?string {
+    protected function __get_documentEncoding(): ?string {
         return $this->_documentEncoding;
     }
 
-    public function __get_quirksMode(): int {
+    protected function __get_quirksMode(): int {
         return $this->_quirksMode;
     }
 
-    public function __get_xpath(): \DOMXPath {
+    protected function __get_xpath(): \DOMXPath {
         if ($this->_xpath === null) {
             $this->_xpath = new \DOMXPath($this);
         }

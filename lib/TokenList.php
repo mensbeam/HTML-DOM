@@ -21,15 +21,15 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
     private const ASCII_WHITESPACE_REGEX = '/[\t\n\x0c\r ]+/';
 
 
-    public function __get_length(): int {
+    protected function __get_length(): int {
         return $this->_length;
     }
 
-    public function __get_value(): string {
+    protected function __get_value(): string {
         return $this->__toString();
     }
 
-    public function __set_value(string $value) {
+    protected function __get_value(string $value) {
         $this->tokenSet = $this->parseOrderedSet($value);
         $this->_length = count($this->tokenSet);
     }

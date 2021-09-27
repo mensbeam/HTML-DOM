@@ -9,7 +9,7 @@ namespace MensBeam\HTML\DOM;
 if (version_compare(\PHP_VERSION, '8.0', '>=')) {
     # 4.2.6. Mixin ParentNode
     trait ParentNode {
-        public function __get_children(): \DOMNodeList {
+        protected function __get_children(): \DOMNodeList {
             # The children getter steps are to return an HTMLCollection collection rooted at
             # this matching only element children.
             // DEVIATION: HTMLCollection doesn't exist in PHP's DOM, and \DOMNodeList is
@@ -97,7 +97,7 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
     }
 } else {
     trait ParentNode {
-        public function __get_childElementCount(): int {
+        protected function __get_childElementCount(): int {
             # The childElementCount getter steps are to return the number of children of
             # this that are elements.
             $count = 0;
@@ -110,7 +110,7 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
             return $count;
         }
 
-        public function __get_children(): \DOMNodeList {
+        protected function __get_children(): \DOMNodeList {
             # The children getter steps are to return an HTMLCollection collection rooted at
             # this matching only element children.
             // DEVIATION: HTMLCollection doesn't exist in PHP's DOM, and \DOMNodeList is
@@ -123,7 +123,7 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
             return $document->xpath->query('//*', (!$isDocument) ? $this : null);
         }
 
-        public function __get_firstElementChild(): Element {
+        protected function __get_firstElementChild(): Element {
             # The firstElementChild getter steps are to return the first child that is an
             # element; otherwise null.
             foreach ($this->childNodes as $child) {
@@ -134,7 +134,7 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
             return null;
         }
 
-        public function __get_lastElementChild(): Element {
+        protected function __get_lastElementChild(): Element {
             # The lastElementChild getter steps are to return the last child that is an
             # element; otherwise null.
             for ($i = $this->childNodes->length - 1; $i >= 0; $i--) {
@@ -191,14 +191,14 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
             }
             # 5. Remove all parent’s children, in tree order, with the suppress observers
             # flag set.
-            // DEVIATION: There is no scripting in this implementation, so cannnot set
+            // DEVIATION: There is no scripting in this implementation so cannnot set
             // suppress observers flag.
             while ($this->hasChildNodes()) {
                 $this->removeChild($this->firstChild);
             }
             # 6. If node is non-null, then insert node into parent before null with the
             # suppress observers flag set.
-            // DEVIATION: There is no scripting in this implementation, so cannnot set
+            // DEVIATION: There is no scripting in this implementation so cannnot set
             // suppress observers flag.
             if ($node !== null) {
                 $this->appendChild($node);
@@ -220,20 +220,18 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
             // through them again to append. Let's optimize this a wee bit, shall we?
             $document = ($this instanceof Document) ? $this : $this->ownerDocument;
             $node = ($node->length > 1) ? $document->createDocumentFragment() : null;
-            foreach ($nodes as &$n) {
+            foreach ($nodes as $n) {
                 // Can't do union types until PHP 8... OTL
                 if (!$n instanceof \DOMNode && !is_string($n)) {
-                    trigger_error(sprintf("Uncaught TypeError: %s::%s(): Argument #1 (\$%s) must be of type \DOMNode|string, %s given", __CLASS__, __METHOD__, 'nodes', gettype($n)));
+                    throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', gettype($n));
                 }
 
-                if (is_string($n)) {
-                    $n = $this->ownerDocument->createTextNode($n);
-                }
+                $nn = (!is_string($n)) ? $n : $this->ownerDocument->createTextNode($n);
 
                 if ($node !== null) {
-                    $node->appendChild($n);
+                    $node->appendChild($nn);
                 } else {
-                    $node = $n;
+                    $node = $nn;
                 }
             }
 

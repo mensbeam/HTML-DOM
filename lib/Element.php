@@ -12,7 +12,7 @@ class Element extends \DOMElement {
     protected $_classList;
 
 
-    public function __get_classList(): ?TokenList {
+    protected function __get_classList(): ?TokenList {
         // MensBeam\HTML\DOM\TokenList uses WeakReference to prevent a circular reference,
         // so it requires PHP 7.4 to work.
         if (version_compare(\PHP_VERSION, '7.4.0', '>=')) {
@@ -25,7 +25,7 @@ class Element extends \DOMElement {
         return null; // @codeCoverageIgnore
     }
 
-    public function __get_innerHTML(): string {
+    protected function __get_innerHTML(): string {
         ### DOM Parsing Specification ###
         # 2.3 The InnerHTML mixin
         #
@@ -37,7 +37,7 @@ class Element extends \DOMElement {
         return $this->ownerDocument->serialize($this);
     }
 
-    public function __set_innerHTML(string $value) {
+    protected function __set_innerHTML(string $value) {
         ### DOM Parsing Specification ###
         # 2.3 The InnerHTML mixin
         #
@@ -96,7 +96,7 @@ class Element extends \DOMElement {
         }
     }
 
-    public function __get_nextElementSibling(): Element {
+    protected function __get_nextElementSibling(): Element {
         # The nextElementSibling getter steps are to return the first following sibling
         # that is an element; otherwise null.
         if ($this->parentNode !== null) {
@@ -121,7 +121,7 @@ class Element extends \DOMElement {
         return null;
     }
 
-    public function __get_outerHTML(): string {
+    protected function __get_outerHTML(): string {
         ### DOM Parsing Specification ###
         # 2.4 Extensions to the Element interface
         # outerHTML
@@ -135,7 +135,7 @@ class Element extends \DOMElement {
         return $this->__toString();
     }
 
-    public function __set_outerHTML(string $value) {
+    protected function __set_outerHTML(string $value) {
         ### DOM Parsing Specification ###
         # 2.4 Extensions to the Element interface
         # outerHTML
@@ -172,7 +172,7 @@ class Element extends \DOMElement {
         $this->parentNode->replaceChild($fragment, $this);
     }
 
-    public function __get_previousElementSibling(): Element {
+    protected function __get_previousElementSibling(): Element {
         # The previousElementSibling getter steps are to return the first preceding
         # sibling that is an element; otherwise null.
         if ($this->parentNode !== null) {

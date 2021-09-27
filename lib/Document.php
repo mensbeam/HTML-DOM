@@ -10,12 +10,12 @@ use MensBeam\HTML\Parser,
 
 
 class Document extends AbstractDocument {
-    protected ?Element $_body = null;
+    protected $_body = null;
     /** Nonstandard */
-    protected ?string $_documentEncoding;
-    protected int $_quirksMode = 0;
+    protected $_documentEncoding;
+    protected $_quirksMode = 0;
     /** Nonstandard */
-    protected ?\DOMXPath $_xpath = null;
+    protected $_xpath = null;
 
     // List of elements that are treated as block elements for the purposes of
     // output formatting when serializing
@@ -119,7 +119,7 @@ class Document extends AbstractDocument {
     public function __construct($source = null, ?string $encoding = null, int $quirksMode = 0) {
         // Because we cannot have union types until php 8... :)
         if ($source !== null && !$source instanceof \DOMDocument && !is_string($source)) {
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string|\DOMDocument', gettype($source));
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument|string|null', gettype($source));
         }
 
         parent::__construct();

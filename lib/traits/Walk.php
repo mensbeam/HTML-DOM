@@ -1,13 +1,19 @@
 <?php
 /** @license MIT
- * Copyright 2017 , Dustin Wilson, J. King et al.
+ * Copyright 2017, Dustin Wilson, J. King et al.
  * See LICENSE and AUTHORS files for details */
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 trait Walk {
-    /** Generator which walks down the DOM. Nonstandard. */
+    /**
+     * Generator which walks down the DOM from the node the method is being run on.
+     * Nonstandard.
+     *
+     * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
+     *                            just yield every node.
+     */
     public function walk(?\Closure $filter = null): \Generator {
         $node = $this->firstChild;
         if ($node !== null) {
@@ -39,11 +45,12 @@ trait Walk {
     /**
      * Generator which just walks through a node's child nodes. Nonstandard.
      *
-     * @param ?\Closure $filter - A callback function used to filter
-     * @param bool $backwards - An optional setting that if true makes the generator walk backwards through the
-     *                          child nodes.
+     * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
+     *                            just yield every node.
+     * @param bool $backwards - An optional setting that if true makes the generator instead walk backwards
+     *                          through the child nodes.
      */
-    public function walkShallow(?\Closure $filter = null, $backwards = false): \Generator {
+    public function walkShallow(?\Closure $filter = null, bool $backwards = false): \Generator {
         $node = (!$this instanceof TemplateElement) ? $this : $this->content;
 
         if (!$backwards) {

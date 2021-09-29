@@ -27,7 +27,7 @@ class DOMException extends \Exception {
           7 => 'Modification not allowed here',
           8 => 'Not found error',
          12 => 'Syntax error',
-        100 => 'Argument #%s (\$%s) must be of type %s, %s given',
+        100 => 'Argument #%s ($%s) must be of type %s, %s given',
         101 => 'Failed to set the "outerHTML" property; the element does not have a parent node'
     ];
 

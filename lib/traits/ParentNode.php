@@ -225,7 +225,11 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
             foreach ($nodes as $n) {
                 // Can't do union types until PHP 8... OTL
                 if (!$n instanceof \DOMNode && !is_string($n)) {
-                    throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', gettype($n));
+                    $type = gettype($n);
+                    if ($type === 'object') {
+                        $type = get_class($n);
+                    }
+                    throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'nodes', '[\DOMNode|string]', $n);
                 }
 
                 $nn = (!is_string($n)) ? $n : $this->ownerDocument->createTextNode($n);

@@ -124,7 +124,11 @@ class Document extends AbstractDocument {
     public function __construct($source = null, ?string $encoding = null, int $quirksMode = 0) {
         // Because we cannot have union types until php 8... :)
         if ($source !== null && !$source instanceof \DOMDocument && !is_string($source)) {
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument|string|null', gettype($source));
+            $type = gettype($source);
+            if ($type === 'object') {
+                $type = get_class($source);
+            }
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument|string|null', $type);
         }
 
         parent::__construct();
@@ -214,9 +218,13 @@ class Document extends AbstractDocument {
     public function importNode(\DOMNode $node, bool $deep = false) {
         $node = parent::importNode($node, $deep);
 
-        /*if ($node instanceof \DOMElement) {
-            $node = $this->convertTemplate($node);
-        }*/
+        if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
+            if ($node instanceof \DOMElement && !$node instanceof HTMLTemplateElement && $node->namespaceURI === null && $node->nodeName === 'template') {
+                $node = $this->convertTemplate($node);
+            } else {
+                $this->replaceTemplates($node);
+            }
+        }
 
         return $node;
     }
@@ -233,13 +241,17 @@ class Document extends AbstractDocument {
 
     public function loadDOM(\DOMDocument $source, ?string $encoding = null, int $quirksMode = 0) {
         if (!$source instanceof \DOMDocument) {
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument', gettype($source));
+            $type = gettype($source);
+            if ($type === 'object') {
+                $type = get_class($source);
+            }
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument', $type);
         }
 
         $this->_documentEncoding = $encoding;
         $this->_quirksMode = $quirksMode;
 
-        // If there are already existing child nodes then remove them before loading the
+        // If there are already-existing child nodes then remove them before loading the
         // DOM.
         while ($this->hasChildNodes()) {
             $this->removeChild($this->firstChild);
@@ -253,13 +265,16 @@ class Document extends AbstractDocument {
             }
         }
 
-        $this->replaceTemplates();
         return true;
     }
 
     public function loadHTML($source, $options = null, ?string $encoding = null): bool {
         if (!is_string($source)) {
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', gettype($source));
+            $type = gettype($source);
+            if ($type === 'object') {
+                $type = get_class($source);
+            }
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', $type);
         }
 
         $source = Parser::parse($source, $encoding, null);
@@ -788,13 +803,16 @@ class Document extends AbstractDocument {
             while ($element->hasChildNodes()) {
                 $child = $element->firstChild;
 
-                if ($child instanceof Element && !$child instanceof HTMLTemplateElement && $child->namespaceURI === null && $child->nodeName === 'template') {
-                    $newChild = $this->convertTemplate($child);
-                    $child->parentNode->removeChild($child);
-                    $child = $newChild;
+                if ($child instanceof Element) {
+                    if (!$child instanceof HTMLTemplateElement && $child->namespaceURI === null && $child->nodeName === 'template') {
+                        $newChild = $this->convertTemplate($child);
+                        $child->parentNode->removeChild($child);
+                        $child = $newChild;
+                    }
+
+                    $this->replaceTemplates($child);
                 }
 
-                $this->replaceTemplates($child);
                 $template->content->appendChild($child);
             }
 
@@ -807,7 +825,17 @@ class Document extends AbstractDocument {
     private function replaceTemplates(?\DOMNode $node = null) {
         if ($node === null) {
             $node = $this;
-        } elseif ($node instanceof HTMLTemplateElement) {
+        }
+
+        if (!$node instanceof \DOMDocument && !$node instanceof \DOMElement && !$node instanceof \DOMDocumentFragment) {
+            $type = gettype($node);
+            if ($type === 'object') {
+                $type = get_class($node);
+            }
+            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'node', '\DOMDocument|\DOMDocumentFragment|\DOMElement|null', $type);
+        }
+
+        if ($node instanceof HTMLTemplateElement) {
             $node = $node->content;
         }
 

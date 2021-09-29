@@ -7,9 +7,9 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\Document;
-use MensBeam\HTML\DOM\Parser;
+use MensBeam\HTML\Parser;
 
-/** 
+/**
  * @covers \MensBeam\HTML\DOM\Document
  * @covers \MensBeam\HTML\DOM\DocumentFragment
  * @covers \MensBeam\HTML\DOM\Element

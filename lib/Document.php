@@ -1,7 +1,9 @@
 <?php
-/** @license MIT
- * Copyright 2017 , Dustin Wilson, J. King et al.
- * See LICENSE and AUTHORS files for details */
+/**
+ * @license MIT
+ * Copyright 2017, Dustin Wilson, J. King et al.
+ * See LICENSE and AUTHORS files for details
+ */
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
@@ -10,6 +12,9 @@ use MensBeam\HTML\Parser,
 
 
 class Document extends AbstractDocument {
+    public $mangledAttributes = false;
+    public $mangledElements = false;
+
     protected $_body = null;
     /** Nonstandard */
     protected $_documentEncoding;
@@ -185,9 +190,6 @@ class Document extends AbstractDocument {
                 $e = parent::createElementNS($namespaceURI, $qualifiedName, $value);
             } else {
                 $e = new HTMLTemplateElement($this, $qualifiedName, $value);
-                // Template elements need to have a reference kept in userland
-                ElementMap::set($e);
-                $e->content = $this->createDocumentFragment();
             }
 
             return $e;
@@ -212,9 +214,9 @@ class Document extends AbstractDocument {
     public function importNode(\DOMNode $node, bool $deep = false) {
         $node = parent::importNode($node, $deep);
 
-        if ($node instanceof \DOMElement) {
-            $node = $this->convertElementToSubClass($node);
-        }
+        /*if ($node instanceof \DOMElement) {
+            $node = $this->convertTemplate($node);
+        }*/
 
         return $node;
     }
@@ -251,16 +253,7 @@ class Document extends AbstractDocument {
             }
         }
 
-        $templates = $this->walk(function($n) {
-            if ($n instanceof Element && $n->namespaceURI === null && $n->nodeName === 'template') {
-                return true;
-            }
-        });
-
-        foreach ($templates as $template) {
-            $template->replaceWith($this->convertElementToSubClass($template));
-        }
-
+        $this->replaceTemplates();
         return true;
     }
 
@@ -785,7 +778,7 @@ class Document extends AbstractDocument {
     }
 
 
-    private function convertElementToSubClass(\DOMElement $element): \DOMElement {
+    private function convertTemplate(\DOMElement $element): \DOMElement {
         if ($element->namespaceURI === null && $element->nodeName === 'template') {
             $template = $this->createElement('template');
 
@@ -793,13 +786,50 @@ class Document extends AbstractDocument {
                 $template->setAttributeNode($element->attributes->item(0));
             }
             while ($element->hasChildNodes()) {
-                $template->content->appendChild($element->firstChild);
+                $child = $element->firstChild;
+
+                if ($child instanceof Element && $child->namespaceURI === null && $child->nodeName === 'template') {
+                    $newChild = $this->convertTemplate($child);
+                    $child->parentNode->removeChild($child);
+                    $child = $newChild;
+                }
+
+                $this->replaceTemplates($child);
+                $template->content->appendChild($child);
             }
 
             $element = $template;
         }
 
         return $element;
+    }
+
+    private function replaceTemplates(?\DOMNode $node = null) {
+        if ($node === null) {
+            $node = $this;
+        } elseif ($node instanceof HTMLTemplateElement) {
+            $node = $node->content;
+        }
+
+        $templates = $node->walk(function($n) {
+            if ($n instanceof Element && $n->namespaceURI === null && $n->nodeName === 'template') {
+                return true;
+            }
+        });
+
+        // FIXME: This is a really ugly way to do it, but I -HAVE- to replace these templates in reverse.
+        $temp = [];
+        foreach ($templates as $template) {
+            $temp[] = $template;
+        }
+        $templates = $temp;
+
+        // Iterate through the templates in reverse so nested templates can be handled
+        // properly.
+        for ($templatesLength = count($templates), $i = $templatesLength - 1; $i >= 0; $i--) {
+            $template = $templates[$i];
+            $template->parentNode->replaceChild($this->convertTemplate($template), $template);
+        }
     }
 
 

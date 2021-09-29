@@ -1,6 +1,7 @@
 <?php
-/** @license MIT
- * Copyright 2017 , Dustin Wilson, J. King et al.
+/**
+ * @license MIT
+ * Copyright 2017, Dustin Wilson, J. King et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -21,7 +22,7 @@ trait MagicProperties {
         // exist fatal error.
         $methodName = $this->getMagicPropertyMethodName($name);
         if (!method_exists($this, $methodName)) {
-            trigger_error("Property \"$name\" does not exist", \E_USER_ERROR);
+            throw new \Exception("Property \"$name\" does not exist");
         }
         return call_user_func([ $this, $methodName ]);
     }
@@ -42,16 +43,16 @@ trait MagicProperties {
         // Finally, if a getter doesn't exist trigger a property does not exist fatal
         // error.
         if (method_exists($this, $this->getMagicPropertyMethodName($name))) {
-            trigger_error("Cannot write readonly property \"$name\"", \E_USER_ERROR);
+            throw new \Exception("Cannot write readonly property \"$name\"");
         } else {
-            trigger_error("Property \"$name\" does not exist", \E_USER_ERROR);
+            throw new \Exception("Property \"$name\" does not exist");
         }
     }
 
     public function __unset(string $name) {
         $methodName = $this->getMagicPropertyMethodName($name, false);
         if (!method_exists($this, $methodName)) {
-            trigger_error("Cannot write readonly property \"$name\"", \E_USER_ERROR);
+            throw new \Exception("Cannot write readonly property \"$name\"");
         }
 
         call_user_func([ $this, $methodName ], null);

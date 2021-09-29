@@ -6,9 +6,12 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM\TestCase;
 
-use MensBeam\HTML\DOM\Document;
-use MensBeam\HTML\DOM\Parser;
-use MensBeam\HTML\DOM\TemplateElement;
+use MensBeam\HTML\DOM\{
+    Document,
+    HTMLTemplateElement
+};
+use MensBeam\HTML\Parser;
+
 
 class TestDOM extends \PHPUnit\Framework\TestCase {
     /**
@@ -63,25 +66,25 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
     }
 
     /** @covers \MensBeam\HTML\DOM\Document::createElementNS */
-    public function testCreateTemplateElements(): void {
+    public function testCreateHTMLTemplateElements(): void {
         $d = new Document;
         $t = $d->createElement("template");
-        $this->assertInstanceOf(TemplateElement::class, $t);
+        $this->assertInstanceOf(HTMLTemplateElement::class, $t);
         $this->assertNotNull($t->ownerDocument);
         $t = $d->createElement("TEMPLATE");
-        $this->assertInstanceOf(TemplateElement::class, $t);
+        $this->assertInstanceOf(HTMLTemplateElement::class, $t);
         $this->assertNotNull($t->ownerDocument);
         $t = $d->createElementNS(null, "template");
-        $this->assertInstanceOf(TemplateElement::class, $t);
+        $this->assertInstanceOf(HTMLTemplateElement::class, $t);
         $this->assertNotNull($t->ownerDocument);
         $t = $d->createElementNS(null, "TEMPLATE");
-        $this->assertInstanceOf(TemplateElement::class, $t);
+        $this->assertInstanceOf(HTMLTemplateElement::class, $t);
         $this->assertNotNull($t->ownerDocument);
         $t = $d->createElementNS("http://www.w3.org/1999/xhtml", "template");
-        $this->assertInstanceOf(TemplateElement::class, $t);
+        $this->assertInstanceOf(HTMLTemplateElement::class, $t);
         $this->assertNotNull($t->ownerDocument);
         $t = $d->createElementNS("http://www.w3.org/1999/xhtml", "TEMPLATE");
-        $this->assertInstanceOf(TemplateElement::class, $t);
+        $this->assertInstanceOf(HTMLTemplateElement::class, $t);
         $this->assertNotNull($t->ownerDocument);
     }
 

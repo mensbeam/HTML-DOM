@@ -1,7 +1,9 @@
 <?php
-/** @license MIT
+/**
+ * @license MIT
  * Copyright 2017, Dustin Wilson, J. King et al.
- * See LICENSE and AUTHORS files for details */
+ * See LICENSE and AUTHORS files for details
+ */
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
@@ -23,12 +25,12 @@ trait Walk {
                 $prev = $node->previousSibling;
                 if ($filter === null || $filter($node) === true) {
                     yield $node;
+                }
 
-                    // If the node was replaced mid-loop then make node be the element that it was
-                    // replaced with by determining the previous node's position.
-                    if ($node->parentNode === null) {
-                        $node = $prev->nextSibling ?? $parent->firstChild;
-                    }
+                // If the node was replaced mid-loop then make node be the element that it was
+                // replaced with by determining the previous node's position.
+                if ($node->parentNode === null) {
+                    $node = $prev->nextSibling ?? $parent->firstChild;
                 }
 
                 if ($node instanceof HTMLTemplateElement) {

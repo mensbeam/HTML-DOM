@@ -1,5 +1,6 @@
 <?php
-/** @license MIT
+/**
+ * @license MIT
  * Copyright 2017 Dustin Wilson, J. King et al.
  * See LICENSE and AUTHORS files for details
  */

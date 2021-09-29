@@ -1,10 +1,14 @@
 <?php
-/** @license MIT
- * Copyright 2017 , Dustin Wilson, J. King et al.
- * See LICENSE and AUTHORS files for details */
+/**
+ * @license MIT
+ * Copyright 2017, Dustin Wilson, J. King et al.
+ * See LICENSE and AUTHORS files for details
+ */
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\Parser;
+
 
 class Element extends \DOMElement {
     use ContainerNode, DocumentOrElement, EscapeString, MagicProperties, Moonwalk, ParentNode, ToString, Walk;
@@ -34,7 +38,7 @@ class Element extends \DOMElement {
         # might throw an exception instead of returning a string).
         // DEVIATION: Parsing of XML documents will not be handled by this
         // implementation, so there's no need for the well-formed flag.
-        return $this->ownerDocument->serialize($this);
+        return $this->ownerDocument->saveHTML($this);
     }
 
     protected function __set_innerHTML(string $value) {

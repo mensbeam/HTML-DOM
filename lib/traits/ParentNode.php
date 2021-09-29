@@ -229,7 +229,7 @@ if (version_compare(\PHP_VERSION, '8.0', '>=')) {
                     if ($type === 'object') {
                         $type = get_class($n);
                     }
-                    throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'nodes', '[\DOMNode|string]', $n);
+                    throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', '[\DOMNode|string]', $n);
                 }
 
                 $nn = (!is_string($n)) ? $n : $this->ownerDocument->createTextNode($n);

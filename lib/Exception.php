@@ -8,27 +8,26 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-class DOMException extends \Exception {
-    // From PHP's DOMException; keeping error codes consistent
-    const HIERARCHY_REQUEST_ERROR = 3;
-    const WRONG_DOCUMENT = 4;
-    const INVALID_CHARACTER = 5;
-    const NO_MODIFICATION_ALLOWED = 7;
-    const NOT_FOUND = 8;
-    const SYNTAX_ERROR = 12;
+class Exception extends \Exception {
+    const INVALID_CODE = 100;
+    const UNKNOWN_ERROR = 101;
+    const INCORRECT_PARAMETERS_FOR_MESSAGE = 102;
+    const UNREACHABLE_CODE = 103;
 
-    const OUTER_HTML_FAILED_NOPARENT = 101;
+    const NONEXISTENT_PROPERTY = 201;
+    const READONLY_PROPERTY = 202;
+    const ARGUMENT_TYPE_ERROR = 203;
 
 
     protected static $messages = [
-          3 => 'Hierarchy request error; supplied node is not allowed here',
-          4 => 'Supplied node does not belong to this document',
-          5 => 'Invalid character',
-          7 => 'Modification not allowed here',
-          8 => 'Not found error',
-         12 => 'Syntax error',
+        100 => 'Invalid error code',
+        101 => 'Unknown error; escaping',
+        102 => 'Incorrect number of parameters for Exception message; %s expected',
+        103 => 'Unreachable code',
 
-        101 => 'Failed to set the "outerHTML" property; the element does not have a parent node'
+        201 => 'Property %s does not exist',
+        202 => 'Cannot write readonly property %s',
+        203 => 'Argument #%s ($%s) must be of type %s, %s given'
     ];
 
     public function __construct(int $code, ...$args) {

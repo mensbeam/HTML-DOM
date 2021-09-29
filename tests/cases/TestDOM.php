@@ -8,6 +8,9 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
+    DOMException,
+    Element,
+    Exception,
     HTMLTemplateElement
 };
 use MensBeam\HTML\Parser;
@@ -308,14 +311,50 @@ class TestDOM extends \PHPUnit\Framework\TestCase {
         $this->assertSame("ack", $e->getAttributeNS("fake_ns", "eek"));
     }
 
-    /** @covers \MensBeam\HTML\DOM\Element::__get */
-    public function testGetInnerAndOuterHtml(): void {
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_body
+     */
+    public function testGetBody(): void {
+        $d = new Document;
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+
+        $body = $d->body;
+        $this->assertSame(Element::class, $body::class);
+        $this->assertSame(null, $body->namespaceURI);
+        $this->assertSame('body', $body->nodeName);
+    }
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
+     * @covers \MensBeam\HTML\DOM\Element::__get_outerHTML
+     */
+    public function testGetInnerAndOuterHTML(): void {
         $d = new Document;
         $d->appendChild($d->createElement("html"));
         $d->documentElement->appendChild($d->createTextNode("OOK"));
         $this->assertSame("OOK", $d->documentElement->innerHTML);
         $this->assertSame("<html>OOK</html>", $d->documentElement->outerHTML);
-        $this->assertNull($d->documentElement->innerHtml);
-        $this->assertNull($d->documentElement->outerHtml);
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::NONEXISTENT_PROPERTY);
+        $d->documentElement->innerHtml;
+        $d->documentElement->outerHtml;
+    }
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__set_innerHTML
+     * @covers \MensBeam\HTML\DOM\Element::__set_outerHTML
+     */
+    public function testSetInnerAndOuterHTML(): void {
+        $d = new Document;
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createTextNode('OOK'));
+        $d->documentElement->innerHTML = 'EEK';
+        $this->assertSame('<head></head><body>EEK</body>', $d->documentElement->innerHTML);
+
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
+        $d->documentElement->outerHTML = '<html>FAIL</html>';
     }
 }

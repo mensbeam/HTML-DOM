@@ -128,7 +128,7 @@ class Document extends AbstractDocument {
             if ($type === 'object') {
                 $type = get_class($source);
             }
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument|string|null', $type);
+            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument|string|null', $type);
         }
 
         parent::__construct();
@@ -245,7 +245,7 @@ class Document extends AbstractDocument {
             if ($type === 'object') {
                 $type = get_class($source);
             }
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument', $type);
+            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument', $type);
         }
 
         $this->_documentEncoding = $encoding;
@@ -274,7 +274,7 @@ class Document extends AbstractDocument {
             if ($type === 'object') {
                 $type = get_class($source);
             }
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', $type);
+            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', $type);
         }
 
         $source = Parser::parse($source, $encoding, null);
@@ -314,11 +314,7 @@ class Document extends AbstractDocument {
                     $formatOutput = false;
                 }
 
-                if (!$node instanceof \DOMDocumentType) {
-                    $frag = $this->createDocumentFragment();
-                    $frag->appendChild($node->cloneNode(true));
-                    $node = $frag;
-                } else {
+                if ($node instanceof \DOMDocumentType) {
                     $newDoc = new self();
                     $newDoc->appendChild($newDoc->implementation->createDocumentType($node->name, $node->publicId, $node->systemId));
                     $node = $newDoc;
@@ -484,6 +480,7 @@ class Document extends AbstractDocument {
         $nodesLength = $node->childNodes->length;
         # 4. For each child node of the node, in tree order, run the following steps:
         ## 1. Let current node be the child node being processed.
+
         foreach ($node->childNodes as $currentNode) {
             $foreign = ($currentNode->namespaceURI !== null);
 
@@ -625,17 +622,22 @@ class Document extends AbstractDocument {
                     $previousNonTextNodeSiblingName = $tagName;
                 }
 
-                # Append a U+003E GREATER-THAN SIGN character (>).
-                // DEVIATION: Printing XML-based content such as SVG as if it's HTML might be
-                // practical when a browser is serializing, but it's not in this library's
-                // usage. So, if the element is foreign and doesn't contain any children close
-                // the element instead and continue on to the next child node.
                 $hasChildNodes = $currentNode->hasChildNodes();
-                if (!$foreign || $hasChildNodes) {
+                if ($formatOutput) {
+                    // Printing XML-based content such as SVG as if it's HTML might be practical
+                    // when a browser is serializing, but it's not in this library's usage. So, if
+                    // the element is foreign and doesn't contain any children close the element
+                    // instead and continue on to the next child node.
+                    $hasChildNodes = $currentNode->hasChildNodes();
+                    if (!$foreign || $hasChildNodes) {
+                        $s .= '>';
+                    } elseif (!$hasChildNodes) {
+                        $s .= '/>';
+                        continue;
+                    }
+                } else {
+                    # Append a U+003E GREATER-THAN SIGN character (>).
                     $s .= '>';
-                } elseif (!$hasChildNodes) {
-                    $s .= '/>';
-                    continue;
                 }
 
                 # If current node serializes as void, then continue on to the next child node at
@@ -832,7 +834,7 @@ class Document extends AbstractDocument {
             if ($type === 'object') {
                 $type = get_class($node);
             }
-            throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'node', '\DOMDocument|\DOMDocumentFragment|\DOMElement|null', $type);
+            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'node', '\DOMDocument|\DOMDocumentFragment|\DOMElement|null', $type);
         }
 
         if ($node instanceof HTMLTemplateElement) {

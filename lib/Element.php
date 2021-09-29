@@ -52,7 +52,7 @@ class Element extends \DOMElement {
 
         # 2. Let fragment be the result of invoking the fragment parsing algorithm with
         # the new value as markup, and with context element.
-        $fragment = Parser::parseFragment($value, null, 'UTF-8', $this);
+        $fragment = Parser::parseFragment($this, 0, $value, 'UTF-8');
         $fragment = $this->ownerDocument->importNode($fragment);
 
         # 3. If the context object is a template element, then let context object be the
@@ -170,7 +170,7 @@ class Element extends \DOMElement {
 
         # 5. Let fragment be the result of invoking the fragment parsing algorithm with
         # the new value as markup, and parent as the context element.
-        $fragment = Parser::parseFragment($value, null, 'UTF-8', $parent);
+        $fragment = Parser::parseFragment($parent, 0, $value, 'UTF-8');
         $fragment = $this->ownerDocument->importNode($fragment);
 
         # 6. Replace the context object with fragment within the context object's

@@ -817,16 +817,19 @@ class Document extends AbstractDocument {
             }
         });
 
-        // FIXME: This is a really ugly way to do it, but I -HAVE- to replace these
-        // templates in reverse; find a better way.
+        // Yes, it seems weird to unpack a generator like this, but there is a need to
+        // iterate through them in reverse so nested templates can be handled properly.
+        // Also, this is slightly faster than using XPath to look for the templates;
+        // they would also need to be unpacked because the NodeList is live and would
+        // create an infinite loop if not unpacked to an array.
+        // TODO: Once support for 7.4 is okay this entire middle section here can be
+        // replaced with a spread operator above.
         $temp = [];
         foreach ($templates as $template) {
             $temp[] = $template;
         }
         $templates = $temp;
 
-        // Iterate through the templates in reverse so nested templates can be handled
-        // properly.
         for ($templatesLength = count($templates), $i = $templatesLength - 1; $i >= 0; $i--) {
             $template = $templates[$i];
             $template->parentNode->replaceChild($this->convertTemplate($template), $template);

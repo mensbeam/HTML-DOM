@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 class DocumentFragment extends \DOMDocumentFragment {
-    use ContainerNode, ParentNode, Walk;
+    use ParentNode, Walk;
 
     public function __toString() {
         return $this->ownerDocument->saveHTML($this);

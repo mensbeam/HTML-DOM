@@ -26,7 +26,7 @@ class HTMLTemplateElement extends Element {
 
         $this->content = $this->ownerDocument->createDocumentFragment();
         // Template elements need to have a reference kept in userland
-        ElementMap::set($this);
+        ElementSet::add($this);
     }
 
 

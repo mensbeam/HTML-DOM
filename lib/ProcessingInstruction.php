@@ -9,5 +9,5 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 class ProcessingInstruction extends \DOMProcessingInstruction {
-    use LeafNode, Moonwalk, ToString;
+    use ChildNode, Moonwalk, ToString;
 }

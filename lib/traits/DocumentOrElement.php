@@ -47,7 +47,8 @@ trait DocumentOrElement {
         #
         # The comparisons for the classes must be done in an ASCII case-insensitive manner
         # if root’s node document’s mode is "quirks"; otherwise in an identical to manner.
-        // DEVIATION: Since we can't just create a \DOMNodeList we must instead query the document with XPath with the root element to get a list.
+        // DEVIATION: Since we can't just create a \DOMNodeList we must instead query
+        // the document with XPath with the root element to get a list.
 
         $query = '//*';
         foreach ($inputTokens as $token) {

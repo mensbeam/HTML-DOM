@@ -8,12 +8,22 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-// This is a write-only map of elements which need to be kept in memory; it
+// This is a write-only set of elements which need to be kept in memory; it
 // exists because values of properties on derived DOM classes are lost unless at
 // least one PHP reference is kept for the element somewhere in userspace. This
 // is that somewhere. It is at present only used for template elements.
-class ElementMap {
+class ElementSet {
     protected static $_storage = [];
+
+
+    public static function add(Element $element) {
+        if (!self::has($element)) {
+            self::$_storage[] = $element;
+            return true;
+        }
+
+        return false;
+    }
 
     public static function delete(Element $element) {
         foreach (self::$_storage as $k => $v) {
@@ -55,15 +65,6 @@ class ElementMap {
             if ($v->isSameNode($element)) {
                 return true;
             }
-        }
-
-        return false;
-    }
-
-    public static function set(Element $element) {
-        if (!self::has($element)) {
-            self::$_storage[] = $element;
-            return true;
         }
 
         return false;

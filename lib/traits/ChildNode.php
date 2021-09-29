@@ -8,10 +8,8 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-// Node in the DOM spec is dirty. Many nodes which inherit from it inherit
-// methods it cannot use which all check for this and throw exceptions. This is
-// for nodes which DO NOT have child nodes.
-trait LeafNode {
+
+trait ChildNode {
     use Node;
 
 

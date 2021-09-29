@@ -788,7 +788,7 @@ class Document extends AbstractDocument {
             while ($element->hasChildNodes()) {
                 $child = $element->firstChild;
 
-                if ($child instanceof Element && $child->namespaceURI === null && $child->nodeName === 'template') {
+                if ($child instanceof Element && !$child instanceof HTMLTemplateElement && $child->namespaceURI === null && $child->nodeName === 'template') {
                     $newChild = $this->convertTemplate($child);
                     $child->parentNode->removeChild($child);
                     $child = $newChild;
@@ -812,12 +812,13 @@ class Document extends AbstractDocument {
         }
 
         $templates = $node->walk(function($n) {
-            if ($n instanceof Element && $n->namespaceURI === null && $n->nodeName === 'template') {
+            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $n->namespaceURI === null && $n->nodeName === 'template') {
                 return true;
             }
         });
 
-        // FIXME: This is a really ugly way to do it, but I -HAVE- to replace these templates in reverse.
+        // FIXME: This is a really ugly way to do it, but I -HAVE- to replace these
+        // templates in reverse; find a better way.
         $temp = [];
         foreach ($templates as $template) {
             $temp[] = $template;

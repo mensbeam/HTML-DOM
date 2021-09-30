@@ -121,7 +121,7 @@ class Document extends AbstractDocument {
     }
 
 
-    public function __construct($source = null, ?string $encoding = null, int $quirksMode = 0) {
+    public function __construct($source = null, ?string $encoding = null) {
         // Because we cannot have union types until php 8... :)
         if ($source !== null && !$source instanceof \DOMDocument && !is_string($source)) {
             $type = gettype($source);
@@ -144,7 +144,7 @@ class Document extends AbstractDocument {
             if (is_string($source)) {
                 $this->loadHTML($source, null, $encoding);
             } else {
-                $this->loadDOM($source, $encoding, $quirksMode);
+                $this->loadDOM($source, $encoding);
             }
         }
     }

@@ -15,7 +15,12 @@ class DOMException extends \Exception {
     const INVALID_CHARACTER = 5;
     const NO_MODIFICATION_ALLOWED = 7;
     const NOT_FOUND = 8;
+    const NOT_SUPPORTED = 9;
     const SYNTAX_ERROR = 12;
+    const INVALID_MODIFICATION_ERROR = 13;
+    const NAMESPACE_ERROR = 14;
+    const INVALID_ACCESS_ERROR = 15;
+    const VALIDATION_ERROR = 16;
 
     const OUTER_HTML_FAILED_NOPARENT = 101;
 
@@ -26,7 +31,12 @@ class DOMException extends \Exception {
           5 => 'Invalid character',
           7 => 'Modification not allowed here',
           8 => 'Not found error',
+          9 => 'Feature is not supported because %s',
          12 => 'Syntax error',
+         13 => 'Invalid modification error',
+         14 => 'Namespace error',
+         15 => 'Invalid access error',
+         16 => 'Validation error',
 
         101 => 'Failed to set the "outerHTML" property; the element does not have a parent node'
     ];

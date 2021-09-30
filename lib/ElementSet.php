@@ -8,10 +8,12 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-// This is a write-only set of elements which need to be kept in memory; it
-// exists because values of properties on derived DOM classes are lost unless at
-// least one PHP reference is kept for the element somewhere in userspace. This
-// is that somewhere. It is at present only used for template elements.
+// This is a set of elements which need to be kept in memory; it exists because
+// of the peculiar way PHP works. Derived DOM classes (such as
+// HTMLTemplateElement) won't remain as such in the DOM (meaning they will
+// revert to being what is registered for elements in Document) unless at least
+// one reference is kept for the element somewhere in userspace. This is that
+// somewhere.
 class ElementSet {
     protected static $_storage = [];
 

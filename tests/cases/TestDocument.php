@@ -17,6 +17,39 @@ use MensBeam\HTML\Parser;
 
 
 class TestDocument extends \PHPUnit\Framework\TestCase {
+    public function provideAttributeNodes(): iterable {
+        return [
+            [null,      'test',           'test',            ''],
+            [null,      'test:test',      'testU00003Atest', ''],
+            [null,      'test',           'test',            ''],
+            [null,      'TEST:TEST',      'TESTU00003ATEST', ''],
+            ['fake_ns', 'test',           'test',            ''],
+            ['fake_ns', 'test:test',      'test',            'test'],
+            ['fake_ns', 'TEST:TEST',      'TEST',            'TEST'],
+            ['fake_ns', 'test:test:test', 'testU00003Atest', 'test'],
+            ['fake_ns', 'TEST:TEST:TEST', 'TESTU00003ATEST', 'TEST'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideAttributeNodes
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     */
+    public function testAttributeNodeCreation(?string $nsIn, string $nameIn, string $local, string $prefix): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $a = $d->createAttributeNS($nsIn, $nameIn);
+        $this->assertSame($local, $a->localName);
+        $this->assertSame($nsIn, $a->namespaceURI);
+        $this->assertSame($prefix, $a->prefix);
+
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $a = $d->createAttribute($nameIn);
+        $this->assertSame(($prefix !== '') ? "{$prefix}U00003A{$local}" : $local, $a->nodeName);
+    }
+
      /**
       * @covers \MensBeam\HTML\DOM\Document::__construct
       * @covers \MensBeam\HTML\DOM\Document::loadDOM
@@ -38,5 +71,61 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
          $d = new Document($d);
          $this->assertSame('MensBeam\HTML\DOM\Element', $d->firstChild::class);
          $this->assertSame('html', $d->firstChild->nodeName);
+     }
+
+
+     public function provideElements(): iterable {
+         return [
+             // HTML element
+             [ '',                                 null,                  'div',        'div',       Element::class ],
+             // HTML element and having to normalize local name
+             [ '',                                 null,                  ' DIV',       'div',       Element::class ],
+             // HTML element with a null namespace
+             [ null,                               null,                  'div',        'div',       Element::class ],
+             // HTML element with a null namespace and having to normalize local name
+             [ null,                               null,                  'DIV ',       'div',       Element::class ],
+             // HTML element with an HTML namespace
+             [ Parser::HTML_NAMESPACE,             null,                  'div',        'div',       Element::class ],
+             // HTML element with an HTML namespace and having to normalize local name
+             [ Parser::HTML_NAMESPACE,             null,                  ' DIV ',      'div',       Element::class ],
+             // HTML element with an HTML namespace and having to normalize namespace URI &
+             // local name
+             [ strtoupper(Parser::HTML_NAMESPACE), null,                  '  DIV ',      'div',      Element::class ],
+             // Template element
+             [ '',                                 null,                  'template',    'template', HTMLTemplateElement::class ],
+             // Template element and having to normalize local name
+             [ '',                                 null,                  ' TEMPLATE',   'template', HTMLTemplateElement::class ],
+             // Template element with a null namespace
+             [ null,                               null,                  'template',    'template', HTMLTemplateElement::class ],
+             // Template element with a null namespace and having to normalize local name
+             [ null,                               null,                  'TEMPLATE ',   'template', HTMLTemplateElement::class ],
+             // Template element with an HTML namespace
+             [ Parser::HTML_NAMESPACE,             null,                  'template',    'template', HTMLTemplateElement::class ],
+             // Template element with an HTML namespace and having to normalize local name
+             [ Parser::HTML_NAMESPACE,             null,                  ' TEMPLATE ',  'template', HTMLTemplateElement::class ],
+             // Template element with an HTML namespace and having to normalize namespace URI &
+             // local name
+             [ strtoupper(Parser::HTML_NAMESPACE), null,                  '  TEMPLATE ', 'template', HTMLTemplateElement::class ],
+             // SVG element with SVG namespace
+             [ Parser::SVG_NAMESPACE,              Parser::SVG_NAMESPACE, 'svg',         'svg',      Element::class ],
+             // SVG element with SVG namespace and having to normalize local name
+             [ Parser::SVG_NAMESPACE,              Parser::SVG_NAMESPACE, ' SVG',        'SVG',      Element::class ],
+             // SVG element with SVG namespace and having to normalize local name
+             [ strtoupper(Parser::SVG_NAMESPACE),  Parser::SVG_NAMESPACE, ' SVG ',       'SVG',      Element::class ]
+         ];
+     }
+
+     /**
+      * @dataProvider provideElements
+      * @covers \MensBeam\HTML\DOM\Document::createElement
+      * @covers \MensBeam\HTML\DOM\Document::createElementNS
+      */
+     public function testElementCreation(?string $nsIn, ?string $nsOut, string $localIn, string $localOut, string $class): void {
+         $d = new Document;
+         $n = ($nsIn !== '') ? $d->createElementNS($nsIn, $localIn) : $d->createElement($localIn);
+         $this->assertInstanceOf($class, $n);
+         $this->assertNotNull($n->ownerDocument);
+         $this->assertSame($nsOut, $n->namespaceURI);
+         $this->assertSame($localOut, $n->localName);
      }
 }

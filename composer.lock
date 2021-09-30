@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1077b4324237a83eab2f418e6eb3f2d4",
+    "content-hash": "fa97f8577cdf49f5f1dc348f28cf141b",
     "packages": [
         {
             "name": "mensbeam/html-parser",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://code.mensbeam.com/MensBeam/HTML-Parser",
-                "reference": "49764a456743ac69074b4f64619cf87af254c071"
+                "url": "mensbeam-gitea:MensBeam/HTML-Parser.git",
+                "reference": "c6c3f725d09f4162fb58c6943f980af34c7435b2"
             },
             "require": {
                 "ext-dom": "*",
@@ -42,7 +42,20 @@
                     "lib/Parser/ctype.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "MensBeam\\HTML\\Test\\": "tests/lib/",
+                    "MensBeam\\HTML\\TestCase\\": "tests/cases/"
+                }
+            },
+            "scripts": {
+                "post-install-cmd": [
+                    "@composer bin all install"
+                ],
+                "post-update-cmd": [
+                    "@composer bin all update"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -59,7 +72,7 @@
                 }
             ],
             "description": "Parses modern HTML text into a PHP DOMDocument",
-            "time": "2021-09-28T20:15:07+00:00"
+            "time": "2021-09-29T22:39:46+00:00"
         },
         {
             "name": "mensbeam/intl",
@@ -2466,5 +2479,5 @@
         "ext-dom": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.0.0"
 }

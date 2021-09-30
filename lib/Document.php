@@ -177,37 +177,144 @@ class Document extends AbstractDocument {
         }
     }
 
-    public function createElement($name, $value = "") {
-        return $this->createElementNS(null, $name, $value);
-    }
-
-    public function createElementNS($namespaceURI, $qualifiedName, $value = "") {
-        // Normalize the element name and namespace URI per modern DOM specifications.
-        if ($namespaceURI !== null) {
-            $namespaceURI = trim($namespaceURI);
-            $namespaceURI = ($namespaceURI === Parser::HTML_NAMESPACE) ? null : $namespaceURI;
+    public function createElement($name, $value = null): Element {
+        # The createElement(localName, options) method steps are:
+        // DEVIATION: We cannot follow the createElement parameters per the DOM spec
+        // because we cannot change the parameters from \DOMDOcument. This is okay
+        // because $options is currently just for the is attribute for custom elements.
+        // Since this implementation does not have support for scripting that argument
+        // would be useless anyway. Equally, the $value parameter from PHP's DOM is
+        // useless, so it is disabled in this implementation as it doesn't exist in the
+        // DOM spec.
+        if ($value !== null) {
+            throw new DOMException(DOMException::NOT_SUPPORTED, 'the value parameter is not in the official DOM specification; create a text node and append instead');
         }
-        $qualifiedName = ($namespaceURI === null) ? strtolower(trim($qualifiedName)) : trim($qualifiedName);
+
+        # 1. If localName does not match the Name production, then throw an
+        #    "InvalidCharacterError" DOMException.
+        if (preg_match('/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/u', $name) !== 1) {
+            throw new DOMException(DOMException::INVALID_CHARACTER);
+        }
+
+        # 2. If this is an HTML document, then set localName to localName in ASCII
+        #    lowercase.
+        // This will always be an HTML document
+        $name = strtolower($name);
+
+        # 3. Let is be null.
+        # 4. If options is a dictionary and options["is"] exists, then set is to it.
+        # 5. Let namespace be the HTML namespace, if this is an HTML document or this’s
+        #    content type is "application/xhtml+xml"; otherwise null.
+        # 6. Return the result of creating an element given this, localName, namespace,
+        #    null, is, and with the synchronous custom elements flag set.
+        // DEVIATION: There is no scripting in this implementation.
 
         try {
-            if ($qualifiedName !== 'template' || $namespaceURI !== null) {
-                $e = parent::createElementNS($namespaceURI, $qualifiedName, $value);
+            if ($name !== 'template') {
+                $e = parent::createElement($name);
             } else {
-                $e = new HTMLTemplateElement($this, $qualifiedName, $value);
+                $e = new HTMLTemplateElement($this, $name);
             }
 
             return $e;
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
-            //   uppercase hexadecimal digits of the character's code point
+            // uppercase hexadecimal digits of the character's code point
+            return parent::createElement($this->coerceName($name));
+        }
+    }
+
+    public function createElementNS($namespaceURI, $qualifiedName, $value = null): Element {
+        # The internal createElementNS steps, given document, namespace, qualifiedName,
+        # and options, are as follows:
+        // DEVIATION: We cannot follow the createElement parameters per the DOM spec
+        // because we cannot change the parameters from \DOMDOcument. This is okay
+        // because $options is currently just for the is attribute for custom elements.
+        // Since this implementation does not have support for scripting that argument
+        // would be useless anyway. Equally, the $value parameter from PHP's DOM is
+        // useless, so it is disabled in this implementation as it doesn't exist in the
+        // DOM spec.
+
+        if ($value !== null) {
+            throw new DOMException(DOMException::NOT_SUPPORTED, 'the value parameter is not in the official DOM specification; create a text node and append instead');
+        }
+
+        # 1. Let namespace, prefix, and localName be the result of passing namespace and
+        #    qualifiedName to validate and extract.
+
+        ##   To validate and extract a namespace and qualifiedName, run these steps:
+        ##   1. If namespace is the empty string, set it to null.
+        if ($namespaceURI === '') {
+            $namespaceURI = null;
+        }
+
+        ##   2. Validate qualifiedName.
+        ###     To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
+        ###     qualifiedName does not match the QName production.
+        if (preg_match('/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/u', $qualifiedName) !== 1) {
+            throw new DOMException(DOMException::INVALID_CHARACTER);
+        }
+
+        ##   3. Let prefix be null.
+        $prefix = null;
+
+        ##   4. Let localName be qualifiedName.
+        $localName = $qualifiedName;
+
+        ##   5. If qualifiedName contains a ":" (U+003E), then split the string on it and
+        ##      set prefix to the part before and localName to the part after.
+        if (strpos($qualifiedName, ':') !== false) {
+            $temp = explode(':', $qualifiedName, 2);
+            $prefix = $temp[0];
+            $prefix = ($prefix !== '') ? $prefix : null;
+            $localName = $temp[1];
+        }
+
+        ##   6. If prefix is non-null and namespace is null, then throw a "NamespaceError" DOMException.
+        ##   7. If prefix is "xml" and namespace is not the XML namespace, then throw a "NamespaceError" DOMException.
+        ##   8. If either qualifiedName or prefix is "xmlns" and namespace is not the XMLNS
+        ##      namespace, then throw a "NamespaceError" DOMException.
+        ##   9. If namespace is the XMLNS namespace and neither qualifiedName nor prefix is
+        ##      "xmlns", then throw a "NamespaceError" DOMException.
+        if (
+            ($prefix !== null && $namespaceURI === null) ||
+            ($prefix === 'xml' && $namespaceURI !== Parser::XML_NAMESPACE) ||
+            (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespaceURI !== Parser::XMLNS_NAMESPACE) ||
+            ($namespaceURI === Parser::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
+        ) {
+            throw new DOMException(DOMException::NAMESPACE_ERROR);
+        }
+
+        ##   10. Return namespace, prefix, and localName.
+        // Right-o.
+
+        # 2. Let is be null.
+        # 3. If options is a dictionary and options["is"] exists, then set is to it.
+        # 4. Return the result of creating an element given document, localName, namespace,
+        #    prefix, is, and with the synchronous custom elements flag set.
+        // DEVIATION: There is no scripting in this implementation.
+
+        try {
+            if ($qualifiedName !== 'template' || $namespaceURI !== null) {
+                $e = parent::createElementNS($namespaceURI, $qualifiedName);
+            } else {
+                $e = new HTMLTemplateElement($this, $qualifiedName);
+            }
+
+            return $e;
+        } catch (\DOMException $e) {
+            // The element name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            // uppercase hexadecimal digits of the character's code point
             $this->mangledElements = true;
             if ($namespaceURI !== null) {
-                $qualifiedName = implode(":", array_map([$this, "coerceName"], explode(":", $qualifiedName, 2)));
+                $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
             } else {
                 $qualifiedName = $this->coerceName($qualifiedName);
             }
-            return parent::createElementNS($namespaceURI, $qualifiedName, $value);
+
+            return parent::createElementNS($namespaceURI, $qualifiedName);
         }
     }
 

@@ -12,8 +12,8 @@ namespace MensBeam\HTML\DOM;
 class HTMLTemplateElement extends Element {
     public $content = null;
 
-    public function __construct(Document $ownerDocument, string $qualifiedName, ?string $value = null, string $namespace = '') {
-        parent::__construct($qualifiedName, $value, $namespace);
+    public function __construct(Document $ownerDocument, string $qualifiedName, ?string $namespace = null) {
+        parent::__construct($qualifiedName, null, $namespace);
 
         // Elements that are created by their constructor in PHP aren't owned by any
         // document and are readonly until owned by one. Temporarily append to a

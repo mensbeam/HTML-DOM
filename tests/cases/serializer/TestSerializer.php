@@ -38,7 +38,7 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
     public function provideStandardSerializerTests(): iterable {
         $blacklist = [];
         $files = new \AppendIterator();
-        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/serializer/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/Serializer/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
         foreach ($files as $file) {
             $index = 0;
             $l = 0;

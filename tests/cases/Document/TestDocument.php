@@ -19,7 +19,7 @@ use MensBeam\HTML\Parser;
 
 /** @covers \MensBeam\HTML\DOM\Document */
 class TestDocument extends \PHPUnit\Framework\TestCase {
-    public function provideAttributeNodes(): iterable {
+    public function provideAttributeNodeCreation(): iterable {
         return [
             [ 'test',      'test' ],
             [ 'TEST',      'test' ],
@@ -29,7 +29,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideAttributeNodes
+     * @dataProvider provideAttributeNodeCreation
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      */
     public function testAttributeNodeCreation(string $nameIn, string $local): void {
@@ -40,7 +40,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideAttributeNodesNS(): iterable {
+    public function provideAttributeNodeNSCreation(): iterable {
         return [
             [ 'fake_ns', 'test',      'test', '' ],
             [ 'fake_ns', 'test:test', 'test', 'test' ],
@@ -49,7 +49,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideAttributeNodesNS
+     * @dataProvider provideAttributeNodeNSCreation
      * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
@@ -64,34 +64,25 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
 
     /**
-     * @covers \MensBeam\HTML\DOM\Document::__destruct
-     * @covers \MensBeam\HTML\DOM\ElementMap::add
-     * @covers \MensBeam\HTML\DOM\ElementMap::delete
-     * @covers \MensBeam\HTML\DOM\ElementMap::destroy
-     * @covers \MensBeam\HTML\DOM\ElementMap::has
-     * @covers \MensBeam\HTML\DOM\ElementMap::index
+     * @covers \MensBeam\HTML\DOM\Document::loadXML
+     * @covers \MensBeam\HTML\DOM\Document::saveXML
+     * @covers \MensBeam\HTML\DOM\Document::validate
+     * @covers \MensBeam\HTML\DOM\Document::xinclude
      */
-    public function testDestruction(): void {
+    public function testDisabledMethods() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
         $d = new Document();
-        $d->appendChild($d->createElement('html'));
-        $d->documentElement->appendChild($d->createElement('body'));
-        $t = $d->createElement('template');
-        $this->assertFalse(ElementMap::has($t));
-        $d->body->appendChild($t);
-        $this->assertTrue(ElementMap::has($t));
-        $d->__destruct();
-        unset($d);
-        $this->assertFalse(ElementMap::has($t));
+        $d->loadXML('ook');
 
         $d = new Document();
-        $d->appendChild($d->createElement('html'));
-        $d->documentElement->appendChild($d->createElement('body'));
-        $t = $d->importNode($t);
-        $this->assertFalse(ElementMap::has($t));
-        $d->body->appendChild($t);
-        $this->assertTrue(ElementMap::has($t));
-        $d->body->removeChild($t);
-        $this->assertFalse(ElementMap::has($t));
+        $d->saveXML('ook');
+
+        $d = new Document();
+        $d->validate();
+
+        $d = new Document();
+        $d->xinclude('ook');
     }
 
 
@@ -119,7 +110,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideElements(): iterable {
+    public function provideElementCreation(): iterable {
         return [
             // HTML element
             [ 'div',         'div',      Element::class ],
@@ -133,7 +124,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideElements
+     * @dataProvider provideElementCreation
      * @covers \MensBeam\HTML\DOM\Document::createElement
      */
     public function testElementCreation(string $localIn, string $localOut, string $class): void {
@@ -145,7 +136,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideElementsNS(): iterable {
+    public function provideElementCreationNS(): iterable {
         return [
             // HTML element with a null namespace
             [ null,                   null,                   'div',      'div',      Element::class ],
@@ -163,7 +154,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideElementsNS
+     * @dataProvider provideElementCreationNS
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
@@ -174,5 +165,74 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertNotNull($n->ownerDocument);
         $this->assertSame($nsOut, $n->namespaceURI);
         $this->assertSame($localOut, $n->localName);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::importNode */
+    public function testImportingNodes() {
+        $d = new Document();
+        $t = $d->createElement('template');
+
+        $d2 = new Document();
+        $t2 = $d2->importNode($t, true);
+        $this->assertFalse($t2->ownerDocument->isSameNode($t->ownerDocument));
+        $this->assertSame($t2::class, $t::class);
+
+        $d = new \DOMDocument();
+        $t = $d->createElement('template');
+        $this->assertSame($t::class, 'DOMElement');
+
+        $d2 = new Document();
+        $t2 = $d2->importNode($t, true);
+        $this->assertSame($t2::class, str_replace(\DIRECTORY_SEPARATOR, '\\', dirname(str_replace('\\', \DIRECTORY_SEPARATOR, __NAMESPACE__))) . '\HTMLTemplateElement');
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::loadHTMLFile
+     */
+    public function testLoadingDocumentFile() {
+        $f = \MensBeam\HTML\DOM\BASE.'tests/cases/Document/test01.html';
+
+        $d = new Document();
+        $d->load($f);
+        $this->assertNotNull($d->documentElement);
+        $this->assertSame('ISO-2022-JP', $d->documentEncoding);
+
+        $d = new Document();
+        $d->loadHTMLFile($f, null, 'UTF-8');
+        $this->assertSame('UTF-8', $d->documentEncoding);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::__destruct
+     * @covers \MensBeam\HTML\DOM\ElementMap::add
+     * @covers \MensBeam\HTML\DOM\ElementMap::delete
+     * @covers \MensBeam\HTML\DOM\ElementMap::destroy
+     * @covers \MensBeam\HTML\DOM\ElementMap::has
+     * @covers \MensBeam\HTML\DOM\ElementMap::index
+     */
+    public function testTemplateElementReferences(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $t = $d->createElement('template');
+        $this->assertFalse(ElementMap::has($t));
+        $d->body->appendChild($t);
+        $this->assertTrue(ElementMap::has($t));
+        $d->__destruct();
+        $this->assertFalse(ElementMap::has($t));
+
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $t = $d->importNode($t);
+        $this->assertFalse(ElementMap::has($t));
+        $d->body->appendChild($t);
+        $this->assertTrue(ElementMap::has($t));
+        $d->body->removeChild($t);
+        $this->assertFalse(ElementMap::has($t));
     }
 }

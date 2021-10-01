@@ -8,13 +8,16 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-// This is a set of elements which need to be kept in memory; it exists because
+// This is a map of elements which need to be kept in memory; it exists because
 // of the peculiar way PHP works. Derived DOM classes (such as
 // HTMLTemplateElement) won't remain as such in the DOM (meaning they will
 // revert to being what is registered for elements in Document) unless at least
 // one reference is kept for the element somewhere in userspace. This is that
 // somewhere.
 class ElementMap {
+    // List of documents is necessary because when Document objects are destructed
+    // it's not possible to check for a document's existence without triggering a
+    // fatal error. Keeping document references around fixes that.
     protected static $documents = [];
     protected static $elements = [];
 

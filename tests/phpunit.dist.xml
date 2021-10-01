@@ -16,10 +16,10 @@
   </coverage>
   <testsuites>
     <testsuite name="DOM">
-      <file>cases/TestDocument.php</file>
+      <file>cases/Document/TestDocument.php</file>
     </testsuite>
     <testsuite name="Serializer">
-      <file>cases/TestSerializer.php</file>
+      <file>cases/Serializer/TestSerializer.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

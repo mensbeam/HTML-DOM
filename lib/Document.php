@@ -382,7 +382,7 @@ class Document extends AbstractDocument {
     }
 
     public function loadXML($source, $options = null): bool {
-        return false;
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::loadXML instead');
     }
 
     public function save($filename, $options = null) {
@@ -428,7 +428,7 @@ class Document extends AbstractDocument {
     }
 
     public function saveXML(?\DOMNode $node = null, $options = null): bool {
-        return false;
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::saveXML instead');
     }
 
     public function validate(): bool {

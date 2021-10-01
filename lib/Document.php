@@ -25,12 +25,16 @@ class Document extends AbstractDocument {
     // List of elements that are treated as block elements for the purposes of
     // output formatting when serializing
     protected const BLOCK_ELEMENTS = [ 'address', 'article', 'aside', 'blockquote', 'base', 'body', 'details', 'dialog', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'isindex', 'li', 'link', 'main', 'meta', 'nav', 'ol', 'p', 'picture', 'pre', 'section', 'script', 'source', 'style', 'table', 'template', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'ul' ];
+    // Regex used to validate names when creating elements.
+    protected const NAME_PRODUCTION_REGEX = '/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
     // List of h-elements used when determining extra spacing for the purposes of
     // output formatting when serializing
     protected const H_ELEMENTS = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
     // List of preformatted elements where content is ignored for the purposes of
     // output formatting when serializing
     protected const PREFORMATTED_ELEMENTS = [ 'iframe', 'listing', 'noembed', 'noframes', 'noscript', 'plaintext', 'pre', 'style', 'script', 'textarea', 'title', 'xmp' ];
+    // Regex used to validate qualified names when creating namespaced elements.
+    protected const QNAME_PRODUCTION_REGEX = '/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
     // List of elements which are self-closing; used when serializing
     protected const VOID_ELEMENTS = [ 'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'embed', 'frame', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
@@ -150,17 +154,44 @@ class Document extends AbstractDocument {
     }
 
 
-    public function createAttribute($name) {
-        return $this->createAttributeNS(null, $name);
+    public function createAttribute($localName): \DOMAttr {
+        # The createAttribute(localName) method steps are:
+        # 1. If localName does not match the Name production in XML, then throw an
+        #    "InvalidCharacterError" DOMException.
+        if (preg_match(self::NAME_PRODUCTION_REGEX, $localName) !== 1) {
+            throw new DOMException(DOMException::INVALID_CHARACTER);
+        }
+
+        # 2. If this is an HTML document, then set localName to localName in ASCII
+        # lowercase.
+        // This will always be an HTML document
+        $localName = strtolower($localName);
+
+        # 3. Return a new attribute whose local name is localName and node document is
+        # this.
+        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+        // some characters. We have to coerce them sometimes.
+        try {
+            return parent::createAttributeNS(null, $localName);
+        } catch (\DOMException $e) {
+            // The element name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            //   uppercase hexadecimal digits of the character's code point
+            $this->mangledAttributes = true;
+            return parent::createAttributeNS(null, $this->coerceName($localName));
+        }
     }
 
-    public function createAttributeNS($namespaceURI, $qualifiedName) {
-        // Normalize the attribute name and namespace URI per modern DOM specifications.
-        if ($namespaceURI !== null) {
-            $namespaceURI = trim($namespaceURI);
-        }
-        $qualifiedName = trim($qualifiedName);
+    public function createAttributeNS($namespaceURI, $qualifiedName): \DOMAttr {
+        # The createAttributeNS(namespace, qualifiedName) method steps are:
+        # 1. Let namespace, prefix, and localName be the result of passing namespace and
+        #    qualifiedName to validate and extract.
+        [ 'namespace' => $namespaceURI, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespaceURI);
 
+        # 2. Return a new attribute whose namespace is namespace, namespace prefix is
+        # prefix, local name is localName, and node document is this.
+        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+        // some characters. We have to coerce them sometimes.
         try {
             return parent::createAttributeNS($namespaceURI, $qualifiedName);
         } catch (\DOMException $e) {
@@ -192,7 +223,7 @@ class Document extends AbstractDocument {
 
         # 1. If localName does not match the Name production, then throw an
         #    "InvalidCharacterError" DOMException.
-        if (preg_match('/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/u', $name) !== 1) {
+        if (preg_match(self::NAME_PRODUCTION_REGEX, $name) !== 1) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
@@ -211,7 +242,7 @@ class Document extends AbstractDocument {
 
         try {
             if ($name !== 'template') {
-                $e = parent::createElement($name);
+                $e = parent::createElementNS(null, $name);
             } else {
                 $e = new HTMLTemplateElement($this, $name);
             }
@@ -221,7 +252,8 @@ class Document extends AbstractDocument {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            return parent::createElement($this->coerceName($name));
+            $this->mangledElements = true;
+            return parent::createElementNS(null, $this->coerceName($name));
         }
     }
 
@@ -242,52 +274,8 @@ class Document extends AbstractDocument {
 
         # 1. Let namespace, prefix, and localName be the result of passing namespace and
         #    qualifiedName to validate and extract.
+        [ 'namespace' => $namespaceURI, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespaceURI);
 
-        ##   To validate and extract a namespace and qualifiedName, run these steps:
-        ##   1. If namespace is the empty string, set it to null.
-        if ($namespaceURI === '') {
-            $namespaceURI = null;
-        }
-
-        ##   2. Validate qualifiedName.
-        ###     To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
-        ###     qualifiedName does not match the QName production.
-        if (preg_match('/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/u', $qualifiedName) !== 1) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
-        }
-
-        ##   3. Let prefix be null.
-        $prefix = null;
-
-        ##   4. Let localName be qualifiedName.
-        $localName = $qualifiedName;
-
-        ##   5. If qualifiedName contains a ":" (U+003E), then split the string on it and
-        ##      set prefix to the part before and localName to the part after.
-        if (strpos($qualifiedName, ':') !== false) {
-            $temp = explode(':', $qualifiedName, 2);
-            $prefix = $temp[0];
-            $prefix = ($prefix !== '') ? $prefix : null;
-            $localName = $temp[1];
-        }
-
-        ##   6. If prefix is non-null and namespace is null, then throw a "NamespaceError" DOMException.
-        ##   7. If prefix is "xml" and namespace is not the XML namespace, then throw a "NamespaceError" DOMException.
-        ##   8. If either qualifiedName or prefix is "xmlns" and namespace is not the XMLNS
-        ##      namespace, then throw a "NamespaceError" DOMException.
-        ##   9. If namespace is the XMLNS namespace and neither qualifiedName nor prefix is
-        ##      "xmlns", then throw a "NamespaceError" DOMException.
-        if (
-            ($prefix !== null && $namespaceURI === null) ||
-            ($prefix === 'xml' && $namespaceURI !== Parser::XML_NAMESPACE) ||
-            (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespaceURI !== Parser::XMLNS_NAMESPACE) ||
-            ($namespaceURI === Parser::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
-        ) {
-            throw new DOMException(DOMException::NAMESPACE_ERROR);
-        }
-
-        ##   10. Return namespace, prefix, and localName.
-        // Right-o.
 
         # 2. Let is be null.
         # 3. If options is a dictionary and options["is"] exists, then set is to it.
@@ -899,6 +887,58 @@ class Document extends AbstractDocument {
 
         # 5. Return s.
         return $s;
+    }
+
+    protected function validateAndExtract(string $qualifiedName, ?string $namespace = null): array {
+        # To validate and extract a namespace and qualifiedName, run these steps:
+        # 1. If namespace is the empty string, set it to null.
+        if ($namespace === '') {
+            $namespace = null;
+        }
+
+        # 2. Validate qualifiedName.
+        #    To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
+        #    qualifiedName does not match the QName production.
+        if (preg_match(self::QNAME_PRODUCTION_REGEX, $qualifiedName) !== 1) {
+            throw new DOMException(DOMException::INVALID_CHARACTER);
+        }
+
+        # 3. Let prefix be null.
+        $prefix = null;
+
+        # 4. Let localName be qualifiedName.
+        $localName = $qualifiedName;
+
+        # 5. If qualifiedName contains a ":" (U+003E), then split the string on it and
+        #    set prefix to the part before and localName to the part after.
+        if (strpos($qualifiedName, ':') !== false) {
+            $temp = explode(':', $qualifiedName, 2);
+            $prefix = $temp[0];
+            $prefix = ($prefix !== '') ? $prefix : null;
+            $localName = $temp[1];
+        }
+
+        #   6. If prefix is non-null and namespace is null, then throw a "NamespaceError" DOMException.
+        #   7. If prefix is "xml" and namespace is not the XML namespace, then throw a "NamespaceError" DOMException.
+        #   8. If either qualifiedName or prefix is "xmlns" and namespace is not the XMLNS
+        #      namespace, then throw a "NamespaceError" DOMException.
+        #   9. If namespace is the XMLNS namespace and neither qualifiedName nor prefix is
+        #      "xmlns", then throw a "NamespaceError" DOMException.
+        if (
+            ($prefix !== null && $namespace === null) ||
+            ($prefix === 'xml' && $namespace !== Parser::XML_NAMESPACE) ||
+            (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespace !== Parser::XMLNS_NAMESPACE) ||
+            ($namespace === Parser::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
+        ) {
+            throw new DOMException(DOMException::NAMESPACE_ERROR);
+        }
+
+        # 10. Return namespace, prefix, and localName.
+        return [
+            'namespace' => $namespace,
+            'prefix' => $prefix,
+            'localName' => $localName
+        ];
     }
 
 

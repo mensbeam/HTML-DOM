@@ -276,7 +276,6 @@ class Document extends AbstractDocument {
         #    qualifiedName to validate and extract.
         [ 'namespace' => $namespaceURI, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespaceURI);
 
-
         # 2. Let is be null.
         # 3. If options is a dictionary and options["is"] exists, then set is to it.
         # 4. Return the result of creating an element given document, localName, namespace,
@@ -287,7 +286,7 @@ class Document extends AbstractDocument {
             if (strtolower($qualifiedName) !== 'template' || ($namespaceURI !== null && $namespaceURI !== Parser::HTML_NAMESPACE)) {
                 $e = parent::createElementNS($namespaceURI, $qualifiedName);
             } else {
-                $e = new HTMLTemplateElement($this, $qualifiedName);
+                $e = new HTMLTemplateElement($this, $qualifiedName, $namespaceURI);
             }
 
             return $e;
@@ -1013,6 +1012,10 @@ class Document extends AbstractDocument {
         }
     }
 
+
+    public function __destruct() {
+        ElementMap::destroy($this);
+    }
 
     public function __toString() {
         return $this->saveHTML();

@@ -10,16 +10,26 @@ use MensBeam\HTML\DOM\Document;
 use MensBeam\HTML\Parser;
 
 /**
+ * @covers \MensBeam\HTML\DOM\Comment
  * @covers \MensBeam\HTML\DOM\Document
  * @covers \MensBeam\HTML\DOM\DocumentFragment
  * @covers \MensBeam\HTML\DOM\Element
- * @covers \MensBeam\HTML\DOM\TemplateElement
- * @covers \MensBeam\HTML\DOM\Comment
- * @covers \MensBeam\HTML\DOM\Text
+ * @covers \MensBeam\HTML\DOM\HTMLTemplateElement
  * @covers \MensBeam\HTML\DOM\ProcessingInstruction
+ * @covers \MensBeam\HTML\DOM\Text
  */
 class TestSerializer extends \PHPUnit\Framework\TestCase {
-    /** @dataProvider provideStandardSerializerTests */
+    /**
+     * @dataProvider provideStandardSerializerTests
+     * @covers \MensBeam\HTML\DOM\Comment::__toString
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::__toString
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__toString
+     * @covers \MensBeam\HTML\DOM\Element::__toString
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__toString
+     * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__toString
+     * @covers \MensBeam\HTML\DOM\Text::__toString
+     */
     public function testStandardTreeTests(array $data, bool $fragment, string $exp): void {
         $node = $this->buildTree($data, $fragment);
         $this->assertSame($exp, (string) $node);

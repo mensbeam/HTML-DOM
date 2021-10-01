@@ -10,12 +10,14 @@ use MensBeam\HTML\DOM\{
     Document,
     DOMException,
     Element,
+    ElementMap,
     Exception,
     HTMLTemplateElement
 };
 use MensBeam\HTML\Parser;
 
 
+/** @covers \MensBeam\HTML\DOM\Document */
 class TestDocument extends \PHPUnit\Framework\TestCase {
     public function provideAttributeNodes(): iterable {
         return [
@@ -49,6 +51,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideAttributeNodesNS
      * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
     public function testAttributeNodeNSCreation(?string $nsIn, string $nameIn, string $local, string $prefix): void {
         $d = new Document();
@@ -57,6 +60,38 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame($local, $a->localName);
         $this->assertSame($nsIn, $a->namespaceURI);
         $this->assertSame($prefix, $a->prefix);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::__destruct
+     * @covers \MensBeam\HTML\DOM\ElementMap::add
+     * @covers \MensBeam\HTML\DOM\ElementMap::delete
+     * @covers \MensBeam\HTML\DOM\ElementMap::destroy
+     * @covers \MensBeam\HTML\DOM\ElementMap::has
+     * @covers \MensBeam\HTML\DOM\ElementMap::index
+     */
+    public function testDestruction(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $t = $d->createElement('template');
+        $this->assertFalse(ElementMap::has($t));
+        $d->body->appendChild($t);
+        $this->assertTrue(ElementMap::has($t));
+        $d->__destruct();
+        unset($d);
+        $this->assertFalse(ElementMap::has($t));
+
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $t = $d->importNode($t);
+        $this->assertFalse(ElementMap::has($t));
+        $d->body->appendChild($t);
+        $this->assertTrue(ElementMap::has($t));
+        $d->body->removeChild($t);
+        $this->assertFalse(ElementMap::has($t));
     }
 
 
@@ -113,23 +148,24 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     public function provideElementsNS(): iterable {
         return [
             // HTML element with a null namespace
-            [ null,                               null,                  'div',         'div',      Element::class ],
+            [ null,                   null,                   'div',      'div',      Element::class ],
             // Template element with a null namespace
-            [ null,                               null,                  'template',    'template', HTMLTemplateElement::class ],
+            [ null,                   null,                   'template', 'template', HTMLTemplateElement::class ],
             // Template element with a null namespace and uppercase name
-            [ null,                               null,                  'TEMPLATE',    'TEMPLATE', HTMLTemplateElement::class ],
+            [ null,                   null,                   'TEMPLATE', 'TEMPLATE', HTMLTemplateElement::class ],
             // Template element
-            [ Parser::HTML_NAMESPACE,             Parser::HTML_NAMESPACE, 'template',    'template', HTMLTemplateElement::class ],
+            [ Parser::HTML_NAMESPACE, Parser::HTML_NAMESPACE, 'template', 'template', HTMLTemplateElement::class ],
             // SVG element with SVG namespace
-            [ Parser::SVG_NAMESPACE,              Parser::SVG_NAMESPACE, 'svg',         'svg',      Element::class ],
+            [ Parser::SVG_NAMESPACE,  Parser::SVG_NAMESPACE,  'svg',      'svg',      Element::class ],
             // SVG element with SVG namespace and uppercase local name
-            [ Parser::SVG_NAMESPACE,              Parser::SVG_NAMESPACE, 'SVG',         'SVG',      Element::class ]
+            [ Parser::SVG_NAMESPACE,  Parser::SVG_NAMESPACE,  'SVG',      'SVG',      Element::class ]
         ];
     }
 
     /**
      * @dataProvider provideElementsNS
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
     public function testElementCreationNS(?string $nsIn, ?string $nsOut, string $localIn, string $localOut, string $class): void {
         $d = new Document;

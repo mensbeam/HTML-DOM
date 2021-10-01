@@ -46,7 +46,7 @@ trait Moonwalk {
                     // templates; if it is change node to the template element and reprocess. Magic!
                     // Can walk backwards THROUGH templates!
                     if ($node instanceof DocumentFragment) {
-                        foreach (ElementSet::getIterator() as $element) {
+                        foreach (ElementMap::getIterator($node->ownerDocument) as $element) {
                             if ($element->ownerDocument->isSameNode($node->ownerDocument) && $element instanceof TemplateElement && $element->content->isSameNode($node)) {
                                 $node = $element;
                                 continue;

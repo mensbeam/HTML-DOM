@@ -31,10 +31,8 @@ trait ParentNode {
         $this->preInsertionValidity($node);
 
         $result = parent::appendChild($node);
-        if ($result !== false && $result instanceof TemplateElement) {
-            if ($result instanceof TemplateElement) {
-                ElementSet::add($result);
-            }
+        if ($result !== false && $result instanceof HTMLTemplateElement) {
+            ElementMap::add($result);
         }
         return $result;
     }
@@ -44,11 +42,11 @@ trait ParentNode {
 
         $result = parent::insertBefore($node, $child);
         if ($result !== false) {
-            if ($result instanceof TemplateElement) {
-                ElementSet::add($result);
+            if ($result instanceof HTMLTemplateElement) {
+                ElementMap::add($result);
             }
-            if ($child instanceof TemplateElement) {
-                ElementSet::delete($child);
+            if ($child instanceof HTMLTemplateElement) {
+                ElementMap::delete($child);
             }
         }
         return $result;
@@ -56,8 +54,8 @@ trait ParentNode {
 
     public function removeChild($child) {
         $result = parent::removeChild($child);
-        if ($result !== false && $result instanceof TemplateElement) {
-            ElementSet::delete($child);
+        if ($result !== false && $result instanceof HTMLTemplateElement) {
+            ElementMap::delete($child);
         }
         return $result;
     }
@@ -65,11 +63,11 @@ trait ParentNode {
     public function replaceChild($node, $child) {
         $result = parent::replaceChild($node, $child);
         if ($result !== false) {
-            if ($result instanceof TemplateElement) {
-                ElementSet::add($child);
+            if ($result instanceof HTMLTemplateElement) {
+                ElementMap::add($child);
             }
-            if ($child instanceof TemplateElement) {
-                ElementSet::delete($child);
+            if ($child instanceof HTMLTemplateElement) {
+                ElementMap::delete($child);
             }
         }
         return $result;

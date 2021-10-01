@@ -284,7 +284,7 @@ class Document extends AbstractDocument {
         // DEVIATION: There is no scripting in this implementation.
 
         try {
-            if ($qualifiedName !== 'template' || $namespaceURI !== null) {
+            if (strtolower($qualifiedName) !== 'template' || $namespaceURI !== null) {
                 $e = parent::createElementNS($namespaceURI, $qualifiedName);
             } else {
                 $e = new HTMLTemplateElement($this, $qualifiedName);
@@ -314,7 +314,7 @@ class Document extends AbstractDocument {
         $node = parent::importNode($node, $deep);
 
         if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
-            if ($node instanceof \DOMElement && !$node instanceof HTMLTemplateElement && $node->namespaceURI === null && $node->nodeName === 'template') {
+            if ($node instanceof \DOMElement && !$node instanceof HTMLTemplateElement && $node->namespaceURI === null && strtolower($node->nodeName) === 'template') {
                 $node = $this->convertTemplate($node);
             } else {
                 $this->replaceTemplates($node);
@@ -943,8 +943,8 @@ class Document extends AbstractDocument {
 
 
     private function convertTemplate(\DOMElement $element): \DOMElement {
-        if ($element->namespaceURI === null && $element->nodeName === 'template') {
-            $template = $this->createElement('template');
+        if ($element->namespaceURI === null && strtolower($element->nodeName) === 'template') {
+            $template = $this->createElement($element->nodeName);
 
             while ($element->attributes->length > 0) {
                 $template->setAttributeNode($element->attributes->item(0));
@@ -953,7 +953,7 @@ class Document extends AbstractDocument {
                 $child = $element->firstChild;
 
                 if ($child instanceof Element) {
-                    if (!$child instanceof HTMLTemplateElement && $child->namespaceURI === null && $child->nodeName === 'template') {
+                    if (!$child instanceof HTMLTemplateElement && $child->namespaceURI === null && strtolower($child->nodeName) === 'template') {
                         $newChild = $this->convertTemplate($child);
                         $child->parentNode->removeChild($child);
                         $child = $newChild;
@@ -989,7 +989,7 @@ class Document extends AbstractDocument {
         }
 
         $templates = $node->walk(function($n) {
-            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $n->namespaceURI === null && $n->nodeName === 'template') {
+            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $n->namespaceURI === null && strtolower($n->nodeName) === 'template') {
                 return true;
             }
         });

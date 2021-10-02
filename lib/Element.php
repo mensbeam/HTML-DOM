@@ -274,7 +274,6 @@ class Element extends \DOMElement {
                 // The attribute name is invalid for XML
                 // Replace any offending characters with "UHHHHHH" where H are the
                 //   uppercase hexadecimal digits of the character's code point
-                $this->ownerDocument->mangledAttributes = true;
                 if ($namespaceURI !== null) {
                     $qualifiedName = implode(":", array_map([$this, "coerceName"], explode(":", $qualifiedName, 2)));
                 } else {

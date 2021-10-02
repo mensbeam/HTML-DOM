@@ -89,8 +89,10 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\Document::loadDOM
      * @covers \MensBeam\HTML\DOM\Document::loadHTML
+     * @covers \MensBeam\HTML\DOM\Document::loadHTMLFile
      * @covers \MensBeam\HTML\DOM\Document::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
      */
@@ -110,6 +112,27 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d = new Document($d);
         $this->assertSame('MensBeam\HTML\DOM\Element', $d->firstChild::class);
         $this->assertSame('html', $d->firstChild->nodeName);
+
+        // Test file source
+        $vfs = vfsStream::setup('DOM', 0777, [ 'test.html' => <<<HTML
+        <!DOCTYPE html>
+        <html>
+         <head>
+          <meta charset="ISO-2022-JP">
+          <title>Ook</title>
+         </head>
+        </html>
+        HTML ]);
+        $f = $vfs->url() . '/test.html';
+
+        $d = new Document();
+        $d->load($f);
+        $this->assertNotNull($d->documentElement);
+        $this->assertSame('ISO-2022-JP', $d->documentEncoding);
+
+        $d = new Document();
+        $d->loadHTMLFile($f, null, 'UTF-8');
+        $this->assertSame('UTF-8', $d->documentEncoding);
     }
 
 
@@ -205,26 +228,71 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\Document::loadHTMLFile
-     */
-    public function testLoadingDocumentFile() {
-        $f = \MensBeam\HTML\DOM\BASE.'tests/cases/Document/test01.html';
-
+    /** @covers \MensBeam\HTML\DOM\Document::__set_body */
+    public function testPropertySetBody(): void {
         $d = new Document();
-        $d->load($f);
-        $this->assertNotNull($d->documentElement);
-        $this->assertSame('ISO-2022-JP', $d->documentEncoding);
+        $d->appendChild($d->createElement('html'));
+        $b = $d->createElement('body');
+        $d->body = $b;
+        $this->assertSame('body', $d->body->nodeName);
 
+        $b = $d->createElement('body');
+        $b->appendChild($d->createTextNode('Ook'));
+        $d->body = $b;
+        $this->assertSame('Ook', $d->body->firstChild->data);
+    }
+
+    /** @covers \MensBeam\HTML\DOM\Document::__set_body */
+    public function testPropertySetBodyFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::HIERARCHY_REQUEST_ERROR);
         $d = new Document();
-        $d->loadHTMLFile($f, null, 'UTF-8');
+        $b = $d->createElement('body');
+        $d->body = $b;
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::__get_documentEncoding */
+    public function testPropertyGetDocumentEncoding(): void {
+        $d = new Document(null, 'UTF-8');
         $this->assertSame('UTF-8', $d->documentEncoding);
+
+        $d = new Document('<!DOCTYPE html><html><head><meta charset="GB18030"></head></html>');
+        $this->assertSame('gb18030', $d->documentEncoding);
+    }
+
+
+    public function providePropertyGetQuirksMode(): iterable {
+        return [
+            // Empty document
+            [ null,                           Parser::NO_QUIRKS_MODE ],
+            // Document without doctype
+            [ '<html></html>',                Parser::QUIRKS_MODE ],
+            // Document with doctype
+            [ '<!DOCTYPE html><html></html>', Parser::NO_QUIRKS_MODE ]
+        ];
+    }
+
+    /**
+     * @dataProvider providePropertyGetQuirksMode
+     * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
+     */
+    public function testPropertyGetQuirksMode(?string $html, int $quirksMode): void {
+        $d = new Document($html);
+        $this->assertSame($quirksMode, $d->quirksMode);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::__get_xpath */
+    public function testPropertyGetXPath(): void {
+        $d = new Document();
+        $this->assertSame('DOMXPath', $d->xpath::class);
     }
 
 
     /**
      * @covers \MensBeam\HTML\DOM\Document::__destruct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\ElementMap::add
      * @covers \MensBeam\HTML\DOM\ElementMap::delete
      * @covers \MensBeam\HTML\DOM\ElementMap::destroy

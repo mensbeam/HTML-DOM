@@ -12,13 +12,10 @@ use MensBeam\HTML\Parser,
 
 
 class Document extends AbstractDocument {
-    public $mangledAttributes = false;
-    public $mangledElements = false;
-
     protected $_body = null;
     /** Nonstandard */
-    protected $_documentEncoding;
-    protected $_quirksMode = 0;
+    protected $_documentEncoding = null;
+    protected $_quirksMode = Parser::NO_QUIRKS_MODE;
     /** Nonstandard */
     protected $_xpath = null;
 
@@ -144,6 +141,8 @@ class Document extends AbstractDocument {
         $this->registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\DOM\ProcessingInstruction');
         $this->registerNodeClass('DOMText', '\MensBeam\HTML\DOM\Text');
 
+        $this->_documentEncoding = $encoding;
+
         if ($source !== null) {
             if (is_string($source)) {
                 $this->loadHTML($source, null, $encoding);
@@ -177,7 +176,6 @@ class Document extends AbstractDocument {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             //   uppercase hexadecimal digits of the character's code point
-            $this->mangledAttributes = true;
             return parent::createAttributeNS(null, $this->coerceName($localName));
         }
     }
@@ -198,7 +196,6 @@ class Document extends AbstractDocument {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             //   uppercase hexadecimal digits of the character's code point
-            $this->mangledAttributes = true;
             if ($namespaceURI !== null) {
                 $qualifiedName = implode(":", array_map([$this, "coerceName"], explode(":", $qualifiedName, 2)));
             } else {
@@ -252,7 +249,6 @@ class Document extends AbstractDocument {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            $this->mangledElements = true;
             return parent::createElementNS(null, $this->coerceName($name));
         }
     }
@@ -294,7 +290,6 @@ class Document extends AbstractDocument {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            $this->mangledElements = true;
             if ($namespaceURI !== null) {
                 $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
             } else {
@@ -333,7 +328,7 @@ class Document extends AbstractDocument {
         return true;
     }
 
-    public function loadDOM(\DOMDocument $source, ?string $encoding = null, int $quirksMode = 0) {
+    public function loadDOM(\DOMDocument $source, ?string $encoding = null, int $quirksMode = Parser::NO_QUIRKS_MODE) {
         if (!$source instanceof \DOMDocument) {
             $type = gettype($source);
             if ($type === 'object') {

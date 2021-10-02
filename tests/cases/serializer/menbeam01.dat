@@ -20,3 +20,14 @@
 |   class="test"
 #output
 <wbr class="test">
+
+#fragment
+| <poop💩>
+#output
+<poop💩></poop💩>
+
+#fragment
+| <test>
+|   poop💩="soccer"
+#output
+<test poop💩="soccer"></test>

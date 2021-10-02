@@ -386,7 +386,7 @@ class Document extends AbstractDocument {
     }
 
     public function save($filename, $options = null) {
-        return file_put_contents($filename, $this->serialize());
+        return file_put_contents($filename, $this->saveHTML());
     }
 
     public function saveHTML(\DOMNode $node = null): string {
@@ -432,11 +432,11 @@ class Document extends AbstractDocument {
     }
 
     public function validate(): bool {
-        return true;
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
     }
 
     public function xinclude($options = null): bool {
-        return false;
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
     }
 
 

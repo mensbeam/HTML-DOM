@@ -11,10 +11,10 @@ use MensBeam\HTML\DOM\{
     DOMException,
     Element,
     ElementMap,
-    Exception,
     HTMLTemplateElement
 };
-use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser,
+    org\bovigo\vfs\vfsStream;
 
 
 /** @covers \MensBeam\HTML\DOM\Document */
@@ -63,26 +63,27 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    public function provideDisabledMethods(): iterable {
+        return [
+            [ 'loadXML', 'ook' ],
+            [ 'saveXML', null ],
+            [ 'validate', null ],
+            [ 'xinclude', null ],
+        ];
+    }
+
     /**
+     * @dataProvider provideDisabledMethods
      * @covers \MensBeam\HTML\DOM\Document::loadXML
      * @covers \MensBeam\HTML\DOM\Document::saveXML
      * @covers \MensBeam\HTML\DOM\Document::validate
      * @covers \MensBeam\HTML\DOM\Document::xinclude
      */
-    public function testDisabledMethods() {
+    public function testDisabledMethods(string $methodName, ?string $argument): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
         $d = new Document();
-        $d->loadXML('ook');
-
-        $d = new Document();
-        $d->saveXML('ook');
-
-        $d = new Document();
-        $d->validate();
-
-        $d = new Document();
-        $d->xinclude('ook');
+        $d->$methodName($argument);
     }
 
 
@@ -90,6 +91,8 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::loadDOM
      * @covers \MensBeam\HTML\DOM\Document::loadHTML
+     * @covers \MensBeam\HTML\DOM\Document::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
      */
     public function testDocumentCreation(): void {
         // Test null source
@@ -159,12 +162,26 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
     public function testElementCreationNS(?string $nsIn, ?string $nsOut, string $localIn, string $localOut, string $class): void {
-        $d = new Document;
+        $d = new Document();
         $n = $d->createElementNS($nsIn, $localIn);
         $this->assertInstanceOf($class, $n);
         $this->assertNotNull($n->ownerDocument);
         $this->assertSame($nsOut, $n->namespaceURI);
         $this->assertSame($localOut, $n->localName);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::save
+     * @covers \MensBeam\HTML\DOM\Document::saveHTMLFile
+     */
+    public function testFileSaving(): void {
+        $vfs = vfsStream::setup('DOM', 0777);
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $path = $vfs->url() . '/test.html';
+        $d->save($path);
+        $this->assertSame('<html></html>', file_get_contents($path));
     }
 
 

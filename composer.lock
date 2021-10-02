@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fa97f8577cdf49f5f1dc348f28cf141b",
+    "content-hash": "a7994e69dd088a79ef9b73cb8f581abd",
     "packages": [
         {
             "name": "mensbeam/html-parser",
@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "mensbeam-gitea:MensBeam/HTML-Parser.git",
-                "reference": "a88a3ae1074c368592d2c6c1176eac5a4ad2ac02"
+                "reference": "6ee9f0ccc22f0f1094eda44a89069c5f2ef2280f"
             },
             "require": {
                 "ext-dom": "*",
@@ -72,7 +72,7 @@
                 }
             ],
             "description": "Parses modern HTML text into a PHP DOMDocument",
-            "time": "2021-10-01T02:59:03+00:00"
+            "time": "2021-10-02T02:46:52+00:00"
         },
         {
             "name": "mensbeam/intl",
@@ -761,6 +761,57 @@
                 "source": "https://github.com/thephpleague/plates/tree/v3.4.0"
             },
             "time": "2020-12-25T05:00:37+00:00"
+        },
+        {
+            "name": "mikey179/vfsstream",
+            "version": "v1.6.10",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bovigo/vfsStream.git",
+                "reference": "250c0825537d501e327df879fb3d4cd751933b85"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bovigo/vfsStream/zipball/250c0825537d501e327df879fb3d4cd751933b85",
+                "reference": "250c0825537d501e327df879fb3d4cd751933b85",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.5|^5.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.6.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "org\\bovigo\\vfs\\": "src/main/php"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Frank Kleine",
+                    "homepage": "http://frankkleine.de/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Virtual file system to mock the real file system in unit tests.",
+            "homepage": "http://vfs.bovigo.org/",
+            "support": {
+                "issues": "https://github.com/bovigo/vfsStream/issues",
+                "source": "https://github.com/bovigo/vfsStream/tree/master",
+                "wiki": "https://github.com/bovigo/vfsStream/wiki"
+            },
+            "time": "2021-09-25T08:05:01+00:00"
         },
         {
             "name": "psr/container",

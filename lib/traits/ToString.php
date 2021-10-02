@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
+
 trait ToString {
     public function __toString(): string {
         $frag = $this->ownerDocument->createDocumentFragment();

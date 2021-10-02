@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
+
 // Extensions to PHP's DOM cannot inherit from an extended Node parent, so a
 // trait is the next best thing...
 trait Node {

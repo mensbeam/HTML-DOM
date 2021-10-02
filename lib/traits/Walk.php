@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
+
 trait Walk {
     /**
      * Generator which walks down the DOM from the node the method is being run on.

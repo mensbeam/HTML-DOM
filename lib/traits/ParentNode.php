@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
+
 # 4.2.6. Mixin ParentNode
 trait ParentNode {
     use Node, ParentNodePolyfill;

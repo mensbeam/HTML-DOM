@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
+
 trait Moonwalk {
     /**
      * Generator which walks backwards through the DOM from the node the method is

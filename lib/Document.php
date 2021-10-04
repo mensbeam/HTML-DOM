@@ -16,7 +16,6 @@ class Document extends AbstractDocument {
     /** Nonstandard */
     protected $_documentEncoding = null;
     protected $_quirksMode = Parser::NO_QUIRKS_MODE;
-    protected $_type = 'html';
     /** Nonstandard */
     protected $_xpath = null;
 
@@ -109,10 +108,6 @@ class Document extends AbstractDocument {
 
     protected function __get_quirksMode(): int {
         return $this->_quirksMode;
-    }
-
-    protected function __get_type(): int {
-        return $this->_type;
     }
 
     protected function __get_xpath(): \DOMXPath {

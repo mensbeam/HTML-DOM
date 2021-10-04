@@ -31,7 +31,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         return $this->__toString();
     }
 
-    protected function __get_value(string $value) {
+    protected function __set_value(string $value) {
         $this->tokenSet = $this->parseOrderedSet($value);
         $this->_length = count($this->tokenSet);
     }

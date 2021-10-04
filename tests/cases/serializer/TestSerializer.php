@@ -25,6 +25,8 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideStandardSerializerTests
      * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serializeBlockElementFilter
+     * @covers \MensBeam\HTML\DOM\Document::serializeFragment
      * @covers \MensBeam\HTML\DOM\Document::__toString
      * @covers \MensBeam\HTML\DOM\ToString::__toString
      */

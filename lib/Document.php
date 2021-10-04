@@ -32,7 +32,7 @@ class Document extends AbstractDocument {
     protected const VOID_ELEMENTS = [ 'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'embed', 'frame', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
 
-    protected function __get_body(): \DOMNode {
+    protected function __get_body(): ?\DOMNode {
         if ($this->documentElement === null || $this->documentElement->childNodes->length === 0) {
             return null;
         }
@@ -65,12 +65,12 @@ class Document extends AbstractDocument {
         return null;
     }
 
-    protected function __set_body($value) {
+    protected function __set_body(?\DOMNode $value) {
         # On setting, the following algorithm must be run:
         #
         # 1. If the new value is not a body or frameset element, then throw a
         # "HierarchyRequestError" DOMException.
-        if (!$value instanceof Element || $value->namespaceURI !== null) {
+        if (!$value instanceof Element || !$this->isHTMLNamespace($value)) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
         if ($value->nodeName !== 'body' && $value->nodeName !== 'frameset') {
@@ -296,8 +296,8 @@ class Document extends AbstractDocument {
         }
     }
 
-    public function createEntityReference($name): bool {
-        return false;
+    public function createEntityReference(string $name): bool {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; entity references do not exist in HTML DOM');
     }
 
     public function importNode(\DOMNode $node, bool $deep = false) {
@@ -325,14 +325,6 @@ class Document extends AbstractDocument {
     }
 
     public function loadDOM(\DOMDocument $source, ?string $encoding = null, int $quirksMode = Parser::NO_QUIRKS_MODE) {
-        if (!$source instanceof \DOMDocument) {
-            $type = gettype($source);
-            if ($type === 'object') {
-                $type = get_class($source);
-            }
-            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument', $type);
-        }
-
         $this->_documentEncoding = $encoding;
         $this->_quirksMode = $quirksMode;
 
@@ -353,15 +345,7 @@ class Document extends AbstractDocument {
         return true;
     }
 
-    public function loadHTML($source, $options = null, ?string $encoding = null): bool {
-        if (!is_string($source)) {
-            $type = gettype($source);
-            if ($type === 'object') {
-                $type = get_class($source);
-            }
-            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'source', 'string', $type);
-        }
-
+    public function loadHTML(string $source, ?int $options = null, ?string $encoding = null): bool {
         $source = Parser::parse($source, $encoding, null);
         $this->loadDOM($source->document, $source->encoding, $source->quirksMode);
 

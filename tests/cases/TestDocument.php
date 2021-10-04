@@ -13,6 +13,7 @@ use MensBeam\HTML\DOM\{
     DOMException,
     Element,
     ElementMap,
+    Exception,
     HTMLTemplateElement
 };
 use MensBeam\HTML\Parser,
@@ -67,6 +68,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     public function provideDisabledMethods(): iterable {
         return [
+            [ 'createEntityReference', 'ook' ],
             [ 'loadXML', 'ook' ],
             [ 'saveXML', null ],
             [ 'validate', null ],
@@ -76,6 +78,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideDisabledMethods
+     * @covers \MensBeam\HTML\DOM\Document::createEntityReference
      * @covers \MensBeam\HTML\DOM\Document::loadXML
      * @covers \MensBeam\HTML\DOM\Document::saveXML
      * @covers \MensBeam\HTML\DOM\Document::validate
@@ -111,9 +114,11 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         // Test DOM source
         $d = new \DOMDocument();
         $d->appendChild($d->createElement('html'));
-        $d = new Document($d);
-        $this->assertSame('MensBeam\HTML\DOM\Element', $d->firstChild::class);
-        $this->assertSame('html', $d->firstChild->nodeName);
+        $d2 = new Document();
+        $d2->appendChild($d2->createElement('html'));
+        $d2->loadDOM($d);
+        $this->assertSame('MensBeam\HTML\DOM\Element', $d2->firstChild::class);
+        $this->assertSame('html', $d2->firstChild->nodeName);
 
         // Test file source
         $vfs = vfsStream::setup('DOM', 0777, [ 'test.html' => <<<HTML
@@ -128,6 +133,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $f = $vfs->url() . '/test.html';
 
         $d = new Document();
+        $this->assertFalse(@$d->load('fileDoesNotExist.html'));
         $d->load($f);
         $this->assertNotNull($d->documentElement);
         $this->assertSame('ISO-2022-JP', $d->documentEncoding);
@@ -135,6 +141,24 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         $d->loadHTMLFile($f, null, 'UTF-8');
         $this->assertSame('UTF-8', $d->documentEncoding);
+    }
+
+
+    public function provideDocumentCreationFailures(): iterable {
+        return [
+            [ true ],
+            [ (new Document)->createElement('ook') ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideDocumentCreationFailures
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     */
+    public function testDocumentCreationFailures($source): void {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::ARGUMENT_TYPE_ERROR);
+        $d = new Document($source);
     }
 
 
@@ -202,10 +226,12 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      */
     public function testFileSaving(): void {
         $vfs = vfsStream::setup('DOM', 0777);
+        $path = $vfs->url() . '/test.html';
         $d = new Document();
         $d->appendChild($d->createElement('html'));
-        $path = $vfs->url() . '/test.html';
         $d->save($path);
+        $this->assertSame('<html></html>', file_get_contents($path));
+        $d->saveHTMLFile($path);
         $this->assertSame('<html></html>', file_get_contents($path));
     }
 
@@ -230,11 +256,28 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /** @covers \MensBeam\HTML\DOM\Document::__get_body */
+    public function testPropertyGetBody(): void {
+        $d = new Document();
+        $this->assertNull($d->body);
+        $d->appendChild($d->createElement('html'));
+        $this->assertNull($d->body);
+        $d->documentElement->appendChild($d->createTextNode(' '));
+        $this->assertNull($d->body);
+        $f = $d->createElement('frameset');
+        $d->documentElement->appendChild($f);
+        $this->assertNotNull($d->body);
+        $d->documentElement->removeChild($f);
+    }
+
+
     /** @covers \MensBeam\HTML\DOM\Document::__set_body */
     public function testPropertySetBody(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $b = $d->createElement('body');
+        $d->body = $b;
+        $this->assertSame('body', $d->body->nodeName);
         $d->body = $b;
         $this->assertSame('body', $d->body->nodeName);
 
@@ -244,13 +287,25 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame('Ook', $d->body->firstChild->data);
     }
 
-    /** @covers \MensBeam\HTML\DOM\Document::__set_body */
-    public function testPropertySetBodyFailure(): void {
+    public function providePropertySetBodyFailures(): iterable {
+        $result = [];
+        $d = new Document();
+        $result[] = [ $d, $d->createElement('body') ];
+        $d = new Document();
+        $result[] = [ $d, $d->createElement('div') ];
+        $d = new Document();
+        $result[] = [ $d, $d->createTextNode('FAIL') ];
+        return $result;
+    }
+
+    /**
+     * @dataProvider providePropertySetBodyFailures
+     * @covers \MensBeam\HTML\DOM\Document::__set_body
+     */
+    public function testPropertySetBodyFailures(Document $document, \DOMNode $node): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::HIERARCHY_REQUEST_ERROR);
-        $d = new Document();
-        $b = $d->createElement('body');
-        $d->body = $b;
+        $document->body = $node;
     }
 
 
@@ -294,7 +349,6 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Document::__destruct
-     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\ElementMap::add
      * @covers \MensBeam\HTML\DOM\ElementMap::delete
      * @covers \MensBeam\HTML\DOM\ElementMap::destroy
@@ -304,22 +358,21 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     public function testTemplateElementReferences(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
-        $d->documentElement->appendChild($d->createElement('body'));
         $t = $d->createElement('template');
         $this->assertFalse(ElementMap::has($t));
-        $d->body->appendChild($t);
+        $d->documentElement->appendChild($t);
         $this->assertTrue(ElementMap::has($t));
         $d->__destruct();
         $this->assertFalse(ElementMap::has($t));
 
         $d = new Document();
         $d->appendChild($d->createElement('html'));
-        $d->documentElement->appendChild($d->createElement('body'));
+
         $t = $d->importNode($t);
         $this->assertFalse(ElementMap::has($t));
-        $d->body->appendChild($t);
+        $d->documentElement->appendChild($t);
         $this->assertTrue(ElementMap::has($t));
-        $d->body->removeChild($t);
+        $d->documentElement->removeChild($t);
         $this->assertFalse(ElementMap::has($t));
     }
 }

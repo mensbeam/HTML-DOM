@@ -16,22 +16,19 @@ class Document extends AbstractDocument {
     /** Nonstandard */
     protected $_documentEncoding = null;
     protected $_quirksMode = Parser::NO_QUIRKS_MODE;
+    protected $_type = 'html';
     /** Nonstandard */
     protected $_xpath = null;
 
     // List of elements that are treated as block elements for the purposes of
     // output formatting when serializing
     protected const BLOCK_ELEMENTS = [ 'address', 'article', 'aside', 'blockquote', 'base', 'body', 'details', 'dialog', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'isindex', 'li', 'link', 'main', 'meta', 'nav', 'ol', 'p', 'picture', 'pre', 'section', 'script', 'source', 'style', 'table', 'template', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'ul' ];
-    // Regex used to validate names when creating elements.
-    protected const NAME_PRODUCTION_REGEX = '/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
     // List of h-elements used when determining extra spacing for the purposes of
     // output formatting when serializing
     protected const H_ELEMENTS = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
     // List of preformatted elements where content is ignored for the purposes of
     // output formatting when serializing
     protected const PREFORMATTED_ELEMENTS = [ 'iframe', 'listing', 'noembed', 'noframes', 'noscript', 'plaintext', 'pre', 'style', 'script', 'textarea', 'title', 'xmp' ];
-    // Regex used to validate qualified names when creating namespaced elements.
-    protected const QNAME_PRODUCTION_REGEX = '/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
     // List of elements which are self-closing; used when serializing
     protected const VOID_ELEMENTS = [ 'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'embed', 'frame', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
@@ -48,7 +45,7 @@ class Document extends AbstractDocument {
         # such element.
         $n = $this->documentElement->firstChild;
         do {
-            if ($n instanceof Element && $n->namespaceURI === null && ($n->nodeName === 'body' || $n->nodeName === 'frameset')) {
+            if ($n instanceof Element && $this->isHTMLNamespace($n) && ($n->nodeName === 'body' || $n->nodeName === 'frameset')) {
                 $body = $n;
                 break;
             }
@@ -114,6 +111,10 @@ class Document extends AbstractDocument {
         return $this->_quirksMode;
     }
 
+    protected function __get_type(): int {
+        return $this->_type;
+    }
+
     protected function __get_xpath(): \DOMXPath {
         if ($this->_xpath === null) {
             $this->_xpath = new \DOMXPath($this);
@@ -157,7 +158,7 @@ class Document extends AbstractDocument {
         # The createAttribute(localName) method steps are:
         # 1. If localName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
-        if (preg_match(self::NAME_PRODUCTION_REGEX, $localName) !== 1) {
+        if (preg_match(self::$nameProductionRegex, $localName) !== 1) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
@@ -220,7 +221,7 @@ class Document extends AbstractDocument {
 
         # 1. If localName does not match the Name production, then throw an
         #    "InvalidCharacterError" DOMException.
-        if (preg_match(self::NAME_PRODUCTION_REGEX, $name) !== 1) {
+        if (preg_match(self::$nameProductionRegex, $name) !== 1) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
@@ -308,7 +309,7 @@ class Document extends AbstractDocument {
         $node = parent::importNode($node, $deep);
 
         if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
-            if ($node instanceof \DOMElement && !$node instanceof HTMLTemplateElement && ($node->namespaceURI === null || $node->namespaceURI === Parser::HTML_NAMESPACE) && strtolower($node->nodeName) === 'template') {
+            if ($node instanceof \DOMElement && !$node instanceof HTMLTemplateElement && $this->isHTMLNamespace($node) && strtolower($node->nodeName) === 'template') {
                 $node = $this->convertTemplate($node);
             } else {
                 $this->replaceTemplates($node);
@@ -523,8 +524,8 @@ class Document extends AbstractDocument {
 
     protected function serializeBlockElementFilter(\DOMNode $ignoredNode): \Closure {
         $blockElementFilter = function($n) use ($ignoredNode) {
-            if (!$n->isSameNode($ignoredNode) && $n instanceof Element && $n->namespaceURI === null && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
-                if ($nn instanceof Element && $nn->namespaceURI === null && in_array($nn->nodeName, self::BLOCK_ELEMENTS)) {
+            if (!$n->isSameNode($ignoredNode) && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
+                if ($nn instanceof Element && $this->isHTMLNamespace($nn) && in_array($nn->nodeName, self::BLOCK_ELEMENTS)) {
                     return true;
                 }
             })->current() !== null)) {
@@ -790,7 +791,7 @@ class Document extends AbstractDocument {
                 # noframes, or plaintext element, or if the parent of current node is a noscript
                 # element and scripting is enabled for the node, then append the value of
                 # current node’s data IDL attribute literally.
-                if ($currentNode->parentNode->namespaceURI === null && in_array($currentNode->parentNode->nodeName, [ 'style', 'script', 'xmp', 'iframe', 'noembed', 'noframes', 'plaintext' ])) {
+                if ($this->isHTMLNamespace($currentNode->parentNode) && in_array($currentNode->parentNode->nodeName, [ 'style', 'script', 'xmp', 'iframe', 'noembed', 'noframes', 'plaintext' ])) {
                     $s .= $text;
                 }
                 # Otherwise, append the value of current node’s data IDL attribute, escaped as
@@ -883,61 +884,9 @@ class Document extends AbstractDocument {
         return $s;
     }
 
-    protected function validateAndExtract(string $qualifiedName, ?string $namespace = null): array {
-        # To validate and extract a namespace and qualifiedName, run these steps:
-        # 1. If namespace is the empty string, set it to null.
-        if ($namespace === '') {
-            $namespace = null;
-        }
-
-        # 2. Validate qualifiedName.
-        #    To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
-        #    qualifiedName does not match the QName production.
-        if (preg_match(self::QNAME_PRODUCTION_REGEX, $qualifiedName) !== 1) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
-        }
-
-        # 3. Let prefix be null.
-        $prefix = null;
-
-        # 4. Let localName be qualifiedName.
-        $localName = $qualifiedName;
-
-        # 5. If qualifiedName contains a ":" (U+003E), then split the string on it and
-        #    set prefix to the part before and localName to the part after.
-        if (strpos($qualifiedName, ':') !== false) {
-            $temp = explode(':', $qualifiedName, 2);
-            $prefix = $temp[0];
-            $prefix = ($prefix !== '') ? $prefix : null;
-            $localName = $temp[1];
-        }
-
-        #   6. If prefix is non-null and namespace is null, then throw a "NamespaceError" DOMException.
-        #   7. If prefix is "xml" and namespace is not the XML namespace, then throw a "NamespaceError" DOMException.
-        #   8. If either qualifiedName or prefix is "xmlns" and namespace is not the XMLNS
-        #      namespace, then throw a "NamespaceError" DOMException.
-        #   9. If namespace is the XMLNS namespace and neither qualifiedName nor prefix is
-        #      "xmlns", then throw a "NamespaceError" DOMException.
-        if (
-            ($prefix !== null && $namespace === null) ||
-            ($prefix === 'xml' && $namespace !== Parser::XML_NAMESPACE) ||
-            (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespace !== Parser::XMLNS_NAMESPACE) ||
-            ($namespace === Parser::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
-        ) {
-            throw new DOMException(DOMException::NAMESPACE_ERROR);
-        }
-
-        # 10. Return namespace, prefix, and localName.
-        return [
-            'namespace' => $namespace,
-            'prefix' => $prefix,
-            'localName' => $localName
-        ];
-    }
-
 
     private function convertTemplate(\DOMElement $element): \DOMElement {
-        if (($element->namespaceURI === null || $element->namespaceURI === Parser::HTML_NAMESPACE) && strtolower($element->nodeName) === 'template') {
+        if ($this->isHTMLNamespace($element) && strtolower($element->nodeName) === 'template') {
             $template = $this->createElement($element->nodeName);
 
             while ($element->attributes->length > 0) {
@@ -947,7 +896,7 @@ class Document extends AbstractDocument {
                 $child = $element->firstChild;
 
                 if ($child instanceof Element) {
-                    if (!$child instanceof HTMLTemplateElement && ($child->namespaceURI === null || $child->namespaceURI === Parser::HTML_NAMESPACE) && strtolower($child->nodeName) === 'template') {
+                    if (!$child instanceof HTMLTemplateElement && $this->isHTMLNamespace($child) && strtolower($child->nodeName) === 'template') {
                         $newChild = $this->convertTemplate($child);
                         $child->parentNode->removeChild($child);
                         $child = $newChild;
@@ -983,7 +932,7 @@ class Document extends AbstractDocument {
         }
 
         $templates = $node->walk(function($n) {
-            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && ($n->namespaceURI === null || $n->namespaceURI === Parser::HTML_NAMESPACE) && strtolower($n->nodeName) === 'template') {
+            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $this->isHTMLNamespace($n) && strtolower($n->nodeName) === 'template') {
                 return true;
             }
         });

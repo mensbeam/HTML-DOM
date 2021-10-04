@@ -1,7 +1,9 @@
 <?php
-/** @license MIT
- * Copyright 2017 , Dustin Wilson, J. King et al.
- * See LICENSE and AUTHORS files for details */
+/**
+ * @license MIT
+ * Copyright 2017, Dustin Wilson, J. King et al.
+ * See LICENSE and AUTHORS files for details
+ */
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM\TestCase;
@@ -17,22 +19,18 @@ use MensBeam\HTML\Parser;
  * @covers \MensBeam\HTML\DOM\HTMLTemplateElement
  * @covers \MensBeam\HTML\DOM\ProcessingInstruction
  * @covers \MensBeam\HTML\DOM\Text
+ * @covers \MensBeam\HTML\DOM\ToString
  */
 class TestSerializer extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideStandardSerializerTests
-     * @covers \MensBeam\HTML\DOM\Comment::__toString
      * @covers \MensBeam\HTML\DOM\Document::saveHTML
      * @covers \MensBeam\HTML\DOM\Document::__toString
-     * @covers \MensBeam\HTML\DOM\DocumentFragment::__toString
-     * @covers \MensBeam\HTML\DOM\Element::__toString
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__toString
-     * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__toString
-     * @covers \MensBeam\HTML\DOM\Text::__toString
+     * @covers \MensBeam\HTML\DOM\ToString::__toString
      */
     public function testStandardTreeTests(array $data, bool $fragment, string $exp): void {
         $node = $this->buildTree($data, $fragment);
-        $this->assertSame($exp, (string) $node);
+        $this->assertSame($exp, (string)$node);
     }
 
     public function provideStandardSerializerTests(): iterable {
@@ -130,7 +128,12 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
             } elseif (preg_match('/^(?:([^" ]+) )?([^"=]+)="((?:[^"]|"(?!$))*)"$/', $d, $m)) {
                 // attribute
                 $ns = strlen((string) $m[1]) ? (array_flip(Parser::NAMESPACE_MAP)[$m[1]] ?? $m[1]) : "";
-                $cur->setAttributeNS($ns, $m[2], $m[3]);
+
+                if ($ns === '') {
+                    $cur->setAttribute($m[2], $m[3]);
+                } else {
+                    $cur->setAttributeNS($ns, $m[2], $m[3]);
+                }
             } elseif (preg_match('/^"((?:[^"]|"(?!$))*)("?)$/', $d, $m)) {
                 // text
                 $t = $m[1];

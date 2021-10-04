@@ -232,8 +232,15 @@ class Element extends \DOMElement {
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster. Also, check to see if the node's name was
         // coerced.
-        $qualifiedName = $this->coerceName($qualifiedName);
-        $value = parent::getAttributeNode($qualifiedName);
+        try {
+            $value = parent::getAttributeNode($qualifiedName);
+        } catch (\DOMException $e) {
+            // The attribute name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            // uppercase hexadecimal digits of the character's code point
+            $qualifiedName = $this->coerceName($qualifiedName);
+            $value = parent::getAttributeNode($qualifiedName);
+        }
 
         if ($value === false && !parent::hasAttribute($qualifiedName)) {
             // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes.
@@ -265,9 +272,16 @@ class Element extends \DOMElement {
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster. Also, check to see if the node's namespace
         // and localName was coerced.
-        $namespace = $this->coerceName($namespace);
-        $localName = $this->coerceName($localName);
-        $value = parent::getAttributeNodeNS($namespace, $localName);
+        try {
+            $value = parent::getAttributeNodeNS($namespace, $localName);
+        } catch (\DOMException $e) {
+            // The attribute name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            // uppercase hexadecimal digits of the character's code point
+            $namespace = $this->coerceName($namespace);
+            $localName = $this->coerceName($localName);
+            $value = parent::getAttributeNodeNS($namespace, $localName);
+        }
 
         if ($value === false && !parent::hasAttributeNS($namespace, $localName)) {
             // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes.

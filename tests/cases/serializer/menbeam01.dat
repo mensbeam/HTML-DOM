@@ -5,9 +5,9 @@
 
 #fragment
 | <span>
-|   test<test="test"
+|   test💩test="test"
 #output
-<span test<test="test"></span>
+<span test💩test="test"></span>
 
 #fragment
 | <wbr>

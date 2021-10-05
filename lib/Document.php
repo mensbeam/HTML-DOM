@@ -11,7 +11,9 @@ use MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\Data;
 
 
-class Document extends AbstractDocument {
+class Document extends \DOMDocument {
+    use DocumentOrElement, MagicProperties, ParentNode, Walk;
+
     protected $_body = null;
     /** Nonstandard */
     protected $_documentEncoding = null;
@@ -130,6 +132,7 @@ class Document extends AbstractDocument {
 
         parent::__construct();
 
+        $this->registerNodeClass('DOMAttr', '\MensBeam\HTML\DOM\Attr');
         $this->registerNodeClass('DOMDocument', '\MensBeam\HTML\DOM\Document');
         $this->registerNodeClass('DOMComment', '\MensBeam\HTML\DOM\Comment');
         $this->registerNodeClass('DOMDocumentFragment', '\MensBeam\HTML\DOM\DocumentFragment');
@@ -176,32 +179,33 @@ class Document extends AbstractDocument {
         }
     }
 
-    public function createAttributeNS($namespaceURI, $qualifiedName): \DOMAttr {
+    public function createAttributeNS(?string $namespace, string $qualifiedName): \DOMAttr {
         # The createAttributeNS(namespace, qualifiedName) method steps are:
         # 1. Let namespace, prefix, and localName be the result of passing namespace and
         #    qualifiedName to validate and extract.
-        [ 'namespace' => $namespaceURI, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespaceURI);
+        [ 'namespace' => $namespace, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespace);
 
         # 2. Return a new attribute whose namespace is namespace, namespace prefix is
         # prefix, local name is localName, and node document is this.
         // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
         // some characters. We have to coerce them sometimes.
         try {
-            return parent::createAttributeNS($namespaceURI, $qualifiedName);
+            return parent::createAttributeNS($namespace, $qualifiedName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             //   uppercase hexadecimal digits of the character's code point
-            if ($namespaceURI !== null) {
-                $qualifiedName = implode(":", array_map([$this, "coerceName"], explode(":", $qualifiedName, 2)));
+            if ($namespace !== null) {
+                $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
             } else {
                 $qualifiedName = $this->coerceName($qualifiedName);
             }
-            return parent::createAttributeNS($namespaceURI, $qualifiedName);
+
+            return parent::createAttributeNS($namespace, $qualifiedName);
         }
     }
 
-    public function createElement($name, $value = null): Element {
+    public function createElement(string $name, ?string $value = null): Element {
         # The createElement(localName, options) method steps are:
         // DEVIATION: We cannot follow the createElement parameters per the DOM spec
         // because we cannot change the parameters from \DOMDOcument. This is okay
@@ -414,92 +418,6 @@ class Document extends AbstractDocument {
         throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
     }
 
-
-    protected function preInsertionValidity(\DOMNode $node, ?\DOMNode $child = null) {
-        parent::preInsertionValidity($node, $child);
-
-        # 6. If parent is a document, and any of the statements below, switched on node,
-        # are true, then throw a "HierarchyRequestError" DOMException.
-        #
-        # DocumentFragment node
-        #    If node has more than one element child or has a Text node child.
-        #    Otherwise, if node has one element child and either parent has an element
-        #    child, child is a doctype, or child is non-null and a doctype is following
-        #    child.
-        if ($node instanceof \DOMDocumentType) {
-            if ($node->childNodes->length > 1 || $node->firstChild instanceof Text) {
-                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-            } else {
-                if ($node->firstChild instanceof \DOMDocumentType) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                }
-
-                foreach ($this->childNodes as $c) {
-                    if ($c instanceof Element) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-                }
-
-                if ($child !== null) {
-                    $n = $child;
-                    while ($n = $n->nextSibling) {
-                        if ($n instanceof \DOMDocumentType) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                        }
-                    }
-                }
-            }
-        }
-        # element
-        #    parent has an element child, child is a doctype, or child is non-null and a
-        #    doctype is following child.
-        elseif ($node instanceof Element) {
-            if ($child instanceof \DOMDocumentType) {
-                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-            }
-
-            if ($child !== null) {
-                $n = $child;
-                while ($n = $n->nextSibling) {
-                    if ($n instanceof \DOMDocumentType) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-                }
-            }
-
-            foreach ($this->childNodes as $c) {
-                if ($c instanceof Element) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                }
-            }
-        }
-
-        # doctype
-        #    parent has a doctype child, child is non-null and an element is preceding
-        #    child, or child is null and parent has an element child.
-        elseif ($node instanceof \DOMDocumentType) {
-            foreach ($this->childNodes as $c) {
-                if ($c instanceof \DOMDocumentType) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                }
-            }
-
-            if ($child !== null) {
-                $n = $child;
-                while ($n = $n->prevSibling) {
-                    if ($n instanceof Element) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-                }
-            } else {
-                foreach ($this->childNodes as $c) {
-                    if ($c instanceof Element) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-                }
-            }
-        }
-    }
 
     protected function serializeBlockElementFilter(\DOMNode $ignoredNode): \Closure {
         $blockElementFilter = function($n) use ($ignoredNode) {

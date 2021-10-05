@@ -17,16 +17,12 @@ class Element extends \DOMElement {
 
 
     protected function __get_classList(): ?TokenList {
-        // MensBeam\HTML\DOM\TokenList uses WeakReference to prevent a circular reference,
-        // so it requires PHP 7.4 to work.
-        if (version_compare(\PHP_VERSION, '7.4.0', '>=')) {
-            // Only create the class list if it is actually used.
-            if ($this->_classList === null) {
-                $this->_classList = new TokenList($this, 'class');
-            }
-            return $this->_classList;
+        // Only create the class list if it is actually used.
+        if ($this->_classList === null) {
+            $this->_classList = new TokenList($this, 'class');
         }
-        return null; // @codeCoverageIgnore
+
+        return $this->_classList;
     }
 
     protected function __get_innerHTML(): string {

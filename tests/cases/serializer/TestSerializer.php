@@ -8,7 +8,10 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM\TestCase;
 
-use MensBeam\HTML\DOM\Document;
+use MensBeam\HTML\DOM\{
+    Document,
+    DOMException
+};
 use MensBeam\HTML\Parser;
 
 /**
@@ -149,5 +152,44 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
             }
         }
         return $out;
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::saveHTML */
+    public function testSerializingDocumentType(): void {
+        $d = new Document();
+        $dt = $d->implementation->createDocumentType('ook', 'eek', 'ack');
+        $d->appendChild($dt);
+        $this->assertSame('<!DOCTYPE ook>', $d->saveHTML($dt));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serializeFragment
+     * @covers \MensBeam\HTML\DOM\ToString::__toString
+     */
+    public function testSerializingElements(): void {
+        $d = new Document();
+        $i = $d->createElement('input');
+        $i->appendChild($d->createTextNode('You should not see this text'));
+        $this->assertSame('<input>', (string)$i);
+        $this->assertSame('', $d->saveHTML($i));
+
+        $t = $d->createElement('template');
+        $t->content->appendChild($d->createTextNode('Ook!'));
+        $this->assertSame('<template>Ook!</template>', (string)$t);
+        $this->assertSame('Ook!', $d->saveHTML($t));
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::saveHTML */
+    public function testSerializerFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
+        $d = new Document();
+        $h = $d->createElement('html');
+        $d2 = new Document();
+        $d2->saveHTML($h);
     }
 }

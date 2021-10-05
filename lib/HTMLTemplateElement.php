@@ -24,7 +24,9 @@ class HTMLTemplateElement extends Element {
         $frag->removeChild($this);
         unset($frag);
 
-        $this->content = $this->ownerDocument->createDocumentFragment();
+        $content = $this->ownerDocument->createDocumentFragment();
+        $content->host = $this;
+        $this->content = $content;
     }
 
 

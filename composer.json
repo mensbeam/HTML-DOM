@@ -3,7 +3,7 @@
     "description": "Modern DOM library written in PHP for HTML documents",
     "type": "library",
     "require": {
-        "php": ">=7.1",
+        "php": ">=7.4",
         "ext-dom": "*",
         "mensbeam/html-parser": "dev-master"
     },

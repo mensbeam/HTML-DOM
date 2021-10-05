@@ -43,11 +43,27 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     */
+    public function testAttributeNodeCreationFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
+        $d = new Document();
+        $d->createAttribute('<ook>');
+    }
+
+
     public function provideAttributeNodeNSCreation(): iterable {
         return [
-            [ 'fake_ns', 'test',      'test', '' ],
-            [ 'fake_ns', 'test:test', 'test', 'test' ],
-            [ 'fake_ns', 'TEST:TEST', 'TEST', 'TEST' ]
+            [ 'fake_ns',         'test',             'fake_ns',         '',     'test' ],
+            [ 'fake_ns',         'test:test',        'fake_ns',         'test', 'test' ],
+            [ 'fake_ns',         'TEST:TEST',        'fake_ns',         'TEST', 'TEST' ],
+            [ 'another_fake_ns', 'steaming💩:poop💩', 'another_fake_ns', 'steamingU01F4A9', 'poopU01F4A9' ],
+            // An empty string for a prefix is technically incorrect, but we cannot fix that.
+            [ '',                'poop💩',            null,              '',                'poopU01F4A9' ],
+            // An empty string for a prefix is technically incorrect, but we cannot fix that.
+            [ null,              'poop💩',            null,              '',                'poopU01F4A9' ]
         ];
     }
 
@@ -56,13 +72,13 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
-    public function testAttributeNodeNSCreation(?string $nsIn, string $nameIn, string $local, string $prefix): void {
+    public function testAttributeNodeNSCreation(?string $nsIn, string $nameIn, ?string $nsExpected, ?string $prefixExpected, string $localNameExpected): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $a = $d->createAttributeNS($nsIn, $nameIn);
-        $this->assertSame($local, $a->localName);
-        $this->assertSame($nsIn, $a->namespaceURI);
-        $this->assertSame($prefix, $a->prefix);
+        $this->assertSame($nsExpected, $a->namespaceURI);
+        $this->assertSame($prefixExpected, $a->prefix);
+        $this->assertSame($localNameExpected, $a->localName);
     }
 
 
@@ -117,8 +133,9 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d2 = new Document();
         $d2->appendChild($d2->createElement('html'));
         $d2->loadDOM($d);
-        $this->assertSame('MensBeam\HTML\DOM\Element', $d2->firstChild::class);
-        $this->assertSame('html', $d2->firstChild->nodeName);
+        $d3 = new Document($d);
+        $this->assertSame('MensBeam\HTML\DOM\Element', $d3->firstChild::class);
+        $this->assertSame('html', $d3->firstChild->nodeName);
 
         // Test file source
         $vfs = vfsStream::setup('DOM', 0777, [ 'test.html' => <<<HTML
@@ -166,12 +183,14 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         return [
             // HTML element
             [ 'div',         'div',      Element::class ],
-            // HTML element and uppercase local name
+            // HTML element and uppercase qualified name
             [ 'DIV',         'div',      Element::class ],
             // Template element
             [ 'template',    'template', HTMLTemplateElement::class ],
-            // Template element and uppercase local name
-            [ 'TEMPLATE',    'template', HTMLTemplateElement::class ]
+            // Template element and uppercase qualified name
+            [ 'TEMPLATE',    'template', HTMLTemplateElement::class ],
+            // Name coercion
+            [ 'poop💩',       'poopU01F4A9',   Element::class ]
         ];
     }
 
@@ -179,29 +198,56 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @dataProvider provideElementCreation
      * @covers \MensBeam\HTML\DOM\Document::createElement
      */
-    public function testElementCreation(string $localIn, string $localOut, string $class): void {
+    public function testElementCreation(string $nameIn, string $nameExpected, string $classExpected): void {
         $d = new Document;
-        $n = $d->createElement($localIn);
-        $this->assertInstanceOf($class, $n);
+        $n = $d->createElement($nameIn);
+        $this->assertInstanceOf($classExpected, $n);
         $this->assertNotNull($n->ownerDocument);
-        $this->assertSame($localOut, $n->localName);
+        $this->assertSame($nameExpected, $n->nodeName);
+    }
+
+
+    public function provideElementCreationFailures(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $d->createElement('ook', 'FAIL');
+            }, DOMException::NOT_SUPPORTED ],
+            [ function() {
+                $d = new Document();
+                $d->createElement('<ook>');
+            }, DOMException::INVALID_CHARACTER ]
+        ];
+    }
+
+
+    /**
+     * @dataProvider provideElementCreationFailures
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     */
+    public function testElementCreationFailures(\Closure $closure, int $errorCode): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
     }
 
 
     public function provideElementCreationNS(): iterable {
         return [
             // HTML element with a null namespace
-            [ null,                   null,                   'div',      'div',      Element::class ],
+            [ null,                   null,                   'div',      'div',           Element::class ],
             // Template element with a null namespace
-            [ null,                   null,                   'template', 'template', HTMLTemplateElement::class ],
+            [ null,                   null,                   'template', 'template',      HTMLTemplateElement::class ],
             // Template element with a null namespace and uppercase name
-            [ null,                   null,                   'TEMPLATE', 'TEMPLATE', HTMLTemplateElement::class ],
+            [ null,                   null,                   'TEMPLATE', 'TEMPLATE',      HTMLTemplateElement::class ],
             // Template element
-            [ Parser::HTML_NAMESPACE, Parser::HTML_NAMESPACE, 'template', 'template', HTMLTemplateElement::class ],
+            [ Parser::HTML_NAMESPACE, Parser::HTML_NAMESPACE, 'template', 'template',      HTMLTemplateElement::class ],
             // SVG element with SVG namespace
-            [ Parser::SVG_NAMESPACE,  Parser::SVG_NAMESPACE,  'svg',      'svg',      Element::class ],
+            [ Parser::SVG_NAMESPACE,  Parser::SVG_NAMESPACE,  'svg',      'svg',           Element::class ],
             // SVG element with SVG namespace and uppercase local name
-            [ Parser::SVG_NAMESPACE,  Parser::SVG_NAMESPACE,  'SVG',      'SVG',      Element::class ]
+            [ Parser::SVG_NAMESPACE,  Parser::SVG_NAMESPACE,  'SVG',      'SVG',           Element::class ],
+            // Name coercion
+            [ 'steaming💩',           'steaming💩',            'poop💩',   'poopU01F4A9',   Element::class ]
         ];
     }
 
@@ -210,13 +256,42 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
-    public function testElementCreationNS(?string $nsIn, ?string $nsOut, string $localIn, string $localOut, string $class): void {
+    public function testElementCreationNS(?string $nsIn, ?string $nsExpected, string $localNameIn, string $localNameExpected, string $classExpected): void {
         $d = new Document();
-        $n = $d->createElementNS($nsIn, $localIn);
-        $this->assertInstanceOf($class, $n);
+        $n = $d->createElementNS($nsIn, $localNameIn);
+        $this->assertInstanceOf($classExpected, $n);
         $this->assertNotNull($n->ownerDocument);
-        $this->assertSame($nsOut, $n->namespaceURI);
-        $this->assertSame($localOut, $n->localName);
+        $this->assertSame($nsExpected, $n->namespaceURI);
+        $this->assertSame($localNameExpected, $n->localName);
+    }
+
+
+    public function provideElementCreationNSFailures(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $d->createElementNS('ook', 'ook', 'FAIL');
+            }, DOMException::NOT_SUPPORTED ],
+            [ function() {
+                $d = new Document();
+                $d->createElementNS(null, '<ook>');
+            }, DOMException::INVALID_CHARACTER ],
+            [ function() {
+                $d = new Document();
+                $d->createElementNS(null, 'xmlns');
+            }, DOMException::NAMESPACE_ERROR ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideElementCreationNSFailures
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
+     */
+    public function testElementCreationNSFailures(\Closure $closure, int $errorCode): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
     }
 
 

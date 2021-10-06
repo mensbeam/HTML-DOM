@@ -14,7 +14,7 @@ if (version_compare(\PHP_VERSION, '8.0', '<')) {
      * Used for PHP7 installations to polyfill getters, setters, and methods that
      * PHP's DOM handles natively in PHP8
      */
-    trait ParentNode {
+    trait ParentNodePolyfill {
         protected function __get_childElementCount(): int {
             # The childElementCount getter steps are to return the number of children of
             # this that are elements.

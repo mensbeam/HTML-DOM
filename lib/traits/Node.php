@@ -41,4 +41,37 @@ trait Node {
             }
         })->current();
     }
+
+
+    private function convertNodesToNode(array $nodes): \DOMNode {
+        # To convert nodes into a node, given nodes and document, run these steps:
+        # 1. Let node be null.
+        # 2. Replace each string in nodes with a new Text node whose data is the string
+        #    and node document is document.
+        # 3. If nodes contains one node, then set node to nodes[0].
+        # 4. Otherwise, set node to a new DocumentFragment node whose node document is
+        #    document, and then append each node in nodes, if any, to it.
+        // The spec would have us iterate through the provided nodes and then iterate
+        // through them again to append. Let's optimize this a wee bit, shall we?
+        $document = ($this instanceof Document) ? $this : $this->ownerDocument;
+        $node = ($node->length > 1) ? $document->createDocumentFragment() : null;
+        foreach ($nodes as $k => &$n) {
+            // Can't do union types until PHP 8... OTL
+            if (!$n instanceof \DOMNode && !is_string($n)) {
+                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, $k, 'nodes', '\DOMNode|string', gettype($n));
+            }
+
+            if (is_string($n)) {
+                $n = $this->ownerDocument->createTextNode($n);
+            }
+
+            if ($node !== null) {
+                $node->appendChild($n);
+            } else {
+                $node = $n;
+            }
+        }
+
+        return $node;
+    }
 }

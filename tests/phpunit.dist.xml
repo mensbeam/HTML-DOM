@@ -18,6 +18,7 @@
     <testsuite name="DOM">
       <file>cases/TestDocument.php</file>
       <file>cases/TestElement.php</file>
+      <file>cases/TestParentNode.php</file>
     </testsuite>
     <testsuite name="Serializer">
       <file>cases/Serializer/TestSerializer.php</file>

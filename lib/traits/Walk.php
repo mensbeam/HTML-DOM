@@ -58,20 +58,24 @@ trait Walk {
 
         if (!$backwards) {
             $node = $node->firstChild;
-            do {
-                $next = $node->nextSibling;
-                if ($filter === null || $filter($node) === true) {
-                    yield $node;
-                }
-            } while ($node = $next);
+            if ($node !== null) {
+                do {
+                    $next = $node->nextSibling;
+                    if ($filter === null || $filter($node) === true) {
+                        yield $node;
+                    }
+                } while ($node = $next);
+            }
         } else {
             $node = $node->lastChild;
-            do {
-                $next = $node->previousSibling;
-                if ($filter === null || $filter($node) === true) {
-                    yield $node;
-                }
-            } while ($node = $next);
+            if ($node !== null) {
+                do {
+                    $next = $node->previousSibling;
+                    if ($filter === null || $filter($node) === true) {
+                        yield $node;
+                    }
+                } while ($node = $next);
+            }
         }
     }
 }

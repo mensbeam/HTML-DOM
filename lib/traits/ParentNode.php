@@ -21,7 +21,6 @@ trait ParentNode {
         // almost identical; so, using that. PHP's DOM doesn't provide the end user any
         // way to create a \DOMNodeList from scratch, so going to cheat and use XPath to
         // make one for us.
-
         $isDocument = ($this instanceof Document);
         $document = ($isDocument) ? $this : $this->ownerDocument;
         return $document->xpath->query('//*', (!$isDocument) ? $this : null);
@@ -122,7 +121,7 @@ trait ParentNode {
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" DOMException.
         // Not necessary because they've been disabled and return hierarchy request
-        // errors in ChildNode trait.
+        // errors in Node trait.
 
         # 2. If node is a host-including inclusive ancestor of parent, then throw a
         #    "HierarchyRequestError" DOMException.
@@ -131,21 +130,19 @@ trait ParentNode {
         # A is an inclusive ancestor of B, or if B’s root has a non-null host and A is a
         # host-including inclusive ancestor of B’s root’s host.
         if ($node->parentNode !== null) {
-            if ($this->isSameNode($node) || $this->moonwalk(function($n) use($node) {
-                if ($n->isSameNode($node)) {
-                    return true;
-                }
-            })->current() !== null) {
+            if ($this->parentNode !== null && ($this->isSameNode($node) || $this->moonwalk(function($n) use($node) {
+                return ($n->isSameNode($node));
+            })->current() !== null)) {
                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
             } else {
                 $parentRoot = $this->getRootNode();
-                $parentRootHost = $parentRoot->host;
-                if ($parentRoot instanceof DocumentFragment && $parentRootHost !== null && ($host->isSameNode($node) || $host->moonwalk(function($n) use($node) {
-                    if ($n->isSameNode($node)) {
-                        return true;
+                if ($parentRoot instanceof DocumentFragment) {
+                    $parentRootHost = $parentRoot->host;
+                    if ($parentRootHost !== null && ($parentRootHost->isSameNode($node) || $parentRootHost->moonwalk(function($n) use ($node) {
+                        return ($n->isSameNode($node));
+                    })->current() !== null)) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
-                })->current() !== null)) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 }
             }
         }
@@ -166,29 +163,28 @@ trait ParentNode {
         # 5. If either node is a Text node and parent is a document, or node is a
         #    doctype and parent is not a document, then throw a "HierarchyRequestError"
         #    DOMException.
-        // Not necessary because they've been disabled and return hierarchy request
-        // errors in ChildNode trait
+        if (($node instanceof Text && $this instanceof Document) || ($node instanceof \DOMDocumentType && !$this instanceof Document)) {
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+        }
 
-        # 6. If parent is a document, and any of the statements below, switched on node,
-        #    are true, then throw a "HierarchyRequestError" DOMException.
+        # 6. If parent is a document, and any of the statements below, switched on the
+        #    interface node implements, are true, then throw a "HierarchyRequestError".
         if ($this instanceof Document) {
             # DocumentFragment node
             #    If node has more than one element child or has a Text node child.
             #    Otherwise, if node has one element child and either parent has an element
             #    child, child is a doctype, or child is non-null and a doctype is following
             #    child.
-            if ($node instanceof \DOMDocumentType) {
-                if ($node->childNodes->length > 1 || $node->firstChild instanceof Text) {
+            if ($node instanceof DocumentFragment) {
+                $nodeChildElementCount = $node->children->length;
+                die(var_export($node->children));
+                if ($nodeChildElementCount > 1 || $node->walkShallow(function($n) {
+                    return ($n instanceof Text);
+                })->current() !== null) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                } else {
-                    if ($node->firstChild instanceof \DOMDocumentType) {
+                } elseif ($nodeChildElementCount === 1) {
+                    if ($this->children->length > 0 || $child instanceof \DOMDocumentType) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-
-                    foreach ($this->childNodes as $c) {
-                        if ($c instanceof Element) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                        }
                     }
 
                     if ($child !== null) {
@@ -237,7 +233,7 @@ trait ParentNode {
 
                 if ($child !== null) {
                     $n = $child;
-                    while ($n = $n->prevSibling) {
+                    while ($n = $n->previousSibling) {
                         if ($n instanceof Element) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
@@ -251,38 +247,5 @@ trait ParentNode {
                 }
             }
         }
-    }
-
-
-    private function convertNodesToNode(array $nodes): \DOMNode {
-        # To convert nodes into a node, given nodes and document, run these steps:
-        # 1. Let node be null.
-        # 2. Replace each string in nodes with a new Text node whose data is the string
-        #    and node document is document.
-        # 3. If nodes contains one node, then set node to nodes[0].
-        # 4. Otherwise, set node to a new DocumentFragment node whose node document is
-        #    document, and then append each node in nodes, if any, to it.
-        // The spec would have us iterate through the provided nodes and then iterate
-        // through them again to append. Let's optimize this a wee bit, shall we?
-        $document = ($this instanceof Document) ? $this : $this->ownerDocument;
-        $node = ($node->length > 1) ? $document->createDocumentFragment() : null;
-        foreach ($nodes as &$n) {
-            // Can't do union types until PHP 8... OTL
-            if (!$n instanceof \DOMNode && !is_string($n)) {
-                trigger_error(sprintf("Uncaught TypeError: %s::%s(): Argument #1 (\$%s) must be of type \DOMNode|string, %s given", __CLASS__, __METHOD__, 'nodes', gettype($n)));
-            }
-
-            if (is_string($n)) {
-                $n = $this->ownerDocument->createTextNode($n);
-            }
-
-            if ($node !== null) {
-                $node->appendChild($n);
-            } else {
-                $node = $n;
-            }
-        }
-
-        return $node;
     }
 }

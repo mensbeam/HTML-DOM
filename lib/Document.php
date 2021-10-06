@@ -772,7 +772,7 @@ class Document extends \DOMDocument {
                 # GREATER-THAN SIGN).
                 // DEVIATION: The name is trimmed because PHP's DOM does not
                 //   accept the empty string as a DOCTYPE name
-                $name = trim($node->childNodes->item(0)->name, ' ');
+                $name = trim($currentNode->name, ' ');
                 $s .= "<!DOCTYPE $name>";
             }
         }

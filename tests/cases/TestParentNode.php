@@ -86,7 +86,7 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
                 $df = $d->createDocumentFragment();
                 $df->appendChild($d->createElement('html'));
                 $d->insertBefore($df, $dt);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $c = $d->appendChild($d->createComment('OOK'));

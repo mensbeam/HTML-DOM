@@ -23,7 +23,7 @@ trait ParentNode {
         // make one for us.
         $isDocument = ($this instanceof Document);
         $document = ($isDocument) ? $this : $this->ownerDocument;
-        return $document->xpath->query('//*', (!$isDocument) ? $this : null);
+        return $document->xpath->query('child::*', $this);
     }
 
 
@@ -177,7 +177,6 @@ trait ParentNode {
             #    child.
             if ($node instanceof DocumentFragment) {
                 $nodeChildElementCount = $node->children->length;
-                die(var_export($node->children));
                 if ($nodeChildElementCount > 1 || $node->walkShallow(function($n) {
                     return ($n instanceof Text);
                 })->current() !== null) {

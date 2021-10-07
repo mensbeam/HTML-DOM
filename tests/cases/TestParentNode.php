@@ -29,19 +29,14 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
                 $d->appendChild($d->createElement('html'));
                 $b = $d->documentElement->appendChild($d->createElement('body'));
                 $b->appendChild($d->documentElement);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
-            [ function() {
-                $d = new Document();
-                $t = $d->appendChild($d->createElement('template'));
-                $d->appendChild($t->content);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d->createElement('html'));
                 $b = $d->documentElement->appendChild($d->createElement('body'));
                 $t = $b->appendChild($d->createElement('template'));
                 $t->content->appendChild($b);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d->createElement('html'));
@@ -54,49 +49,77 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
                 $df->appendChild($d->createElement('html'));
                 $df->appendChild($d->createTextNode(' '));
                 $d->appendChild($df);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d->implementation->createDocumentType('html'));
                 $d->appendChild($d->implementation->createDocumentType('html'));
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d->createElement('html'));
                 $d->appendChild($d->implementation->createDocumentType('html'));
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d->createElement('html'));
                 $c = $d->appendChild($d->createComment('ook'));
                 $d->insertBefore($d->implementation->createDocumentType('html'), $c);
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            } ],
             [ function() {
                 $d = new Document();
                 $d->appendChild($d->createElement('html'));
                 $d->documentElement->insertBefore($d->implementation->createDocumentType('html'));
-            }, DOMException::HIERARCHY_REQUEST_ERROR ],
-            /*[ function() {
-                $d = new Document();
-                $d->createElementNS(null, '<ook>');
-            }, DOMException::INVALID_CHARACTER ],
+            } ],
             [ function() {
                 $d = new Document();
-                $d->createElementNS(null, 'xmlns');
-            }, DOMException::NAMESPACE_ERROR ]*/
+                $d->appendChild($d->createElement('html'));
+                $d->documentElement->insertBefore($d->implementation->createDocumentType('html'));
+            } ],
+            [ function() {
+                $d = new Document();
+                $dt = $d->appendChild($d->implementation->createDocumentType('html'));
+                $df = $d->createDocumentFragment();
+                $df->appendChild($d->createElement('html'));
+                $d->insertBefore($df, $dt);
+            }, DOMException::HIERARCHY_REQUEST_ERROR ],
+            [ function() {
+                $d = new Document();
+                $c = $d->appendChild($d->createComment('OOK'));
+                $d->appendChild($d->implementation->createDocumentType('html'));
+                $df = $d->createDocumentFragment();
+                $df->appendChild($d->createElement('html'));
+                $d->insertBefore($df, $c);
+            } ],
+            [ function() {
+                $d = new Document();
+                $dt = $d->appendChild($d->implementation->createDocumentType('html'));
+                $d->insertBefore($d->createElement('html'), $dt);
+            } ],
+            [ function() {
+                $d = new Document();
+                $c = $d->appendChild($d->createComment('OOK'));
+                $d->appendChild($d->implementation->createDocumentType('html'));
+                $d->insertBefore($d->createElement('html'), $c);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $d->appendChild($d->createElement('body'));
+            } ]
         ];
     }
 
     /**
      * @dataProvider providePreInsertionValidationFailures
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
-     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\ParentNode::__get_children
+     * @covers \MensBeam\HTML\DOM\ParentNode::preInsertionValidity
      */
-    public function testPreInsertionValidationFailures(\Closure $closure, int $errorCode): void {
+    public function testPreInsertionValidationFailures(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();

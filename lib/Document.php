@@ -505,11 +505,14 @@ class Document extends \DOMDocument {
                         }
                     } else {
                         // If a foreign element with block element siblings
-                        if ($hasChildNodes && $foreignElement === null) {
-                            $foreignElement = $currentNode;
+                        if ($foreignElement === null) {
                             if ($currentNode->parentNode->walkShallow($blockElementFilter)->current() !== null) {
                                 $foreignElementWithBlockElementSiblings = true;
                                 $modify = true;
+                            }
+
+                            if ($hasChildNodes) {
+                                $foreignElement = $currentNode;
                             }
                         }
                         // If a foreign element with a foreign element ancestor with block element
@@ -615,7 +618,7 @@ class Document extends \DOMDocument {
                     // the element is foreign and doesn't contain any children close the element
                     // instead and continue on to the next child node.
                     $hasChildNodes = $currentNode->hasChildNodes();
-                    if (!$foreign || $hasChildNodes) {
+                    if (!$foreign || $hasChildNodes || ($foreign && !$hasChildNodes && ($foreignElement === null || $foreignElement->isSameNode($currentNode)))) {
                         $s .= '>';
                     } elseif (!$hasChildNodes) {
                         $s .= '/>';
@@ -655,7 +658,7 @@ class Document extends \DOMDocument {
                         // Decrement the indention level.
                         $indent--;
 
-                        if (!$first && $preformattedElement === null) {
+                        if ($preformattedElement === null) {
                             // If a foreign element with a foreign element ancestor with block element
                             // siblings and has at least one element child or any element with a block
                             // element descendant...
@@ -703,13 +706,6 @@ class Document extends \DOMDocument {
                                 if (strspn($text, Data::WHITESPACE) === strlen($text)) {
                                     continue;
                                 }
-
-                                // Otherwise, remove newlines from the text node's data; if that causes the data
-                                // to be empty then continue onto the next node.
-                                $text = preg_replace('/[\n\x0C\x0D]+/', '', $text);
-                                if ($text === '') {
-                                    continue;
-                                }
                             }
                         }
                     }
@@ -721,9 +717,9 @@ class Document extends \DOMDocument {
             elseif ($currentNode instanceof Comment) {
                 if ($formatOutput) {
                     if ($preformattedElement === null && $foreignElementWithBlockElementSiblings || $currentNode->parentNode->walk($blockElementFilter)->current() !== null) {
-                        if (!$first && $previousNonTextNodeSiblingName !== null) {
+                        if (!$first) {
                             // Add an additional newline if the previous sibling wasn't a comment.
-                            if ($previousNonTextNodeSiblingName !== $this->nodeName) {
+                            if ($previousNonTextNodeSiblingName !== null && $previousNonTextNodeSiblingName !== $this->nodeName) {
                                 $s .= "\n";
                             }
 
@@ -743,11 +739,11 @@ class Document extends \DOMDocument {
             # If current node is a ProcessingInstruction
             elseif ($currentNode instanceof ProcessingInstruction) {
                 if ($formatOutput) {
-                    if (!$first && $preformattedElement === null && ($foreignElementWithBlockElementSiblings || $currentNode->parentNode->walk($blockElementFilter)->current() !== null)) {
+                    if ($preformattedElement === null && ($foreignElementWithBlockElementSiblings || $currentNode->parentNode->walk($blockElementFilter)->current() !== null)) {
                         // Add an additional newline if the previous sibling wasn't a processing
                         // instruction.
-                        if ($previousNonTextNodeSiblingName !== null) {
-                            if ($previousNonTextNodeSiblingName !== $this->nodeName) {
+                        if (!$first) {
+                            if ($previousNonTextNodeSiblingName !== null && $previousNonTextNodeSiblingName !== $this->nodeName) {
                                 $s .= "\n";
                             }
 

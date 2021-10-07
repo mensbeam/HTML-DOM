@@ -213,7 +213,7 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
                 if ($lines[$l] === "" && in_array(($lines[$l + 1] ?? ""), ["#document", "#fragment"])) {
                     break;
                 }
-                assert(preg_match('/^[^#]/', $lines[$l]) === 1, new \Exception("Test $file #$index contains unrecognized data after output at line ".($l + 1)));
+                assert(preg_match('/^([^#]|$)/', $lines[$l]) === 1, new \Exception("Test $file #$index contains unrecognized data after output at line ".($l + 1)));
                 $exp[] = $lines[$l];
             }
             $exp = implode("\n", $exp);

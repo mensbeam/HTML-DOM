@@ -1,4 +1,4 @@
-#document
+#fragment
 | <html>
 #output
 <html></html>
@@ -11,3 +11,143 @@
 <!--data-->
 <!DOCTYPE html>
 <html></html>
+
+#document
+| <!DOCTYPE html>
+| <html>
+|   <head>
+|   <body>
+#output
+<!DOCTYPE html>
+<html>
+ <head></head>
+
+ <body></body>
+</html>
+
+#document
+| <html>
+|   <body>
+|     <pre>
+|       <code>
+#output
+<html>
+ <body>
+  <pre><code></code></pre>
+ </body>
+</html>
+
+#document
+| <html>
+|   <body>
+|     <svg>
+#output
+<html>
+ <body><svg></svg></body>
+</html>
+
+#fragment
+| <body>
+|   <div>
+|   <svg svg>
+#output
+<body>
+ <div></div>
+
+ <svg></svg>
+</body>
+
+#fragment
+| <body>
+|   <div>
+|   <svg svg>
+|     <svg tspan>
+#output
+<body>
+ <div></div>
+
+ <svg>
+  <tspan/>
+ </svg>
+</body>
+
+#document
+| <!DOCTYPE html>
+| <html>
+|   "
+"
+|   <head>
+|   <body>
+|     "ook
+"
+#output
+<!DOCTYPE html>
+<html>
+ <head></head>
+
+ <body>ook
+</body>
+</html>
+
+#fragment
+| <div>
+|   <div>
+|   "
+"
+#output
+<div>
+ <div></div>
+</div>
+
+#fragment
+| <div>
+|   <a>
+|     <div>
+|   <svg>
+#output
+<div>
+ <a>
+  <div></div>
+ </a>
+
+ <svg></svg>
+</div>
+
+#fragment
+| <div>
+|   <!-- data -->
+|   <div>
+#output
+<div>
+ <!--data-->
+
+ <div></div>
+</div>
+
+#fragment
+| <div>
+|   <div>
+|   <!-- data -->
+|   <div>
+#output
+<div>
+ <div></div>
+
+ <!--data-->
+
+ <div></div>
+</div>
+
+#fragment
+| <div>
+|   <div>
+|   <?php echo "Hello world!"; ?>
+|   <div>
+#output
+<div>
+ <div></div>
+
+ <?php echo "Hello world!"; ?>
+
+ <div></div>
+</div>

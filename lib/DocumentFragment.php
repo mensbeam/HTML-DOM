@@ -12,7 +12,7 @@ namespace MensBeam\HTML\DOM;
 class DocumentFragment extends \DOMDocumentFragment {
     use MagicProperties, ParentNode, Walk;
 
-    protected $_host = null;
+    protected ?\WeakReference $_host = null;
 
     protected function __get_host(): ?\DOMNode {
         if ($this->_host === null) {

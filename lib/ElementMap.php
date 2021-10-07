@@ -18,8 +18,8 @@ class ElementMap {
     // List of documents is necessary because when Document objects are destructed
     // it's not possible to check for a document's existence without triggering a
     // fatal error. Keeping document references around fixes that.
-    protected static $documents = [];
-    protected static $elements = [];
+    protected static array $documents = [];
+    protected static array $elements = [];
 
 
     public static function add(Element $element): bool {

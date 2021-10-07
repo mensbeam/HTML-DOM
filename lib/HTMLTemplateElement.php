@@ -10,7 +10,8 @@ namespace MensBeam\HTML\DOM;
 
 /** Class specifically for template elements to handle its content property. */
 class HTMLTemplateElement extends Element {
-    public $content = null;
+    public DocumentFragment $content;
+
 
     public function __construct(Document $ownerDocument, string $qualifiedName, ?string $namespace = null) {
         parent::__construct($qualifiedName, null, $namespace ?? '');

@@ -14,12 +14,12 @@ use MensBeam\HTML\Parser,
 class Document extends \DOMDocument {
     use DocumentOrElement, MagicProperties, ParentNode, Walk;
 
-    protected $_body = null;
+    protected ?Element $_body = null;
     /** Nonstandard */
-    protected $_documentEncoding = null;
-    protected $_quirksMode = Parser::NO_QUIRKS_MODE;
+    protected ?string $_documentEncoding = null;
+    protected int $_quirksMode = Parser::NO_QUIRKS_MODE;
     /** Nonstandard */
-    protected $_xpath = null;
+    protected ?\DOMXPath $_xpath = null;
 
     // List of elements that are treated as block elements for the purposes of
     // output formatting when serializing
@@ -838,24 +838,16 @@ class Document extends \DOMDocument {
             $node = $node->content;
         }
 
-        $templates = $node->walk(function($n) {
-            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $this->isHTMLNamespace($n) && strtolower($n->nodeName) === 'template') {
-                return true;
-            }
-        });
-
         // Yes, it seems weird to unpack a generator like this, but there is a need to
         // iterate through them in reverse so nested templates can be handled properly.
         // Also, this is slightly faster than using XPath to look for the templates;
         // they would also need to be unpacked because the NodeList is live and would
         // create an infinite loop if not unpacked to an array.
-        // TODO: Once support for 7.4 is okay this entire middle section here can be
-        // replaced with a spread operator above.
-        $temp = [];
-        foreach ($templates as $template) {
-            $temp[] = $template;
-        }
-        $templates = $temp;
+        $templates = [ ...$node->walk(function($n) {
+            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $this->isHTMLNamespace($n) && strtolower($n->nodeName) === 'template') {
+                return true;
+            }
+        }) ];
 
         for ($templatesLength = count($templates), $i = $templatesLength - 1; $i >= 0; $i--) {
             $template = $templates[$i];

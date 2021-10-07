@@ -13,10 +13,10 @@ use MensBeam\HTML\Parser;
 class Element extends \DOMElement {
     use DocumentOrElement, MagicProperties, Moonwalk, ParentNode, ToString, Walk;
 
-    protected $_classList;
+    protected ?TokenList $_classList = null;
 
 
-    protected function __get_classList(): ?TokenList {
+    protected function __get_classList(): TokenList {
         // Only create the class list if it is actually used.
         if ($this->_classList === null) {
             $this->_classList = new TokenList($this, 'class');

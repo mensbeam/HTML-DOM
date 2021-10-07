@@ -11,14 +11,14 @@ namespace MensBeam\HTML\DOM;
 class TokenList implements \ArrayAccess, \Countable, \Iterator {
     use MagicProperties;
 
-    protected $localName;
-    protected $element;
+    protected string $localName;
+    protected \WeakReference $element;
 
-    protected $_length = 0;
-    protected $position = 0;
+    protected int $_length = 0;
+    protected int $position = 0;
     # A DOMTokenList object has an associated token set (a set), which is initially
     # empty.
-    protected $tokenSet = [];
+    protected array $tokenSet = [];
 
     private const ASCII_WHITESPACE_REGEX = '/[\t\n\x0c\r ]+/';
 

@@ -25,11 +25,22 @@ use MensBeam\HTML\Parser;
  * @covers \MensBeam\HTML\DOM\ToString
  */
 class TestSerializer extends \PHPUnit\Framework\TestCase {
+    public function provideStandardTreeTests(): iterable {
+        $blacklist = [];
+        $files = new \AppendIterator();
+        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/Serializer/standard/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+        foreach ($files as $file) {
+            if (!in_array(basename($file), $blacklist)) {
+                yield from $this->parseTreeTestFile($file);
+            }
+        }
+    }
+
     /**
-     * @dataProvider provideStandardSerializerTests
+     * @dataProvider provideStandardTreeTests
      * @covers \MensBeam\HTML\DOM\Document::saveHTML
-     * @covers \MensBeam\HTML\DOM\Document::serializeBlockElementFilter
-     * @covers \MensBeam\HTML\DOM\Document::serializeFragment
+     * @covers \MensBeam\HTML\DOM\Document::blockElementFilterFactory
+     * @covers \MensBeam\HTML\DOM\Document::serializeNode
      * @covers \MensBeam\HTML\DOM\Document::__toString
      * @covers \MensBeam\HTML\DOM\ToString::__toString
      */
@@ -38,62 +49,75 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
         $this->assertSame($exp, (string)$node);
     }
 
-    public function provideStandardSerializerTests(): iterable {
-        $blacklist = [];
+
+    public function provideFormattedTreeTests(): iterable {
         $files = new \AppendIterator();
-        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/Serializer/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+        $files->append(new \GlobIterator(\MensBeam\HTML\DOM\BASE."tests/cases/Serializer/formatted/*.dat", \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
         foreach ($files as $file) {
-            $index = 0;
-            $l = 0;
-            if (!in_array(basename($file), $blacklist)) {
-                $lines = array_map(function($v) {
-                    return rtrim($v, "\n");
-                }, file($file));
-                while ($l < sizeof($lines)) {
-                    $pos = $l + 1;
-                    assert(in_array($lines[$l], ["#document", "#fragment"]), new \Exception("Test $file #$index does not start with #doocument or #fragment tag at line ".($l + 1)));
-                    $fragment = $lines[$l] === "#fragment";
-                    // collect the test input
-                    $data = [];
-                    for (++$l; $l < sizeof($lines); $l++) {
-                        if (preg_match('/^#(script-(on|off)|output)$/', $lines[$l])) {
-                            break;
-                        }
-                        $data[] = $lines[$l];
-                    }
-                    // set the script mode, if present
-                    assert(preg_match('/^#(script-(on|off)|output)$/', $lines[$l]) === 1, new \Exception("Test $file #$index follows data with something other than script flag or output at line ".($l + 1)));
-                    $script = null;
-                    if ($lines[$l] === "#script-off") {
-                        $script = false;
-                        $l++;
-                    } elseif ($lines[$l] === "#script-on") {
-                        $script = true;
-                        $l++;
-                    }
-                    // collect the output string
-                    $exp = [];
-                    assert($lines[$l] === "#output", new \Exception("Test $file #$index follows input with something other than output at line ".($l + 1)));
-                    for (++$l; $l < sizeof($lines); $l++) {
-                        if ($lines[$l] === "" && in_array(($lines[$l + 1] ?? ""), ["#document", "#fragment"])) {
-                            break;
-                        }
-                        assert(preg_match('/^[^#]/', $lines[$l]) === 1, new \Exception("Test $file #$index contains unrecognized data after output at line ".($l + 1)));
-                        $exp[] = $lines[$l];
-                    }
-                    $exp = implode("\n", $exp);
-                    if (!$script) {
-                        yield basename($file)." #$index (line $pos)" => [$data, $fragment, $exp];
-                    }
-                    $l++;
-                    $index++;
-                }
-            }
+            yield from $this->parseTreeTestFile($file);
         }
     }
 
-    protected function buildTree(array $data, bool $fragment): \DOMNode {
+    /**
+     * @dataProvider provideFormattedTreeTests
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::blockElementFilterFactory
+     * @covers \MensBeam\HTML\DOM\Document::serializeNode
+     * @covers \MensBeam\HTML\DOM\Document::__toString
+     * @covers \MensBeam\HTML\DOM\ToString::__toString
+     */
+    public function testFormattedTreeTests(array $data, bool $fragment, string $exp): void {
+        $node = $this->buildTree($data, $fragment, true);
+        $this->assertSame($exp, (string)$node);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serializeNode
+     */
+    public function testSerializingDocumentType(): void {
+        $d = new Document();
+        $dt = $d->implementation->createDocumentType('ook', 'eek', 'ack');
+        $d->appendChild($dt);
+        $this->assertSame('<!DOCTYPE ook>', $d->saveHTML($dt));
+    }
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serializeNode
+     * @covers \MensBeam\HTML\DOM\ToString::__toString
+     */
+    public function testSerializingElements(): void {
+        $d = new Document();
+        $i = $d->createElement('input');
+        $i->appendChild($d->createTextNode('You should not see this text'));
+        $this->assertSame('<input>', (string)$i);
+        $this->assertSame('', $d->saveHTML($i));
+
+        $t = $d->createElement('template');
+        $t->content->appendChild($d->createTextNode('Ook!'));
+        $this->assertSame('<template>Ook!</template>', (string)$t);
+        $this->assertSame('Ook!', $d->saveHTML($t));
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::saveHTML */
+    public function testSerializerFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
+        $d = new Document();
+        $h = $d->createElement('html');
+        $d2 = new Document();
+        $d2->saveHTML($h);
+    }
+
+
+
+
+    protected function buildTree(array $data, bool $fragment, bool $formatOutput = false): \DOMNode {
         $document = new Document;
+        $document->formatOutput = $formatOutput;
         if ($fragment) {
             $document->appendChild($document->createElement("html"));
             $out = $document->createDocumentFragment();
@@ -154,42 +178,50 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
         return $out;
     }
 
-
-    /** @covers \MensBeam\HTML\DOM\Document::saveHTML */
-    public function testSerializingDocumentType(): void {
-        $d = new Document();
-        $dt = $d->implementation->createDocumentType('ook', 'eek', 'ack');
-        $d->appendChild($dt);
-        $this->assertSame('<!DOCTYPE ook>', $d->saveHTML($dt));
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::saveHTML
-     * @covers \MensBeam\HTML\DOM\Document::serializeFragment
-     * @covers \MensBeam\HTML\DOM\ToString::__toString
-     */
-    public function testSerializingElements(): void {
-        $d = new Document();
-        $i = $d->createElement('input');
-        $i->appendChild($d->createTextNode('You should not see this text'));
-        $this->assertSame('<input>', (string)$i);
-        $this->assertSame('', $d->saveHTML($i));
-
-        $t = $d->createElement('template');
-        $t->content->appendChild($d->createTextNode('Ook!'));
-        $this->assertSame('<template>Ook!</template>', (string)$t);
-        $this->assertSame('Ook!', $d->saveHTML($t));
-    }
-
-
-    /** @covers \MensBeam\HTML\DOM\Document::saveHTML */
-    public function testSerializerFailure(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
-        $d = new Document();
-        $h = $d->createElement('html');
-        $d2 = new Document();
-        $d2->saveHTML($h);
+    protected function parseTreeTestFile(string $file): \Generator {
+        $index = 0;
+        $l = 0;
+        $lines = array_map(function($v) {
+            return rtrim($v, "\n");
+        }, file($file));
+        while ($l < sizeof($lines)) {
+            $pos = $l + 1;
+            assert(in_array($lines[$l], ["#document", "#fragment"]), new \Exception("Test $file #$index does not start with #document or #fragment tag at line ".($l + 1)));
+            $fragment = $lines[$l] === "#fragment";
+            // collect the test input
+            $data = [];
+            for (++$l; $l < sizeof($lines); $l++) {
+                if (preg_match('/^#(script-(on|off)|output)$/', $lines[$l])) {
+                    break;
+                }
+                $data[] = $lines[$l];
+            }
+            // set the script mode, if present
+            assert(preg_match('/^#(script-(on|off)|output)$/', $lines[$l]) === 1, new \Exception("Test $file #$index follows data with something other than script flag or output at line ".($l + 1)));
+            $script = null;
+            if ($lines[$l] === "#script-off") {
+                $script = false;
+                $l++;
+            } elseif ($lines[$l] === "#script-on") {
+                $script = true;
+                $l++;
+            }
+            // collect the output string
+            $exp = [];
+            assert($lines[$l] === "#output", new \Exception("Test $file #$index follows input with something other than output at line ".($l + 1)));
+            for (++$l; $l < sizeof($lines); $l++) {
+                if ($lines[$l] === "" && in_array(($lines[$l + 1] ?? ""), ["#document", "#fragment"])) {
+                    break;
+                }
+                assert(preg_match('/^[^#]/', $lines[$l]) === 1, new \Exception("Test $file #$index contains unrecognized data after output at line ".($l + 1)));
+                $exp[] = $lines[$l];
+            }
+            $exp = implode("\n", $exp);
+            if (!$script) {
+                yield basename($file)." #$index (line $pos)" => [$data, $fragment, $exp];
+            }
+            $l++;
+            $index++;
+        }
     }
 }

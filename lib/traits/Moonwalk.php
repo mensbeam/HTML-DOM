@@ -41,17 +41,12 @@ trait Moonwalk {
                         }
                     }
 
-                    // If node is an instance of DocumentFragment then it might be the content
-                    // fragment of a template element, so iterate through all template elements
-                    // stored in the element map and see if node is the fragment of one of the
-                    // templates; if it is change node to the template element and reprocess. Magic!
-                    // Can walk backwards THROUGH templates!
+                    // If node is an instance of DocumentFragment then set the node to its host if
+                    // it isn't null.
                     if ($node instanceof DocumentFragment) {
-                        foreach (ElementMap::getIterator($node->ownerDocument) as $element) {
-                            if ($element->ownerDocument->isSameNode($node->ownerDocument) && $element instanceof TemplateElement && $element->content->isSameNode($node)) {
-                                $node = $element;
-                                continue;
-                            }
+                        $host = $node->host;
+                        if ($host !== null) {
+                            $node = $host;
                         }
                     }
 

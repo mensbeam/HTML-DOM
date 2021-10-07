@@ -1,0 +1,13 @@
+#document
+| <html>
+#output
+<html></html>
+
+#document
+| <!-- data -->
+| <!DOCTYPE html>
+| <html>
+#output
+<!--data-->
+<!DOCTYPE html>
+<html></html>

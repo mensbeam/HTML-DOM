@@ -399,7 +399,7 @@ class Document extends \DOMDocument {
             $formatOutput = ($node->childElementCount > 0);
         }
 
-        return $this->serializeFragment($node, $formatOutput);
+        return $this->serializeNode($node, $formatOutput);
     }
 
     public function saveHTMLFile($filename): int {
@@ -419,8 +419,8 @@ class Document extends \DOMDocument {
     }
 
 
-    protected function serializeBlockElementFilter(\DOMNode $ignoredNode): \Closure {
-        $blockElementFilter = function($n) use ($ignoredNode) {
+    protected function blockElementFilterFactory(\DOMNode $ignoredNode): \Closure {
+        return function($n) use ($ignoredNode) {
             if (!$n->isSameNode($ignoredNode) && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
                 if ($nn instanceof Element && $this->isHTMLNamespace($nn) && in_array($nn->nodeName, self::BLOCK_ELEMENTS)) {
                     return true;
@@ -429,25 +429,22 @@ class Document extends \DOMDocument {
                 return true;
             }
         };
-
-        return $blockElementFilter;
     }
 
-    protected function serializeFragment(\DOMNode $node, bool $formatOutput = false): string {
-        if ($formatOutput) {
-            // Stores the root foreign element when parsing its descendants
-            static $foreignElement = null;
-            // Flag used if the root foreign element above has block element siblings
-            static $foreignElementWithBlockElementSiblings = false;
-            // Stores the indention level
-            static $indent = 0;
-            // Stores the root preformatted element when parsing its descendants
-            static $preformattedElement = null;
-            // Stores the previous non text node name so it can be used to check for adding
-            // additional space.
-            static $previousNonTextNodeSiblingName = null;
-        }
-
+    /**
+     * Recursively serializes nodes
+     *
+     * @param \DOMNode $node - The node to serialize
+     * @param bool $formatOutput - Flag for formatting output
+     * @param bool $first - True if the first run
+     * @param ?Element $foreignElement - Stores the root foreign element when parsing its descendants
+     * @param bool $foreignElementWithBlockElementSiblings - Flag used if the root foreign element above has block element siblings
+     * @param int $indent - Stores the indention level
+     * @param ?Element $preformattedElement - Stores the root preformatted element when parsing its descendants
+     * @param ?string $previousNonTextNodeSiblingName - Stores the previous non text node name so it can be used to check for adding
+     *                                                  additional space.
+     */
+    protected function serializeNode(\DOMNode $node, bool $formatOutput = false, bool $first = true, ?Element $foreignElement = null, bool $foreignElementWithBlockElementSiblings = false, int $indent = 0, ?Element $preformattedElement = null, ?string $previousNonTextNodeSiblingName = null): string {
         # 13.3. Serializing HTML fragments
         #
         # 1. If the node serializes as void, then return the empty string.
@@ -474,7 +471,7 @@ class Document extends \DOMDocument {
             if ($this->formatOutput) {
                 // Filter meant to be used with DOM walker generator methods which checks if
                 // elements are block or if elements are inline with block descendants
-                $blockElementFilter = self::serializeBlockElementFilter($currentNode->parentNode);
+                $blockElementFilter = self::blockElementFilterFactory($currentNode->parentNode);
             }
 
             # 2. Append the appropriate string from the following list to s:
@@ -492,7 +489,7 @@ class Document extends \DOMDocument {
                 }
 
                 if ($formatOutput) {
-                    $blockElementFilter = self::serializeBlockElementFilter($currentNode);
+                    $blockElementFilter = self::blockElementFilterFactory($currentNode);
                     $hasChildNodes = ($currentNode->hasChildNodes());
                     $modify = false;
 
@@ -529,7 +526,9 @@ class Document extends \DOMDocument {
                             $s .= "\n";
                         }
 
-                        $s .= "\n" . str_repeat(' ', $indent);
+                        if (!$first) {
+                            $s .= "\n" . str_repeat(' ', $indent);
+                        }
                     }
                 }
 
@@ -649,14 +648,14 @@ class Document extends \DOMDocument {
                 # current node element (thus recursing into this algorithm for that element),
                 # followed by a U+003C LESS-THAN SIGN character (<), a U+002F SOLIDUS character (/),
                 # tagname again, and finally a U+003E GREATER-THAN SIGN character (>).
-                $s .= $this->serializeFragment($currentNode, $formatOutput);
+                $s .= $this->serializeNode($currentNode, $formatOutput, false, $foreignElement, $foreignElementWithBlockElementSiblings, $indent, $preformattedElement, $previousNonTextNodeSiblingName);
 
                 if ($formatOutput) {
                     if ($modify) {
                         // Decrement the indention level.
                         $indent--;
 
-                        if ($preformattedElement === null) {
+                        if (!$first && $preformattedElement === null) {
                             // If a foreign element with a foreign element ancestor with block element
                             // siblings and has at least one element child or any element with a block
                             // element descendant...
@@ -722,15 +721,17 @@ class Document extends \DOMDocument {
             elseif ($currentNode instanceof Comment) {
                 if ($formatOutput) {
                     if ($preformattedElement === null && $foreignElementWithBlockElementSiblings || $currentNode->parentNode->walk($blockElementFilter)->current() !== null) {
-                        // Add an additional newline if the previous sibling wasn't a comment.
-                        if ($previousNonTextNodeSiblingName !== null && $previousNonTextNodeSiblingName !== $this->nodeName) {
-                            $s .= "\n";
-                        }
+                        if (!$first && $previousNonTextNodeSiblingName !== null) {
+                            // Add an additional newline if the previous sibling wasn't a comment.
+                            if ($previousNonTextNodeSiblingName !== $this->nodeName) {
+                                $s .= "\n";
+                            }
 
-                        $s .= "\n" . str_repeat(' ', $indent);
+                            $s .= "\n" . str_repeat(' ', $indent);
+                        }
                     }
 
-                    $previousNonTextNodeSiblingName = $this->nodeName;
+                    $previousNonTextNodeSiblingName = $currentNode->nodeName;
                 }
 
                 # Append the literal string "<!--" (U+003C LESS-THAN SIGN, U+0021 EXCLAMATION
@@ -742,17 +743,19 @@ class Document extends \DOMDocument {
             # If current node is a ProcessingInstruction
             elseif ($currentNode instanceof ProcessingInstruction) {
                 if ($formatOutput) {
-                    if ($preformattedElement === null && $foreignElementWithBlockElementSiblings || $currentNode->parentNode->walk($blockElementFilter)->current() !== null) {
+                    if (!$first && $preformattedElement === null && ($foreignElementWithBlockElementSiblings || $currentNode->parentNode->walk($blockElementFilter)->current() !== null)) {
                         // Add an additional newline if the previous sibling wasn't a processing
                         // instruction.
-                        if ($previousNonTextNodeSiblingName !== null && $previousNonTextNodeSiblingName !== $this->nodeName) {
-                            $s .= "\n";
-                        }
+                        if ($previousNonTextNodeSiblingName !== null) {
+                            if ($previousNonTextNodeSiblingName !== $this->nodeName) {
+                                $s .= "\n";
+                            }
 
-                        $s .= "\n" . str_repeat(' ', $indent);
+                            $s .= "\n" . str_repeat(' ', $indent);
+                        }
                     }
 
-                    $previousNonTextNodeSiblingName = $this->nodeName;
+                    $previousNonTextNodeSiblingName = $currentNode->nodeName;
                 }
 
                 # Append the literal string "<?" (U+003C LESS-THAN SIGN, U+003F QUESTION MARK),
@@ -773,8 +776,19 @@ class Document extends \DOMDocument {
                 // DEVIATION: The name is trimmed because PHP's DOM does not
                 //   accept the empty string as a DOCTYPE name
                 $name = trim($currentNode->name, ' ');
+
+                if ($formatOutput) {
+                    if ($previousNonTextNodeSiblingName !== null) {
+                        $s .= "\n" . str_repeat(' ', $indent);
+                    }
+
+                    $previousNonTextNodeSiblingName = $currentNode->nodeName;
+                }
+
                 $s .= "<!DOCTYPE $name>";
             }
+
+            $first = false;
         }
 
         # 5. Return s.

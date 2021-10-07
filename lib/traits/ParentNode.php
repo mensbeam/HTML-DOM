@@ -21,8 +21,7 @@ trait ParentNode {
         // almost identical; so, using that. PHP's DOM doesn't provide the end user any
         // way to create a \DOMNodeList from scratch, so going to cheat and use XPath to
         // make one for us.
-        $isDocument = ($this instanceof Document);
-        $document = ($isDocument) ? $this : $this->ownerDocument;
+        $document = ($this instanceof Document) ? $this : $this->ownerDocument;
         return $document->xpath->query('child::*', $this);
     }
 

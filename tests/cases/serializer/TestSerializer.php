@@ -109,8 +109,9 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
         $this->assertSame('', $d->saveHTML($i));
 
         $t = $d->createElement('template');
+        $t->setAttribute('ook', 'eek');
         $t->content->appendChild($d->createTextNode('Ook!'));
-        $this->assertSame('<template>Ook!</template>', (string)$t);
+        $this->assertSame('<template ook="eek">Ook!</template>', (string)$t);
         $this->assertSame('Ook!', $d->saveHTML($t));
     }
 

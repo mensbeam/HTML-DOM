@@ -112,6 +112,7 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
      * @dataProvider providePreInsertionValidationFailures
      * @covers \MensBeam\HTML\DOM\ParentNode::__get_children
      * @covers \MensBeam\HTML\DOM\ParentNode::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testPreInsertionValidationFailures(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);

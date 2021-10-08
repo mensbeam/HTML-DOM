@@ -14,15 +14,15 @@ class DocumentFragment extends \DOMDocumentFragment {
 
     protected ?\WeakReference $_host = null;
 
-    protected function __get_host(): ?\DOMNode {
+    protected function __get_host(): ?HTMLTemplateElement {
         if ($this->_host === null) {
-            return $this->_host;
+            return null;
         }
 
         return $this->_host->get();
     }
 
-    protected function __set_host(\DOMNode $value) {
+    protected function __set_host(HTMLTemplateElement $value) {
         if ($this->_host !== null) {
             throw new Exception(Exception::READONLY_PROPERTY, 'host');
         }

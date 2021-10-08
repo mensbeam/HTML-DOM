@@ -49,6 +49,7 @@ class DOMException extends \Exception {
         $message = self::$messages[$code];
         $previous = null;
 
+        // @codeCoverageIgnoreStart
         if ($args) {
             // Grab a previous exception if there is one.
             if ($args[0] instanceof \Throwable) {
@@ -57,6 +58,7 @@ class DOMException extends \Exception {
                 $previous = array_pop($args);
             }
         }
+        // @codeCoverageIgnoreEnd
 
         // Count the number of replacements needed in the message.
         preg_match_all('/(\%(?:\d+\$)?s)/', $message, $matches);

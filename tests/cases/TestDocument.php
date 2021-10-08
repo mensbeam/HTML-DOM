@@ -45,6 +45,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testAttributeNodeCreationFailure(): void {
         $this->expectException(DOMException::class);
@@ -99,6 +100,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::saveXML
      * @covers \MensBeam\HTML\DOM\Document::validate
      * @covers \MensBeam\HTML\DOM\Document::xinclude
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testDisabledMethods(string $methodName, ?string $argument): void {
         $this->expectException(DOMException::class);
@@ -181,6 +183,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideDocumentCreationFailures
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Exception::__construct
      */
     public function testDocumentCreationFailures($source): void {
         $this->expectException(Exception::class);
@@ -234,6 +237,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideElementCreationFailures
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testElementCreationFailures(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
@@ -297,6 +301,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @dataProvider provideElementCreationNSFailures
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testElementCreationNSFailures(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
@@ -388,6 +393,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider providePropertySetBodyFailures
      * @covers \MensBeam\HTML\DOM\Document::__set_body
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testPropertySetBodyFailures(Document $document, \DOMNode $node): void {
         $this->expectException(DOMException::class);

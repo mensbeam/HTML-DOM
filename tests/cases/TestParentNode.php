@@ -10,14 +10,8 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
-    DOMException,
-    Element,
-    ElementMap,
-    Exception,
-    HTMLTemplateElement
+    DOMException
 };
-use MensBeam\HTML\Parser,
-    org\bovigo\vfs\vfsStream;
 
 
 /** @covers \MensBeam\HTML\DOM\ParentNode */

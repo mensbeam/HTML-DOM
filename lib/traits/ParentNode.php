@@ -31,9 +31,9 @@ trait ParentNode {
 
         $result = parent::appendChild($node);
         if ($result !== false && $result instanceof HTMLTemplateElement) {
-            ElementMap::add($result);
+            ElementMap::add($node);
         }
-        return $result;
+        return $node;
     }
 
     public function insertBefore($node, $child = null) {
@@ -41,35 +41,36 @@ trait ParentNode {
 
         $result = parent::insertBefore($node, $child);
         if ($result !== false) {
-            if ($result instanceof HTMLTemplateElement) {
-                ElementMap::add($result);
+            if ($node instanceof HTMLTemplateElement) {
+                ElementMap::add($node);
             }
             if ($child instanceof HTMLTemplateElement) {
                 ElementMap::delete($child);
             }
         }
-        return $result;
+        return $node;
     }
 
     public function removeChild($child) {
         $result = parent::removeChild($child);
-        if ($result !== false && $result instanceof HTMLTemplateElement) {
+        if ($result !== false && $child instanceof HTMLTemplateElement) {
             ElementMap::delete($child);
         }
-        return $result;
+        return $child;
     }
 
     public function replaceChild($node, $child) {
         $result = parent::replaceChild($node, $child);
+
         if ($result !== false) {
-            if ($result instanceof HTMLTemplateElement) {
-                ElementMap::add($child);
+            if ($node instanceof HTMLTemplateElement) {
+                ElementMap::add($node);
             }
             if ($child instanceof HTMLTemplateElement) {
                 ElementMap::delete($child);
             }
         }
-        return $result;
+        return $node;
     }
 
     public function replaceChildren(...$nodes) {
@@ -175,13 +176,13 @@ trait ParentNode {
             #    child, child is a doctype, or child is non-null and a doctype is following
             #    child.
             if ($node instanceof DocumentFragment) {
-                $nodeChildElementCount = $node->children->length;
+                $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1 || $node->walkShallow(function($n) {
                     return ($n instanceof Text);
                 })->current() !== null) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 } elseif ($nodeChildElementCount === 1) {
-                    if ($this->children->length > 0 || $child instanceof \DOMDocumentType) {
+                    if ($this->childElementCount > 0 || $child instanceof \DOMDocumentType) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 

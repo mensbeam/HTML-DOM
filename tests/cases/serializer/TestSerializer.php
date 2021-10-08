@@ -86,6 +86,19 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Document::saveHTML
      * @covers \MensBeam\HTML\DOM\Document::serializeNode
+     */
+    public function testSerializingDocumentFragments(): void {
+        $d = new Document();
+        $d->formatOutput = true;
+        $df = $d->createDocumentFragment();
+        $df->appendChild($d->createTextNode('ook'));
+        $this->assertSame('ook', (string)$df);
+        $this->assertSame('ook', $d->saveHTML($df));
+    }
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serializeNode
      * @covers \MensBeam\HTML\DOM\ToString::__toString
      */
     public function testSerializingElements(): void {
@@ -99,6 +112,19 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
         $t->content->appendChild($d->createTextNode('Ook!'));
         $this->assertSame('<template>Ook!</template>', (string)$t);
         $this->assertSame('Ook!', $d->saveHTML($t));
+    }
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serializeNode
+     * @covers \MensBeam\HTML\DOM\ToString::__toString
+     */
+    public function testSerializingTextNodes(): void {
+        $d = new Document();
+        $d->formatOutput = true;
+        $i = $d->createTextNode('test');
+        $this->assertSame('test', (string)$i);
+        $this->assertSame('test', $d->saveHTML($i));
     }
 
 

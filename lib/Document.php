@@ -392,11 +392,19 @@ class Document extends \DOMDocument {
                     $newDoc->appendChild($newDoc->implementation->createDocumentType($node->name, $node->publicId, $node->systemId));
                     $node = $newDoc;
                 }
+            } elseif ($formatOutput && $node instanceof DocumentFragment) {
+                // If node is a document fragment disable output formatting if the
+                // DocumentFragment doesn't have any Element children.
+                $formatOutput = ($node->childElementCount > 0);
             }
-        } elseif ($formatOutput && $node instanceof DocumentFragment) {
-            // If node is a document fragment disable output formatting if the
-            // DocumentFragment doesn't have any Element children.
-            $formatOutput = ($node->childElementCount > 0);
+        }
+
+        // If node is a comment, processing instruction, or text node put the node in a
+        // fragment before passing to the node serializer.
+        if ($node instanceof Comment || $node instanceof ProcessingInstruction || $node instanceof Text) {
+            $frag = $this->createDocumentFragment();
+            $frag->appendChild($node->cloneNode(true));
+            $node = $frag;
         }
 
         return $this->serializeNode($node, $formatOutput);
@@ -821,19 +829,7 @@ class Document extends \DOMDocument {
         return $element;
     }
 
-    private function replaceTemplates(?\DOMNode $node = null) {
-        if ($node === null) {
-            $node = $this;
-        }
-
-        if (!$node instanceof \DOMDocument && !$node instanceof \DOMElement && !$node instanceof \DOMDocumentFragment) {
-            $type = gettype($node);
-            if ($type === 'object') {
-                $type = get_class($node);
-            }
-            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'node', '\DOMDocument|\DOMDocumentFragment|\DOMElement|null', $type);
-        }
-
+    private function replaceTemplates(\DOMNode $node) {
         if ($node instanceof HTMLTemplateElement) {
             $node = $node->content;
         }
@@ -851,7 +847,8 @@ class Document extends \DOMDocument {
 
         for ($templatesLength = count($templates), $i = $templatesLength - 1; $i >= 0; $i--) {
             $template = $templates[$i];
-            $template->parentNode->replaceChild($this->convertTemplate($template), $template);
+            $newTemplate = $this->convertTemplate($template);
+            $template->parentNode->replaceChild($newTemplate, $template);
         }
     }
 

@@ -110,11 +110,13 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::convertTemplate
      * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\Document::loadDOM
      * @covers \MensBeam\HTML\DOM\Document::loadHTML
      * @covers \MensBeam\HTML\DOM\Document::loadHTMLFile
      * @covers \MensBeam\HTML\DOM\Document::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Document::replaceTemplates
      * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
      */
     public function testDocumentCreation(): void {
@@ -149,15 +151,23 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         HTML ]);
         $f = $vfs->url() . '/test.html';
 
+        // Test nonexistent file source
         $d = new Document();
         $this->assertFalse(@$d->load('fileDoesNotExist.html'));
         $d->load($f);
         $this->assertNotNull($d->documentElement);
         $this->assertSame('ISO-2022-JP', $d->documentEncoding);
 
+        // Test document encoding
         $d = new Document();
         $d->loadHTMLFile($f, null, 'UTF-8');
         $this->assertSame('UTF-8', $d->documentEncoding);
+
+        // Test templates in source
+        $d = new Document('<!DOCTYPE html><html><body><template class="test"><template></template></template></body></html>');
+        $t = $d->getElementsByTagName('template')->item(0);
+        $this->assertSame(HTMLTemplateElement::class, $t::class);
+        $this->assertSame(HTMLTemplateElement::class, $t->content->firstChild::class);
     }
 
 
@@ -323,11 +333,13 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
         $d = new \DOMDocument();
         $t = $d->createElement('template');
-        $this->assertSame($t::class, 'DOMElement');
+        // Add a child template to cover recursive template conversions.
+        $t->appendChild($d->createElement('template'));
+        $this->assertSame(\DOMElement::class, $t::class);
 
         $d2 = new Document();
         $t2 = $d2->importNode($t, true);
-        $this->assertSame($t2::class, str_replace(\DIRECTORY_SEPARATOR, '\\', dirname(str_replace('\\', \DIRECTORY_SEPARATOR, __NAMESPACE__))) . '\HTMLTemplateElement');
+        $this->assertSame(HTMLTemplateElement::class, $t2::class);
     }
 
 

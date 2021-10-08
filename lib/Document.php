@@ -205,6 +205,10 @@ class Document extends \DOMDocument {
         }
     }
 
+    public function createCDATASection(string $data) {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; CDATA sections do not exist in HTML DOM');
+    }
+
     public function createElement(string $name, ?string $value = null): Element {
         # The createElement(localName, options) method steps are:
         // DEVIATION: We cannot follow the createElement parameters per the DOM spec
@@ -300,11 +304,16 @@ class Document extends \DOMDocument {
         }
     }
 
-    public function createEntityReference(string $name): bool {
+    public function createEntityReference(string $name) {
         throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; entity references do not exist in HTML DOM');
     }
 
     public function importNode(\DOMNode $node, bool $deep = false) {
+        // Disable importing of PHP's XML DOM-specific nodes.
+        if ($node instanceof \DOMCDATASection || $node instanceof \DOMEntity || $node instanceof \DOMEntityReference) {
+            throw new DOMException(DOMException::NOT_SUPPORTED, 'Clever little fucker, aren\'t you?');
+        }
+
         $node = parent::importNode($node, $deep);
 
         if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {

@@ -10,8 +10,6 @@ namespace MensBeam\HTML\DOM;
 
 
 trait ChildNode {
-    use Node;
-
     public function after(...$nodes): void {
         # The after(nodes) method steps are:
         #
@@ -25,15 +23,15 @@ trait ChildNode {
         # 3. Let viableNextSibling be this’s first following sibling not in nodes;
         #    otherwise null.
         $n = $this;
-        $nextViableSibling = null;
-        while ($n = $n->followingSibling) {
+        $viableNextSibling = null;
+        while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString->isSameNode($n->followingSibling)) {
-                    continue;
+                if ($nodeOrString instanceof \DOMNode && $nodeOrString->isSameNode($n)) {
+                    continue 2;
                 }
             }
 
-            $nextViableSibling = $n;
+            $viableNextSibling = $n;
             break;
         }
 
@@ -43,21 +41,5 @@ trait ChildNode {
 
         # 5. Pre-insert node into parent before viableNextSibling.
         $parent->insertBefore($node, $viableNextSibling);
-    }
-
-    public function appendChild($node) {
-        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-    }
-
-    public function insertBefore($node, $child = null) {
-        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-    }
-
-    public function removeChild($child) {
-        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-    }
-
-    public function replaceChild($node, $child) {
-        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
     }
 }

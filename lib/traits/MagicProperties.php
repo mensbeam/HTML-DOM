@@ -18,8 +18,6 @@ namespace MensBeam\HTML\DOM;
  */
 trait MagicProperties {
     public function __get(string $name) {
-        // If a getter method exists return it. Otherwise, trigger a property does not
-        // exist fatal error.
         $methodName = $this->getMagicPropertyMethodName($name);
         if ($methodName === null) {
             throw new Exception(Exception::NONEXISTENT_PROPERTY, $name);
@@ -32,16 +30,12 @@ trait MagicProperties {
     }
 
     public function __set(string $name, $value) {
-        // If a setter method exists return that.
         $methodName = $this->getMagicPropertyMethodName($name, false);
         if ($methodName !== null) {
             call_user_func([ $this, $methodName ], $value);
             return;
         }
 
-        // Otherwise, if a getter exists then trigger a readonly property fatal error.
-        // Finally, if a getter doesn't exist trigger a property does not exist fatal
-        // error.
         if ($this->getMagicPropertyMethodName($name) !== null) {
             throw new Exception(Exception::READONLY_PROPERTY, $name);
         } else {

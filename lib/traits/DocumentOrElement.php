@@ -11,8 +11,11 @@ use MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\NameCoercion;
 
 
-// This exists because the DOM spec for some stupid reason doesn't give
-// DocumentFragment some methods.
+/**
+ * Not in standard. Exists so Document and Element can share some properties and
+ * methods. For instance, getElementsByClassName is mentioned in the standard in
+ * both the Document and Element interfaces. 
+ */
 trait DocumentOrElement {
     use NameCoercion;
 

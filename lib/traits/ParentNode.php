@@ -115,7 +115,7 @@ trait ParentNode {
     }
 
 
-    protected function preInsertionValidity(\DOMNode $node, ?\DOMNode $child = null) {
+    protected function preInsertionValidity(\DOMNode $node, ?\DOMNode $child = null) {        
         // "parent" in the spec comments below is $this
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw

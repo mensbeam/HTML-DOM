@@ -9,11 +9,8 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
-    Document,
-    DocumentFragment,
     DOMException,
-    Exception,
-    HTMLTemplateElement
+    Exception
 };
 use MensBeam\HTML\Parser;
 

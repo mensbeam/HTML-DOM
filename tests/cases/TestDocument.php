@@ -85,6 +85,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
     public function provideDisabledMethods(): iterable {
         return [
+            [ 'createCDATASection', 'ook' ],
             [ 'createEntityReference', 'ook' ],
             [ 'loadXML', 'ook' ],
             [ 'saveXML', null ],
@@ -345,6 +346,17 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d2 = new Document();
         $t2 = $d2->importNode($t, true);
         $this->assertSame(HTMLTemplateElement::class, $t2::class);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::importNode */
+    public function testImportingNodesFailure() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
+        $d = new \DOMDocument();
+        $c = $d->createCDATASection('fail');
+        $d2 = new Document();
+        $d2->importNode($c);
     }
 
 

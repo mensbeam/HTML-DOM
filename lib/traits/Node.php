@@ -54,7 +54,7 @@ trait Node {
         // The spec would have us iterate through the provided nodes and then iterate
         // through them again to append. Let's optimize this a wee bit, shall we?
         $document = ($this instanceof Document) ? $this : $this->ownerDocument;
-        $node = ($node->length > 1) ? $document->createDocumentFragment() : null;
+        $node = (count($nodes) > 1) ? $document->createDocumentFragment() : null;
         foreach ($nodes as $k => &$n) {
             // Can't do union types until PHP 8... OTL
             if (!$n instanceof \DOMNode && !is_string($n)) {

@@ -29,18 +29,16 @@ class ElementMap {
             self::$documents[] = $document;
             self::$elements[count(self::$documents) - 1][] = $element;
             return true;
-        } else {
-            foreach (self::$elements[$index] as $v) {
-                if ($v->isSameNode($element)) {
-                    return false;
-                }
-            }
-
-            self::$elements[$index][] = $element;
-            return true;
         }
 
-        return false;
+        foreach (self::$elements[$index] as $v) {
+            if ($v->isSameNode($element)) {
+                return false;
+            }
+        }
+
+        self::$elements[$index][] = $element;
+        return true;
     }
 
     public static function delete(Element $element): bool {
@@ -70,13 +68,6 @@ class ElementMap {
         }
 
         return false;
-    }
-
-    public static function getIterator(Document $document): \Traversable {
-        $index = self::index($document);
-        foreach (self::$elements[$index] as $v) {
-            yield $v;
-        }
     }
 
     public static function has(Element $element): bool {

@@ -11,7 +11,7 @@ use MensBeam\HTML\Parser;
 
 
 class Element extends \DOMElement {
-    use DocumentOrElement, MagicProperties, Moonwalk, ParentNode, ToString, Walk;
+    use ChildNode, DocumentOrElement, MagicProperties, Moonwalk, ParentNode, ToString, Walk;
 
     protected ?TokenList $_classList = null;
 

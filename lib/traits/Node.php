@@ -14,12 +14,12 @@ namespace MensBeam\HTML\DOM;
 trait Node {
     // Disable C14N
     public function C14N($exclusive = null, $with_comments = null, ?array $xpath = null, ?array $ns_prefixes = null): bool {
-        return false;
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is meant for XML and buggy; use Document::saveHTML or cast to a string');
     }
 
     // Disable C14NFile
     public function C14NFile($uri, $exclusive = null, $with_comments = null, ?array $xpath = null, ?array $ns_prefixes = null): bool {
-        return false;
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is meant for XML and buggy; use Document::saveHTMLFile');
     }
 
     public function getRootNode(): ?\DOMNode {

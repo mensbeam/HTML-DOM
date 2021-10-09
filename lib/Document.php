@@ -67,7 +67,7 @@ class Document extends \DOMDocument {
         return null;
     }
 
-    protected function __set_body(?\DOMNode $value) {
+    protected function __set_body(\DOMNode $value) {
         # On setting, the following algorithm must be run:
         #
         # 1. If the new value is not a body or frameset element, then throw a

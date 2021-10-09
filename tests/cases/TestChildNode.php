@@ -13,7 +13,10 @@ use MensBeam\HTML\DOM\Document;
 
 /** @covers \MensBeam\HTML\DOM\ChildNode */
 class TestChildNode extends \PHPUnit\Framework\TestCase {
-    /** @covers \MensBeam\HTML\DOM\ChildNode::after */
+    /**
+     * @covers \MensBeam\HTML\DOM\ChildNode::after
+     * @covers \MensBeam\HTML\DOM\Node::convertNodesToNode
+     */
     public function testAfter(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
@@ -23,8 +26,8 @@ class TestChildNode extends \PHPUnit\Framework\TestCase {
         $div2 = $d->body->appendChild($d->createElement('div'));
 
         // On node with parent
-        $div->after($d->createElement('span'), $o, $d->createElement('br'));
-        $this->assertSame('<body><div></div><span></span>ook<br><div></div></body>', (string)$d->body);
+        $div->after($d->createElement('span'), $o, 'eek');
+        $this->assertSame('<body><div></div><span></span>ookeek<div></div></body>', (string)$d->body);
         $div->after($o);
 
         // On node with no parent

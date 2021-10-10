@@ -12,7 +12,6 @@ use MensBeam\HTML\DOM\{
     Document,
     ElementMap
 };
-use MensBeam\HTML\Parser;
 
 
 /**

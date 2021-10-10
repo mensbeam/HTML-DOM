@@ -12,7 +12,6 @@ use MensBeam\HTML\DOM\{
     DOMException,
     Exception
 };
-use MensBeam\HTML\Parser;
 
 
 /**

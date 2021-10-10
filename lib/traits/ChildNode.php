@@ -15,6 +15,7 @@ trait ChildNode {
         #
         # 1. Let parent be this’s parent.
         $parent = $this->parentNode;
+        
         # 2. If parent is null, then return.
         if ($parent === null) {
             return;

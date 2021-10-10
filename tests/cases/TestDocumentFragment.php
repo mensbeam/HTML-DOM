@@ -14,7 +14,6 @@ use MensBeam\HTML\DOM\{
     Exception,
     HTMLTemplateElement
 };
-use MensBeam\HTML\Parser;
 
 
 /** @covers \MensBeam\HTML\DOM\DocumentFragment */

@@ -23,23 +23,20 @@ trait Walk {
             do {
                 $next = $node->nextSibling;
                 $parent = $node->parentNode;
-                $prev = $node->previousSibling;
                 if ($filter === null || $filter($node) === true) {
                     yield $node;
                 }
 
-                // If the node was replaced mid-loop then make node be the element that it was
-                // replaced with by determining the previous node's position.
-                if ($node->parentNode === null) {
-                    $node = $prev->nextSibling ?? $parent->firstChild;
-                }
+                // If the node was removed mid-loop then there's no reason to walk through its
+                // contents
+                if ($node->parentNode !== null) {
+                    if ($node instanceof HTMLTemplateElement) {
+                        $node = $node->content;
+                    }
 
-                if ($node instanceof HTMLTemplateElement) {
-                    $node = $node->content;
-                }
-
-                if ($node->hasChildNodes()) {
-                    yield from $node->walk($filter);
+                    if ($node->hasChildNodes()) {
+                        yield from $node->walk($filter);
+                    }
                 }
             } while ($node = $next);
         }

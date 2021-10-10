@@ -52,27 +52,15 @@ trait Walk {
      */
     public function walkShallow(?\Closure $filter = null, bool $backwards = false): \Generator {
         $node = (!$this instanceof TemplateElement) ? $this : $this->content;
+        $node = (!$backwards) ? $node->firstChild : $node->lastChild;
 
-        if (!$backwards) {
-            $node = $node->firstChild;
-            if ($node !== null) {
-                do {
-                    $next = $node->nextSibling;
-                    if ($filter === null || $filter($node) === true) {
-                        yield $node;
-                    }
-                } while ($node = $next);
-            }
-        } else {
-            $node = $node->lastChild;
-            if ($node !== null) {
-                do {
-                    $next = $node->previousSibling;
-                    if ($filter === null || $filter($node) === true) {
-                        yield $node;
-                    }
-                } while ($node = $next);
-            }
+        if ($node !== null) {
+            do {
+                $next = (!$backwards) ? $node->nextSibling : $node->previousSibling;
+                if ($filter === null || $filter($node) === true) {
+                    yield $node;
+                }
+            } while ($node = $next);
         }
     }
 }

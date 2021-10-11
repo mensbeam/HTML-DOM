@@ -360,7 +360,7 @@ class Document extends \DOMDocument {
     }
 
     public function loadHTML(string $source, ?int $options = null, ?string $encoding = null): bool {
-        $source = Parser::parse($source, $encoding, null);
+        $source = Parser::parse($source, $encoding);
         $this->loadDOM($source->document, $source->encoding, $source->quirksMode);
 
         return true;

@@ -48,7 +48,7 @@
             "source": {
                 "type": "git",
                 "url": "mensbeam-gitea:MensBeam/HTML-Parser.git",
-                "reference": "29127c51ee3b127fb607df4f5518920046df9704"
+                "reference": "c8c06412d1e0cd5459aa19724bc003c4b2fe3695"
             },
             "require": {
                 "ext-dom": "*",
@@ -108,7 +108,7 @@
                 }
             ],
             "description": "Parses modern HTML text into a PHP DOMDocument",
-            "time": "2021-10-09T03:23:33+00:00"
+            "time": "2021-10-11T16:12:33+00:00"
         },
         {
             "name": "mensbeam/intl",

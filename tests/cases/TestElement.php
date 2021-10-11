@@ -133,11 +133,5 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
         $d->body->outerHTML = '<body>eek</body>';
         $this->assertSame('<body>eek</body>', $d->body->outerHTML);
-
-        $f = $d->createDocumentFragment();
-        $div = $f->appendChild($d->createElement('div'));
-        $div->outerHTML = '<div class="ook"></div>';
-        die(var_export((string)$div));
-        $this->assertSame('ook', $div->getAttribute('class'));
     }
 }

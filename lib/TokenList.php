@@ -7,7 +7,8 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties;
+use MensBeam\Framework\MagicProperties,
+    MensBeam\HTML\Parser\Data;
 
 
 class TokenList implements \ArrayAccess, \Countable, \Iterator {

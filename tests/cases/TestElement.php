@@ -86,4 +86,58 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($e->hasAttributeNS($namespaceIn, $localNameExpected));
         $this->assertSame($valueExpected, $e->getAttributeNS($namespaceIn, $localNameExpected));
     }
+
+
+    /** @covers \MensBeam\HTML\DOM\Element::__get_classList */
+    public function testPropertyGetClassList(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->setAttribute('class', 'ook eek ack  ookeek');
+        $this->assertSame(4, $d->documentElement->classList->length);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
+     * @covers \MensBeam\HTML\DOM\Element::__set_innerHTML
+     */
+    public function testPropertyGetSetInnerHTML(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $s = $d->body->appendChild($d->createElement('span'));
+        $s->appendChild($d->createTextNode('ook'));
+        $this->assertSame('<span>ook</span>', $d->body->innerHTML);
+
+        $d->body->innerHTML = '<div>eek</div>';
+        $this->assertSame('<div>eek</div>', $d->body->innerHTML);
+
+        $t = $d->body->appendChild($d->createElement('template'));
+        $t->innerHTML = 'ook';
+        $this->assertSame('ook', $t->innerHTML);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_outerHTML
+     * @covers \MensBeam\HTML\DOM\Element::__set_outerHTML
+     */
+    public function testPropertyGetSetOuterHTML(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->setAttribute('class', 'ook');
+        $s = $d->body->appendChild($d->createElement('span'));
+        $s->appendChild($d->createTextNode('ook'));
+        $this->assertSame('<body class="ook"><span>ook</span></body>', $d->body->outerHTML);
+
+        $d->body->outerHTML = '<body>eek</body>';
+        $this->assertSame('<body>eek</body>', $d->body->outerHTML);
+
+        $f = $d->createDocumentFragment();
+        $div = $f->appendChild($d->createElement('div'));
+        $div->outerHTML = '<div class="ook"></div>';
+        die(var_export((string)$div));
+        $this->assertSame('ook', $div->getAttribute('class'));
+    }
 }

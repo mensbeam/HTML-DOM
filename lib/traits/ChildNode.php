@@ -9,13 +9,17 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
+# 4.2.8. Mixin ChildNode
 trait ChildNode {
+    use ChildNodePolyfill;
+
+
     public function after(...$nodes): void {
         # The after(nodes) method steps are:
         #
         # 1. Let parent be this’s parent.
         $parent = $this->parentNode;
-        
+
         # 2. If parent is null, then return.
         if ($parent === null) {
             return;

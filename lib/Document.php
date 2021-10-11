@@ -7,9 +7,12 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties;
-use MensBeam\HTML\Parser,
-    MensBeam\HTML\Parser\Data;
+use MensBeam\Framework\MagicProperties,
+    MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser\{
+        Charset,
+        Data
+    };
 
 
 class Document extends \DOMDocument {
@@ -328,12 +331,59 @@ class Document extends \DOMDocument {
         return $node;
     }
 
+
+    /*
+
+    $f = fopen($file, "r");
+        if (!$f) {
+            return null;
+        }
+        $data = stream_get_contents($f);
+        $encoding = Charset::fromCharset((string) $encodingOrContentType) ?? Charset::fromTransport((string) $encodingOrContentType);
+        if (!$encoding) {
+            $meta = stream_get_meta_data($f);
+            if ($meta['wrapper_type'] === "http") {
+                // Try to find a Content-Type header-field
+                foreach ($meta['wrapper_data'] as $h) {
+                    $h = explode(":", $h, 2);
+                    if (count($h) === 2) {
+                        if (preg_match("/^\s*Content-Type\s*$/i", $h[0])) {
+                            // Try to get an encoding from it
+                            $encoding = Charset::fromTransport($h[1]);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return [$data, $encoding];
+    }
+
+    */
+
     public function load($filename, $options = null, ?string $encoding = null): bool {
-        $data = Parser::fetchFile($filename, $encoding);
-        if (!$data) {
+        $f = fopen($filename, 'r');
+        if (!$f) {
             return false;
         }
-        [$data, $encodingOrContentType] = $data;
+
+        $data = stream_get_contents($f);
+        $encoding = Charset::fromCharset((string)$encoding) ?? Charset::fromTransport((string)$encoding);
+        if (!$encoding) {
+            $meta = stream_get_meta_data($f);
+            if ($meta['wrapper_type'] === 'http') {
+                // Try to find a Content-Type header field
+                foreach ($meta['wrapper_data'] as $h) {
+                    $h = explode(':', $h, 2);
+                    if (count($h) === 2 && preg_match("/^\s*Content-Type\s*$/i", $h[0])) {
+                        // Try to get an encoding from it
+                        $encoding = Charset::fromTransport($h[1]);
+                        break;
+                    }
+                }
+            }
+        }
+
         $this->loadHTML($data, null, $encoding);
         return true;
     }

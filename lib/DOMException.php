@@ -24,8 +24,6 @@ class DOMException extends Exception {
     const INVALID_ACCESS_ERROR = 15;
     const VALIDATION_ERROR = 16;
 
-    const OUTER_HTML_FAILED_NOPARENT = 301;
-
 
     public function __construct(int $code, ...$args) {
         self::$messages = array_replace(parent::$messages, [
@@ -39,9 +37,7 @@ class DOMException extends Exception {
              13 => 'Invalid modification error',
              14 => 'Namespace error',
              15 => 'Invalid access error',
-             16 => 'Validation error',
-
-            301 => 'Failed to set the "outerHTML" property; the element does not have a parent node'
+             16 => 'Validation error'
         ]);
 
         parent::__construct($code, ...$args);

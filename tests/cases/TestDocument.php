@@ -162,6 +162,12 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertNotNull($d->documentElement);
         $this->assertSame('ISO-2022-JP', $d->documentEncoding);
 
+        // Test http source
+        $d = new Document();
+        $d->load('https://google.com');
+        $this->assertNotNull($d->documentElement);
+        $this->assertSame('UTF-8', $d->documentEncoding);
+
         // Test document encoding
         $d = new Document();
         $d->loadHTMLFile($f, null, 'UTF-8');

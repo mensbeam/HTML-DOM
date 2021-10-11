@@ -54,7 +54,7 @@ class Element extends \DOMElement {
 
         # 3. If the context object is a template element, then let context object be the
         # template's template contents (a DocumentFragment).
-        if ($this->nodeName === 'template') {
+        if ($this instanceof HTMLTemplateElement) {
             $this->content = $fragment;
         }
         # 4. Replace all with fragment within the context object.
@@ -98,31 +98,6 @@ class Element extends \DOMElement {
         }
     }
 
-    protected function __get_nextElementSibling(): Element {
-        # The nextElementSibling getter steps are to return the first following sibling
-        # that is an element; otherwise null.
-        if ($this->parentNode !== null) {
-            $start = false;
-            foreach ($this->parentNode->childNodes as $child) {
-                if (!$start) {
-                    if ($child->isSameNode($this)) {
-                        $start = true;
-                    }
-
-                    continue;
-                }
-
-                if (!$child instanceof Element) {
-                    continue;
-                }
-
-                return $child;
-            }
-        }
-
-        return null;
-    }
-
     protected function __get_outerHTML(): string {
         ### DOM Parsing Specification ###
         # 2.4 Extensions to the Element interface
@@ -134,7 +109,7 @@ class Element extends \DOMElement {
         # returning a string).
         // DEVIATION: Parsing of XML documents will not be handled by this
         // implementation, so there's no need for the well-formed flag.
-        return $this->__toString();
+        return (string)$this;
     }
 
     protected function __set_outerHTML(string $value) {
@@ -151,7 +126,7 @@ class Element extends \DOMElement {
         // The spec is unclear here as to what to do. What do you return? Most browsers
         // throw an exception here, so that's what we're going to do.
         if ($parent === null) {
-            throw new DOMException(DOMException::OUTER_HTML_FAILED_NOPARENT);
+            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
         # 3. If parent is a Document, throw a "NoModificationAllowedError" DOMException.
         elseif ($parent instanceof Document) {
@@ -173,26 +148,6 @@ class Element extends \DOMElement {
         # 6. Replace the context object with fragment within the context object's
         # parent.
         $this->parentNode->replaceChild($fragment, $this);
-    }
-
-    protected function __get_previousElementSibling(): Element {
-        # The previousElementSibling getter steps are to return the first preceding
-        # sibling that is an element; otherwise null.
-        if ($this->parentNode !== null) {
-            foreach ($this->parentNode->childNodes as $child) {
-                if ($child->isSameNode($this)) {
-                    return null;
-                }
-
-                if (!$child instanceof Element) {
-                    continue;
-                }
-
-                return $child;
-            }
-        }
-
-        return null;
     }
 
 

@@ -19,11 +19,13 @@
       <file>cases/TestChildNode.php</file>
       <file>cases/TestDocument.php</file>
       <file>cases/TestDocumentFragment.php</file>
+      <file>cases/TestDocumentOrElement.php</file>
       <file>cases/TestElement.php</file>
       <file>cases/TestElementMap.php</file>
       <file>cases/TestException.php</file>
       <file>cases/TestLeafNode.php</file>
       <file>cases/TestMagicProperties.php</file>
+      <file>cases/TestMoonwalk.php</file>
       <file>cases/TestNode.php</file>
       <file>cases/TestParentNode.php</file>
       <file>cases/TestWalk.php</file>

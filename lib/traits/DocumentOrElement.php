@@ -7,14 +7,17 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\Parser,
-    MensBeam\HTML\Parser\NameCoercion;
+use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser\{
+    Data,
+    NameCoercion
+};
 
 
 /**
  * Not in standard. Exists so Document and Element can share some properties and
  * methods. For instance, getElementsByClassName is mentioned in the standard in
- * both the Document and Element interfaces. 
+ * both the Document and Element interfaces.
  */
 trait DocumentOrElement {
     use NameCoercion;
@@ -67,7 +70,7 @@ trait DocumentOrElement {
             $query .= "[@class=\"$token\"]";
         }
 
-        return ($isDocument) ? $document->xpath->query($query) : $document->xpath->query($query, $this);
+        return $document->xpath->query($query, $this);
     }
 
 

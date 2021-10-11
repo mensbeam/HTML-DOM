@@ -21,36 +21,18 @@ trait Moonwalk {
         $node = $this->parentNode;
         if ($node !== null) {
             do {
-                while (true) {
-                    $next = $node->parentNode;
-                    $prevSibling = $node->previousSibling;
-                    $nextSibling = $node->nextSibling;
-                    if ($filter === null || $filter($node) === true) {
-                        yield $node;
-                    }
+                $next = $node->parentNode;
+                if ($filter === null || $filter($node) === true) {
+                    yield $node;
+                }
 
-                    // If the node was replaced mid-loop then make node be the element that it was
-                    // replaced with by determining the previous node's position.
-                    if (!$node instanceof Document && $node->parentNode === null) {
-                        if ($prevSibling === null) {
-                            $node = $next->firstChild;
-                        } elseif ($nextSibling === null) {
-                            $node = $next->lastChild;
-                        } else {
-                            $node = $prevSibling->nextSibling;
-                        }
+                // If node hasn't been removed and is an instance of DocumentFragment then set
+                // the node to its host if it isn't null.
+                if ($node instanceof DocumentFragment) {
+                    $host = $node->host;
+                    if ($host !== null) {
+                        $next = $host;
                     }
-
-                    // If node is an instance of DocumentFragment then set the node to its host if
-                    // it isn't null.
-                    if ($node instanceof DocumentFragment) {
-                        $host = $node->host;
-                        if ($host !== null) {
-                            $node = $host;
-                        }
-                    }
-
-                    break;
                 }
             } while ($node = $next);
         }

@@ -8,7 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-
+// @codeCoverageIgnoreStart
 if (version_compare(\PHP_VERSION, '8.0', '<')) {
     /**
      * Used for PHP7 installations to polyfill getters, setters, and methods that
@@ -73,5 +73,6 @@ if (version_compare(\PHP_VERSION, '8.0', '<')) {
         }
     }
 } else {
+// @codeCoverageIgnoreEnd
     trait ParentNodePolyfill {}
 }

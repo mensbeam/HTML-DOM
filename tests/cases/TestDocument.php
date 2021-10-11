@@ -185,7 +185,6 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /**
      * @dataProvider provideDocumentCreationFailures
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Exception::__construct
      */
     public function testDocumentCreationFailures($source): void {
         $this->expectException(Exception::class);

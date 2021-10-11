@@ -40,13 +40,8 @@ trait ParentNode {
         $this->preInsertionValidity($node, $child);
 
         $result = parent::insertBefore($node, $child);
-        if ($result !== false) {
-            if ($node instanceof HTMLTemplateElement) {
-                ElementMap::add($node);
-            }
-            if ($child instanceof HTMLTemplateElement) {
-                ElementMap::delete($child);
-            }
+        if ($result !== false && $node instanceof HTMLTemplateElement) {
+            ElementMap::add($node);
         }
         return $node;
     }
@@ -93,7 +88,7 @@ trait ParentNode {
         }
         # 4. Otherwise, if node is non-null, set addedNodes to « node ».
         elseif ($node !== null) {
-            $addedNodes = node;
+            $addedNodes = $node;
         }
         # 5. Remove all parent’s children, in tree order, with the suppress observers
         # flag set.
@@ -115,7 +110,7 @@ trait ParentNode {
     }
 
 
-    protected function preInsertionValidity(\DOMNode $node, ?\DOMNode $child = null) {        
+    protected function preInsertionValidity(\DOMNode $node, ?\DOMNode $child = null) {
         // "parent" in the spec comments below is $this
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw

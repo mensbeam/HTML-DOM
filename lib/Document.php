@@ -156,7 +156,7 @@ class Document extends \DOMDocument {
     }
 
 
-    public function createAttribute($localName): \DOMAttr {
+    public function createAttribute($localName) {
         # The createAttribute(localName) method steps are:
         # 1. If localName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
@@ -174,12 +174,12 @@ class Document extends \DOMDocument {
         // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
         // some characters. We have to coerce them sometimes.
         try {
-            return parent::createAttributeNS(null, $localName);
+            return @parent::createAttributeNS(null, $localName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             //   uppercase hexadecimal digits of the character's code point
-            return parent::createAttributeNS(null, $this->coerceName($localName));
+            return @parent::createAttributeNS(null, $this->coerceName($localName));
         }
     }
 
@@ -210,7 +210,7 @@ class Document extends \DOMDocument {
             // way to avoid this other than allowing this method to return Attr|false. Since
             // this library supports PHP 7.4 we cannot denote this in the method's
             // signature.
-            return parent::createAttributeNS($namespace, $qualifiedName);
+            return @parent::createAttributeNS($namespace, $qualifiedName);
         }
     }
 

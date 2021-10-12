@@ -10,10 +10,7 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
-    DOMException,
-    Element,
-    ElementMap,
-    HTMLTemplateElement
+    DOMException
 };
 use MensBeam\HTML\Parser;
 

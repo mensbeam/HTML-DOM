@@ -26,6 +26,7 @@
       <file>cases/TestMoonwalk.php</file>
       <file>cases/TestNode.php</file>
       <file>cases/TestParentNode.php</file>
+      <file>cases/TestTokenList.php</file>
       <file>cases/TestWalk.php</file>
     </testsuite>
     <testsuite name="Serializer">

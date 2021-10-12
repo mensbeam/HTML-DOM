@@ -14,8 +14,8 @@ use MensBeam\HTML\Parser;
 class Element extends \DOMElement {
     use ChildNode, DocumentOrElement, MagicProperties, Moonwalk, ParentNode, ToString, Walk;
 
-    protected ?TokenList $_classList = null;
 
+    protected ?TokenList $_classList = null;
 
     protected function __get_classList(): TokenList {
         // Only create the class list if it is actually used.
@@ -153,7 +153,7 @@ class Element extends \DOMElement {
         # The getAttribute(qualifiedName) method steps are:
         #
         # 1. Let attr be the result of getting an attribute given qualifiedName and this.
-        $attr = $this->getAttributeNode($qualifiedName);
+        $attr = $this->_getAttributeNode($qualifiedName);
         # 2. If attr is null, return null.
         if ($attr === null) {
             return null;
@@ -173,83 +173,44 @@ class Element extends \DOMElement {
         return $result;
     }
 
-    public function getAttributeNode(string $qualifiedName): ?\DOMAttr {
+    public function getAttributeNode(string $qualifiedName): ?Attr {
         # The getAttributeNode(qualifiedName) method steps are to return the result of
         # getting an attribute given qualifiedName and this.
-        #
-        # To get an attribute by name given a qualifiedName and element element, run
-        # these steps:
-        #
-        # 1. If element is in the HTML namespace and its node document is an HTML document,
-        #    then set qualifiedName to qualifiedName in ASCII lowercase.
-        // Document will always be an HTML document
-        if ($this->isHTMLNamespace()) {
-            $qualifiedName = strtolower($qualifiedName);
+        $result = $this->_getAttributeNode($qualifiedName);
+        // More classlist bullshit. Since we cannot extend \DOMAttr in a way that will
+        // allow us to set the classList if a class attribute's value is modified we
+        // will instead remove the classList and force it to be recreated when a class
+        // attribute is requested.
+        if ($result !== null && $result->name === 'class') {
+            $this->_classList = null;
         }
 
-        # 2. Return the first attribute in element’s attribute list whose qualified name is
-        #    qualifiedName; otherwise null.
-        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster.
-        $value = parent::getAttributeNode($qualifiedName);
-        if ($value === false) {
-            // Replace any offending characters with "UHHHHHH" where H are the uppercase
-            // hexadecimal digits of the character's code point
-            $qualifiedName = $this->coerceName($qualifiedName);
-
-            foreach ($this->attributes as $a) {
-                if ($a->nodeName === $qualifiedName) {
-                    return $a;
-                }
-            }
-            return null;
-        }
-
-        return ($value !== false) ? $value : null;
+        return $result;
     }
 
-    public function getAttributeNodeNS(?string $namespace = null, string $localName): ?\DOMAttr {
+    public function getAttributeNodeNS(?string $namespace = null, string $localName): ?Attr {
         # The getAttributeNodeNS(namespace, localName) method steps are to return the
         # result of getting an attribute given namespace, localName, and this.
-        #
-        # To get an attribute by namespace and local name given a namespace, localName,
-        # and element element, run these steps:
-        #
-        # 1. If namespace is the empty string, then set it to null.
-        if ($namespace === '') {
-            $namespace = null;
+        $result = $this->_getAttributeNodeNS($namespace, $localName);
+        // More classlist bullshit. Since we cannot extend \DOMAttr in a way that will
+        // allow us to set the classList if a class attribute's value is modified we
+        // will instead remove the classList and force it to be recreated when a class
+        // attribute is requested.
+        if ($result !== null && $result->name === 'class') {
+            $this->_classList = null;
+            ElementMap::delete($this);
         }
 
-        # 2. Return the attribute in element’s attribute list whose namespace is namespace
-        #    and local name is localName, if any; otherwise null.
-        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster.
-        $value = parent::getAttributeNodeNS($namespace, $localName);
-        if (!$value) {
-            // Replace any offending characters with "UHHHHHH" where H are the uppercase
-            // hexadecimal digits of the character's code point
-            $namespace = $this->coerceName($namespace ?? '');
-            $localName = $this->coerceName($localName);
-
-            // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes
-            // sometimes, too... so this will get those as well in those circumstances.
-            foreach ($this->attributes as $a) {
-                if ($a->namespaceURI === $namespace && $a->localName === $localName) {
-                    return $a;
-                }
-            }
-            return null;
-        }
-
-        return ($value !== false) ? $value : null;
+        return $result;
     }
+
 
     public function getAttributeNS(?string $namespace = null, string $localName): ?string {
         # The getAttributeNS(namespace, localName) method steps are:
         #
         # 1. Let attr be the result of getting an attribute given namespace, localName,
         #    and this.
-        $attr = $this->getAttributeNodeNS($namespace, $localName);
+        $attr = $this->_getAttributeNodeNS($namespace, $localName);
 
         # 2. If attr is null, return null.
         if ($attr === null) {
@@ -281,7 +242,7 @@ class Element extends \DOMElement {
             // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes,
             // so try it again just in case; getAttributeNode will coerce names if
             // necessary, too.
-            $value = ($this->getAttributeNode($qualifiedName) !== null);
+            $value = ($this->_getAttributeNode($qualifiedName) !== null);
         }
 
         return $value;
@@ -305,10 +266,53 @@ class Element extends \DOMElement {
             // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes,
             // so try it again just in case; getAttributeNode will coerce names if
             // necessary, too.
-            $value = ($this->getAttributeNodeNS($namespace, $localName) !== null);
+            $value = ($this->_getAttributeNodeNS($namespace, $localName) !== null);
         }
 
         return $value;
+    }
+
+    public function removeAttribute(string $qualifiedName): void {
+        # The removeAttribute(qualifiedName) method steps are to remove an attribute
+        # given qualifiedName and this, and then return undefined.
+        #
+        ## To remove an attribute by name given a qualifiedName and element element, run
+        ## these steps:
+        ##
+        ## 1. Let attr be the result of getting an attribute given qualifiedName and element.
+        $attr = $this->_getAttributeNode($qualifiedName);
+        ## 2. If attr is non-null, then remove attr.
+        if ($attr !== null) {
+            // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+            // when we can because it's faster.
+            parent::removeAttributeNode($attr);
+
+            // ClassList stuff because php garbage collection is... garbage.
+            if ($qualifiedName === 'class' && $this->_classList !== null) {
+                $this->_classList = null;
+                ElementMap::delete($this);
+            }
+        }
+        ## 3. Return attr.
+        // Supposed to return undefined in the end, so let's skip this.
+    }
+
+    public function removeAttributeNS(?string $namespace, string $localName): bool {
+        # The removeAttributeNS(namespace, localName) method steps are to remove an
+        # attribute given namespace, localName, and this, and then return undefined.
+        #
+        ## To remove an attribute by namespace and local name given a namespace, localName, and element element, run these steps:
+        ##
+        ## 1. Let attr be the result of getting an attribute given namespace, localName, and element.
+        $attr = $this->_getAttributeNodeNS($namespace, $localName);
+        ## 2. If attr is non-null, then remove attr.
+        if ($attr !== null) {
+            // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+            // when we can because it's faster.
+            parent::removeAttributeNode($attr);
+        }
+        ## 3. Return attr.
+        // Supposed to return undefined in the end, so let's skip this.
     }
 
     public function setAttribute(string $qualifiedName, string $value): void {
@@ -324,6 +328,7 @@ class Element extends \DOMElement {
         if ($this->isHTMLNamespace()) {
             $qualifiedName = strtolower($qualifiedName);
         }
+
         # 3. Let attribute be the first attribute in this’s attribute list whose
         #    qualified name is qualifiedName, and null otherwise.
         # 4. If attribute is null, create an attribute whose local name is qualifiedName,
@@ -331,14 +336,15 @@ class Element extends \DOMElement {
         #    attribute to this, and then return.
         # 5. Change attribute to value.
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster. But, first, we have to hack in classList
-        // support and then work around a couple of PHP bugs.
-        if ($this->isHTMLNamespace()) {
-            $qualifiedName = strtolower($qualifiedName);
-
-            if ($qualifiedName === 'class' && $this->_classList !== null) {
+        // when we can because it's faster. But, first, we must work around PHP's
+        // garbage garbage collection.
+        if ($qualifiedName === 'class' && $this->_classList !== null) {
+            if ($value !== '') {
                 $this->_classList->value = $value;
                 return;
+            } else {
+                $this->_classList = null;
+                ElementMap::delete($this);
             }
         }
 
@@ -367,11 +373,19 @@ class Element extends \DOMElement {
         # 2. Set an attribute value for this using localName, value, and also prefix and
         #    namespace.
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster. But, first, we have to hack in classList
-        // support and then work around a couple of PHP bugs.
-        if ($this->isHTMLNamespace() && $qualifiedName === 'class' && $this->_classList !== null) {
-            $this->_classList->value = $value;
-        } elseif ($namespace === Parser::XMLNS_NAMESPACE) {
+        // when we can because it's faster. But, first, we must work around a couple of
+        // PHP bugs and its garbage garbage collection.
+        if ($qualifiedName === 'class' && $this->_classList !== null) {
+            if ($value !== '') {
+                $this->_classList->value = $value;
+                return;
+            } else {
+                $this->_classList = null;
+                ElementMap::delete($this);
+            }
+        }
+
+        if ($namespace === Parser::XMLNS_NAMESPACE) {
             // NOTE: We create attribute nodes so that xmlns attributes
             // don't get lost; otherwise they cannot be serialized
             $a = @$this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
@@ -403,5 +417,71 @@ class Element extends \DOMElement {
         if ($qualifiedName === 'id' && $namespaceURI === null) {
             $this->setIdAttribute($qualifiedName, true);
         }
+    }
+
+
+    protected function _getAttributeNode(string $qualifiedName): ?Attr {
+        # To get an attribute by name given a qualifiedName and element element, run
+        # these steps:
+        #
+        # 1. If element is in the HTML namespace and its node document is an HTML document,
+        #    then set qualifiedName to qualifiedName in ASCII lowercase.
+        // Document will always be an HTML document
+        if ($this->isHTMLNamespace()) {
+            $qualifiedName = strtolower($qualifiedName);
+        }
+
+        # 2. Return the first attribute in element’s attribute list whose qualified name is
+        #    qualifiedName; otherwise null.
+        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+        // when we can because it's faster.
+        $attr = parent::getAttributeNode($qualifiedName);
+        if ($attr === false) {
+            // Replace any offending characters with "UHHHHHH" where H are the uppercase
+            // hexadecimal digits of the character's code point
+            $qualifiedName = $this->coerceName($qualifiedName);
+
+            foreach ($this->attributes as $a) {
+                if ($a->nodeName === $qualifiedName) {
+                    return $a;
+                }
+            }
+            return null;
+        }
+
+        return ($attr !== false) ? $attr : null;
+    }
+
+    protected function _getAttributeNodeNS(?string $namespace = null, string $localName): ?Attr {
+        # To get an attribute by namespace and local name given a namespace, localName,
+        # and element element, run these steps:
+        #
+        # 1. If namespace is the empty string, then set it to null.
+        if ($namespace === '') {
+            $namespace = null;
+        }
+
+        # 2. Return the attribute in element’s attribute list whose namespace is namespace
+        #    and local name is localName, if any; otherwise null.
+        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+        // when we can because it's faster.
+        $value = parent::getAttributeNodeNS($namespace, $localName);
+        if (!$value) {
+            // Replace any offending characters with "UHHHHHH" where H are the uppercase
+            // hexadecimal digits of the character's code point
+            $namespace = $this->coerceName($namespace ?? '');
+            $localName = $this->coerceName($localName);
+
+            // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes
+            // sometimes, too... so this will get those as well in those circumstances.
+            foreach ($this->attributes as $a) {
+                if ($a->namespaceURI === $namespace && $a->localName === $localName) {
+                    return $a;
+                }
+            }
+            return null;
+        }
+
+        return ($value !== false) ? $value : null;
     }
 }

@@ -14,6 +14,9 @@ use MensBeam\Framework\MagicProperties,
 class TokenList implements \ArrayAccess, \Countable, \Iterator {
     use MagicProperties;
 
+
+    public bool $rebuild = false;
+
     protected string $localName;
     protected \WeakReference $element;
 
@@ -49,6 +52,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         # 1. Let element be associated element.
         // Using a weak reference here to prevent a circular reference.
         $this->element = \WeakReference::create($element);
+        ElementMap::add($element);
         # 2. Let localName be associated attribute’s local name.
         $this->localName = $attributeLocalName;
         # 3. Let value be the result of getting an attribute value given element and
@@ -267,7 +271,6 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
 
         if ($value === null) {
             $this->tokenSet = [];
-            $this->tokenKeys = [];
             $this->_length = 0;
         }
         # 2. Otherwise, if localName is associated attribute’s local name, namespace is

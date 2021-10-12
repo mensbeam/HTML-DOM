@@ -184,8 +184,42 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $this->assertSame('eek', $ook->value);
         // Bogus attribute
         $this->assertNull($d->documentElement->getAttributeNodeNS(null, 'what'));
+    }
 
-        /*$d->documentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', Parser::HTML_NAMESPACE);
-        die(var_export($d->documentElement->getAttributeNodeNS(Parser::XMLNS_NAMESPACE, 'xmlns')));*/
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNS
+     */
+    public function testGetAttributeNS(): void {
+        // Just need to test nonexistent attributes
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $this->assertNull($d->documentElement->getAttributeNS(Parser::HTML_NAMESPACE, 'ook'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::hasAttributeNS
+     */
+    public function testHasAttributeNS(): void {
+        // Just need to test empty string namespace
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->setAttribute('ook', 'eek');
+        $this->assertTrue($d->documentElement->hasAttributeNS('', 'ook'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\TokenList::__set_value
+     */
+    public function testSetAttribute(): void {
+        // Just need to test classList updates
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->classList->add('ook', 'eek');
+        $d->documentElement->setAttribute('class', 'ack');
+        $this->assertSame('ack', $d->documentElement->classList[0]);
     }
 }

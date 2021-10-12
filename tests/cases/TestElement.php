@@ -133,5 +133,56 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
         $d->body->outerHTML = '<body>eek</body>';
         $this->assertSame('<body>eek</body>', $d->body->outerHTML);
+
+        $f = $d->createDocumentFragment();
+        $div = $f->appendChild($d->createElement('div'));
+        $div->outerHTML = 'ook';
+        $this->assertSame('ook', (string)$f);
+
+        $div = $d->createElement('div');
+        $div->appendChild($d->createTextNode('ook'));
+        $div->outerHTML = '<div>eek</div>';
+        $this->assertSame('<div>ook</div>', (string)$div);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__set_outerHTML
+     */
+    public function testPropertySetOuterHTMLFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->outerHTML = '<html>FAIL</html>';
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     */
+    public function testGetAttribute(): void {
+        // Just need to test nonexistent attributes
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $this->assertNull($d->documentElement->getAttribute('ook'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNodeNS
+     */
+    public function testGetAttributeNodeNS(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->setAttribute('ook', 'eek');
+        // Empty string namespace
+        $ook = $d->documentElement->getAttributeNodeNS('', 'ook');
+        $this->assertSame('eek', $ook->value);
+        // Bogus attribute
+        $this->assertNull($d->documentElement->getAttributeNodeNS(null, 'what'));
+
+        /*$d->documentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', Parser::HTML_NAMESPACE);
+        die(var_export($d->documentElement->getAttributeNodeNS(Parser::XMLNS_NAMESPACE, 'xmlns')));*/
     }
 }

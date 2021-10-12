@@ -123,10 +123,8 @@ class Element extends \DOMElement {
 
         # 2. If parent is null, terminate these steps. There would be no way to obtain a
         # reference to the nodes created even if the remaining steps were run.
-        // The spec is unclear here as to what to do. What do you return? Most browsers
-        // throw an exception here, so that's what we're going to do.
         if ($parent === null) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+            return;
         }
         # 3. If parent is a Document, throw a "NoModificationAllowedError" DOMException.
         elseif ($parent instanceof Document) {
@@ -194,23 +192,17 @@ class Element extends \DOMElement {
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster.
         $value = parent::getAttributeNode($qualifiedName);
-        if ($value === null || $value === false) {
+        if ($value === false) {
             // Replace any offending characters with "UHHHHHH" where H are the uppercase
             // hexadecimal digits of the character's code point
             $qualifiedName = $this->coerceName($qualifiedName);
 
-            if ($value === null) {
-                $value = parent::getAttributeNode($qualifiedName);
-            }
-            if ($value === false) {
-                // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes.
-                foreach ($this->attributes as $a) {
-                    if ($a->nodeName === $qualifiedName) {
-                        return $a;
-                    }
+            foreach ($this->attributes as $a) {
+                if ($a->nodeName === $qualifiedName) {
+                    return $a;
                 }
-                return null;
             }
+            return null;
         }
 
         return ($value !== false) ? $value : null;
@@ -233,24 +225,20 @@ class Element extends \DOMElement {
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster.
         $value = parent::getAttributeNodeNS($namespace, $localName);
-        if ($value === null || $value === false) {
+        if (!$value) {
             // Replace any offending characters with "UHHHHHH" where H are the uppercase
             // hexadecimal digits of the character's code point
-            $namespace = $this->coerceName($namespace);
+            $namespace = $this->coerceName($namespace ?? '');
             $localName = $this->coerceName($localName);
 
-            if ($value === null) {
-                $value = parent::getAttributeNodeNS($namespace, $localName);
-            }
-            if ($value === false) {
-                // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes.
-                foreach ($this->attributes as $a) {
-                    if ($a->namespaceURI === $namespace && $a->localName === $localName) {
-                        return $a;
-                    }
+            // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes
+            // sometimes, too... so this will get those as well in those circumstances.
+            foreach ($this->attributes as $a) {
+                if ($a->namespaceURI === $namespace && $a->localName === $localName) {
+                    return $a;
                 }
-                return null;
             }
+            return null;
         }
 
         return ($value !== false) ? $value : null;

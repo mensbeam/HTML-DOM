@@ -88,7 +88,10 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Element::__get_classList */
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\TokenList::__construct
+     */
     public function testPropertyGetClassList(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));

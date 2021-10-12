@@ -30,7 +30,7 @@ trait ParentNode {
         $this->preInsertionValidity($node);
 
         $result = parent::appendChild($node);
-        if ($result !== false && $result instanceof HTMLTemplateElement) {
+        if ($result !== false && $node instanceof HTMLTemplateElement) {
             ElementMap::add($node);
         }
         return $node;
@@ -48,7 +48,7 @@ trait ParentNode {
 
     public function removeChild($child) {
         $result = parent::removeChild($child);
-        if ($result !== false && $child instanceof HTMLTemplateElement) {
+        if ($result !== false && $child instanceof Element) {
             ElementMap::delete($child);
         }
         return $child;
@@ -61,7 +61,7 @@ trait ParentNode {
             if ($node instanceof HTMLTemplateElement) {
                 ElementMap::add($node);
             }
-            if ($child instanceof HTMLTemplateElement) {
+            if ($child instanceof Element) {
                 ElementMap::delete($child);
             }
         }

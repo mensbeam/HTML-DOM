@@ -52,6 +52,10 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         # 1. Let element be associated element.
         // Using a weak reference here to prevent a circular reference.
         $this->element = \WeakReference::create($element);
+        // Store the element somewhere statically because PHP's garbage collection is
+        // itself garbage. This seems to contradict using a WeakReference, and it does.
+        // However, it simply doesn't work otherwise because PHP does reference counting
+        // for garbage collection. Attempts are made elsewhere to garbage collect.
         ElementMap::add($element);
         # 2. Let localName be associated attribute’s local name.
         $this->localName = $attributeLocalName;

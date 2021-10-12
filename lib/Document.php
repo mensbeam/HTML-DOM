@@ -183,7 +183,7 @@ class Document extends \DOMDocument {
         }
     }
 
-    public function createAttributeNS(?string $namespace, string $qualifiedName): \DOMAttr {
+    public function createAttributeNS(?string $namespace, string $qualifiedName) {
         # The createAttributeNS(namespace, qualifiedName) method steps are:
         # 1. Let namespace, prefix, and localName be the result of passing namespace and
         #    qualifiedName to validate and extract.
@@ -194,7 +194,7 @@ class Document extends \DOMDocument {
         // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
         // some characters. We have to coerce them sometimes.
         try {
-            return parent::createAttributeNS($namespace, $qualifiedName);
+            return @parent::createAttributeNS($namespace, $qualifiedName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
@@ -205,6 +205,11 @@ class Document extends \DOMDocument {
                 $qualifiedName = $this->coerceName($qualifiedName);
             }
 
+            // DEVIATION: When creating XMLNS attribute nodes on a document that does not
+            // yet contain a document element PHP's DOM will return false here. There is no
+            // way to avoid this other than allowing this method to return Attr|false. Since
+            // this library supports PHP 7.4 we cannot denote this in the method's
+            // signature.
             return parent::createAttributeNS($namespace, $qualifiedName);
         }
     }
@@ -330,36 +335,6 @@ class Document extends \DOMDocument {
 
         return $node;
     }
-
-
-    /*
-
-    $f = fopen($file, "r");
-        if (!$f) {
-            return null;
-        }
-        $data = stream_get_contents($f);
-        $encoding = Charset::fromCharset((string) $encodingOrContentType) ?? Charset::fromTransport((string) $encodingOrContentType);
-        if (!$encoding) {
-            $meta = stream_get_meta_data($f);
-            if ($meta['wrapper_type'] === "http") {
-                // Try to find a Content-Type header-field
-                foreach ($meta['wrapper_data'] as $h) {
-                    $h = explode(":", $h, 2);
-                    if (count($h) === 2) {
-                        if (preg_match("/^\s*Content-Type\s*$/i", $h[0])) {
-                            // Try to get an encoding from it
-                            $encoding = Charset::fromTransport($h[1]);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return [$data, $encoding];
-    }
-
-    */
 
     public function load($filename, $options = null, ?string $encoding = null): bool {
         $f = fopen($filename, 'r');
@@ -912,6 +887,39 @@ class Document extends \DOMDocument {
         }
     }
 
+
+    // @codeCoverageIgnoreStart
+    public function __call(string $name, array $arguments) {
+        // This exists because of an edge case bug in PHP's DOM where xmlns attributes
+        // set on elements when the document has no document element. PHP's DOM has
+        // numerous bugs where this is involved that would take an entire document by
+        // itself to outline. The solution is to append the element whatever it is as
+        // the document element. This presents its own problem. Pre-insertion validity
+        // prevents anything but html elements from being inserted as the document
+        // element. This hidden method allows appending without pre-insertion validity.
+        if ($name === 'appendChildWithoutPreInsertionValidity') {
+            $backtrace = debug_backtrace();
+            $okay = false;
+            for ($len = count($backtrace), $i = $len - 1; $i >= 0; $i--) {
+                $cur = $backtrace[$i];
+                if ($cur['function'] === 'setAttributeNS' && $cur['class'] === __NAMESPACE__ . '\\Element') {
+                    $okay = true;
+                    break;
+                }
+            }
+
+            if ($okay) {
+                $result = parent::appendChild($arguments[0]);
+                if ($result !== false && $arguments[0] instanceof HTMLTemplateElement) {
+                    ElementMap::add($arguments[0]);
+                }
+                return $arguments[0];
+            }
+        }
+
+        throw new Exception(Exception::UNDEFINED_METHOD, __CLASS__, $name);
+    }
+    // @codeCoverageIgnoreEnd
 
     public function __destruct() {
         ElementMap::destroy($this);

@@ -28,7 +28,6 @@ trait ParentNode {
 
     public function appendChild($node) {
         $this->preInsertionValidity($node);
-
         $result = parent::appendChild($node);
         if ($result !== false && $node instanceof HTMLTemplateElement) {
             ElementMap::add($node);

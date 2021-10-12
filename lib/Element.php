@@ -329,7 +329,7 @@ class Element extends \DOMElement {
         // Supposed to return undefined in the end, so let's skip this.
     }
 
-    public function removeAttributeNS(?string $namespace, string $localName): bool {
+    public function removeAttributeNS(?string $namespace, string $localName): void {
         # The removeAttributeNS(namespace, localName) method steps are to remove an
         # attribute given namespace, localName, and this, and then return undefined.
         #
@@ -344,7 +344,7 @@ class Element extends \DOMElement {
             parent::removeAttributeNode($attr);
 
             // ClassList stuff because php garbage collection is... garbage.
-            if ($qualifiedName === 'class') {
+            if ($namespace === null && $localName === 'class') {
                 ElementMap::delete($this);
             }
         }
@@ -387,12 +387,6 @@ class Element extends \DOMElement {
             parent::setAttributeNS(null, $this->coerceName($qualifiedName), $value);
         }
 
-        // If you create an id attribute this way it won't be used by PHP in
-        // getElementById, so let's fix that.
-        if ($qualifiedName === 'id' && $namespaceURI === null) {
-            $this->setIdAttribute($qualifiedName, true);
-        }
-
         // ClassList stuff because php garbage collection is... garbage.
         if ($qualifiedName === 'class') {
             ElementMap::delete($this);
@@ -418,13 +412,19 @@ class Element extends \DOMElement {
             // NOTE: We create attribute nodes so that xmlns attributes
             // don't get lost; otherwise they cannot be serialized
             $a = @$this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
+
             if ($a === false) {
                 // The document element does not exist yet, so we need
-                // to insert this element into the document
-                $this->ownerDocument->appendChild($this);
+                // to insert this element into the document as the document
+                // element
+                // setAttributeNS gets a backdoor to element appending so this circumvention of
+                // many PHP DOM bugs can work. It's dirty, but it's not a common occurrence
+                // anyway.
+                $this->ownerDocument->appendChildWithoutPreInsertionValidity($this);
                 $a = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
-                $this->ownerDocument->removeChild($this);
+                $this->ownerDocument->removeChild($this->ownerDocument->documentElement);
             }
+
             $a->value = $this->escapeString($value, true);
             $this->setAttributeNodeNS($a);
         } else {

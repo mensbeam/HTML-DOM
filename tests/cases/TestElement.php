@@ -211,15 +211,94 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
 
     /**
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     */
+    public function testRemoveAttribute(): void {
+        // Just need to test classList updates
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->classList->add('ook', 'eek');
+        $d->documentElement->removeAttribute('class');
+        $this->assertNull($d->documentElement->getAttribute('class'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::removeAttributeNS
+     */
+    public function testRemoveAttributeNS(): void {
+        // Just need to test classList updates
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->classList->add('ook', 'eek');
+        $d->documentElement->removeAttributeNS(null, 'class');
+        $this->assertNull($d->documentElement->getAttribute('class'));
+
+        $d->documentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', Parser::HTML_NAMESPACE);
+        $d->documentElement->removeAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns');
+        $this->assertNull($d->documentElement->getAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns'));
+    }
+
+
+    /**
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
-     * @covers \MensBeam\HTML\DOM\TokenList::__set_value
+     * @covers \MensBeam\HTML\DOM\TokenList::add
      */
     public function testSetAttribute(): void {
-        // Just need to test classList updates
+        // Need to test classList updates
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $d->documentElement->classList->add('ook', 'eek');
         $d->documentElement->setAttribute('class', 'ack');
         $this->assertSame('ack', $d->documentElement->classList[0]);
+        // Test setting class to empty string
+        $d->documentElement->setAttribute('class', '');
+        $this->assertSame('', $d->documentElement->getAttribute('class'));
+        // Test setting id attribute
+        $d->documentElement->setAttribute('id', 'ook');
+        $this->assertSame('ook', $d->documentElement->getAttribute('id'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\TokenList::add
+     */
+    public function testSetAttributeFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->setAttribute('ook eek', 'fail');
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
+     * @covers \MensBeam\HTML\DOM\TokenList::add
+     */
+    public function testSetAttributeNS(): void {
+        $d = new Document();
+        // Don't append html element and set attribute
+        $de = $d->createElement('html');
+        $de->setAttributeNS(null, 'id', 'ook');
+        $this->assertSame('ook', $de->getAttribute('id'));
+        $de->setAttributeNS(null, 'class', 'ook');
+        $this->assertSame('ook', $de->getAttribute('class'));
+
+        $de->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', Parser::HTML_NAMESPACE);
+        $this->assertSame(Parser::HTML_NAMESPACE, $de->getAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns'));
+
+        $b = $d->createElement('body');
+        $b->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', Parser::HTML_NAMESPACE);
+        $this->assertSame(Parser::HTML_NAMESPACE, $b->getAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns'));
+
+        $t = $d->createElement('template');
+        $t->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', Parser::HTML_NAMESPACE);
+        $this->assertSame(Parser::HTML_NAMESPACE, $t->getAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns'));
+
+        // Test name coercion when namespace is null
+        $de->setAttributeNS(null, 'poop💩', 'ook');
+        $this->assertSame('ook', $de->getAttribute('poop💩'));
     }
 }

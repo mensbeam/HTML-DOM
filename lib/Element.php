@@ -408,20 +408,22 @@ class Element extends \DOMElement {
         #    namespace.
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster.
+        // NOTE: We create attribute nodes so that xmlns attributes
+        // don't get lost; otherwise they cannot be serialized
         if ($namespace === Parser::XMLNS_NAMESPACE) {
-            // NOTE: We create attribute nodes so that xmlns attributes
-            // don't get lost; otherwise they cannot be serialized
-            $a = @$this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
-
-            if ($a === false) {
-                // The document element does not exist yet, so we need
-                // to insert this element into the document as the document
-                // element
-                // setAttributeNS gets a backdoor to element appending so this circumvention of
-                // many PHP DOM bugs can work. It's dirty, but it's not a common occurrence
-                // anyway.
+            // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
+            // cannot create attribute nodes if there's no document element. So, create a
+            // temporary one if necessary before creating the attribute node to be removed
+            // after the attribute node is created. This is normally handled in Document::createAttributeNS, but xmlns attributes have special bugs just for them. How lucky! Xmlns attribute nodes won't stick and can actually cause segmentation faults if created on a no longer existing document element, appended to another element, and then retrieved.
+            $tempDocumentElement = false;
+            if ($this->ownerDocument->documentElement === null) {
+                $tempDocumentElement = true;
                 $this->ownerDocument->appendChildWithoutPreInsertionValidity($this);
-                $a = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
+            }
+
+            $a = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
+
+            if ($tempDocumentElement) {
                 $this->ownerDocument->removeChild($this->ownerDocument->documentElement);
             }
 

@@ -169,18 +169,34 @@ class Document extends \DOMDocument {
         // This will always be an HTML document
         $localName = strtolower($localName);
 
+        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
+        // cannot create attribute nodes if there's no document element. So, create a
+        // temporary one if necessary before creating the attribute node to be removed
+        // after the attribute node is created.
+        $tempDocumentElement = false;
+        if ($this->documentElement === null) {
+            $tempDocumentElement = true;
+            $this->appendChild($this->createElement('html'));
+        }
+
         # 3. Return a new attribute whose local name is localName and node document is
         # this.
         // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
         // some characters. We have to coerce them sometimes.
         try {
-            return @parent::createAttributeNS(null, $localName);
+            $result = parent::createAttributeNS(null, $localName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             //   uppercase hexadecimal digits of the character's code point
-            return @parent::createAttributeNS(null, $this->coerceName($localName));
+            $result = parent::createAttributeNS(null, $this->coerceName($localName));
         }
+
+        if ($tempDocumentElement) {
+            $this->removeChild($this->documentElement);
+        }
+
+        return $result;
     }
 
     public function createAttributeNS(?string $namespace, string $qualifiedName) {
@@ -189,12 +205,22 @@ class Document extends \DOMDocument {
         #    qualifiedName to validate and extract.
         [ 'namespace' => $namespace, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespace);
 
+        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
+        // cannot create attribute nodes if there's no document element. So, create a
+        // temporary one if necessary before creating the attribute node to be removed
+        // after the attribute node is created.
+        $tempDocumentElement = false;
+        if ($this->documentElement === null) {
+            $tempDocumentElement = true;
+            $this->appendChild($this->createElement('html'));
+        }
+
         # 2. Return a new attribute whose namespace is namespace, namespace prefix is
         # prefix, local name is localName, and node document is this.
         // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
         // some characters. We have to coerce them sometimes.
         try {
-            return @parent::createAttributeNS($namespace, $qualifiedName);
+            $result = parent::createAttributeNS($namespace, $qualifiedName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
@@ -210,8 +236,24 @@ class Document extends \DOMDocument {
             // way to avoid this other than allowing this method to return Attr|false. Since
             // this library supports PHP 7.4 we cannot denote this in the method's
             // signature.
-            return @parent::createAttributeNS($namespace, $qualifiedName);
+            $result = parent::createAttributeNS($namespace, $qualifiedName);
         }
+
+        if ($tempDocumentElement) {
+            // Can you believe it? There's yet another bug concerning namespace URI's
+            // on attribute nodes created without a document element. If you remove the
+            // document element as is about to happen below the namespace actually becomes
+            // corrupted. It most of the time will just display an empty string when
+            // requesting the namespace, but sometimes it'll display random garbage. Let's
+            // try to fix that. Below looks completely insane, but it's the only thing that
+            // seems to work AND preserves namespace URIs.
+            $d = new Document();
+            $result = $d->importNode($result);
+            $this->removeChild($this->documentElement);
+            $result = $this->importNode($result);
+        }
+
+        return $result;
     }
 
     public function createCDATASection(string $data) {
@@ -888,7 +930,6 @@ class Document extends \DOMDocument {
     }
 
 
-    // @codeCoverageIgnoreStart
     public function __call(string $name, array $arguments) {
         // This exists because of an edge case bug in PHP's DOM where xmlns attributes
         // set on elements when the document has no document element. PHP's DOM has
@@ -917,9 +958,10 @@ class Document extends \DOMDocument {
             }
         }
 
+        // @codeCoverageIgnoreStart
         throw new Exception(Exception::UNDEFINED_METHOD, __CLASS__, $name);
+        // @codeCoverageIgnoreEnd
     }
-    // @codeCoverageIgnoreEnd
 
     public function __destruct() {
         ElementMap::destroy($this);

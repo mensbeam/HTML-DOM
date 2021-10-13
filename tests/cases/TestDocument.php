@@ -36,6 +36,11 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      */
     public function testAttributeNodeCreation(string $nameIn, string $local): void {
+        // Test without a document element and with
+        $d = new Document();
+        $a = $d->createAttribute($nameIn);
+        $this->assertSame($local, $a->localName);
+
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $a = $d->createAttribute($nameIn);
@@ -74,6 +79,13 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      */
     public function testAttributeNodeNSCreation(?string $nsIn, string $nameIn, ?string $nsExpected, ?string $prefixExpected, string $localNameExpected): void {
+        // Test without a document element and with
+        $d = new Document();
+        $a = $d->createAttributeNS($nsIn, $nameIn);
+        $this->assertSame($nsExpected, $a->namespaceURI);
+        $this->assertSame($prefixExpected, $a->prefix);
+        $this->assertSame($localNameExpected, $a->localName);
+
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $a = $d->createAttributeNS($nsIn, $nameIn);

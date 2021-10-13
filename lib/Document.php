@@ -10,9 +10,9 @@ namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
     MensBeam\HTML\Parser;
 use MensBeam\HTML\Parser\{
-        Charset,
-        Data
-    };
+    Charset,
+    Data
+};
 
 
 class Document extends \DOMDocument {
@@ -124,16 +124,7 @@ class Document extends \DOMDocument {
     }
 
 
-    public function __construct($source = null, ?string $encoding = null) {
-        // Because we cannot have union types until php 8... :)
-        if ($source !== null && !$source instanceof \DOMDocument && !is_string($source)) {
-            $type = gettype($source);
-            if ($type === 'object') {
-                $type = get_class($source);
-            }
-            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'source', '\DOMDocument|string|null', $type);
-        }
-
+    public function __construct(\DOMDocument|string|null $source = null, ?string $encoding = null) {
         parent::__construct();
 
         $this->registerNodeClass('DOMAttr', '\MensBeam\HTML\DOM\Attr');
@@ -156,7 +147,7 @@ class Document extends \DOMDocument {
     }
 
 
-    public function createAttribute($localName): ?Attr {
+    public function createAttribute(string $localName): ?Attr {
         # The createAttribute(localName) method steps are:
         # 1. If localName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
@@ -329,7 +320,7 @@ class Document extends \DOMDocument {
         }
     }
 
-    public function createElementNS($namespaceURI, $qualifiedName, $value = null): Element {
+    public function createElementNS(?string $namespaceURI, string $qualifiedName, $value = null): Element {
         # The internal createElementNS steps, given document, namespace, qualifiedName,
         # and options, are as follows:
         // DEVIATION: We cannot follow the createElement parameters per the DOM spec
@@ -399,7 +390,7 @@ class Document extends \DOMDocument {
         return $node;
     }
 
-    public function load($filename, $options = null, ?string $encoding = null): bool {
+    public function load(string $filename, $options = null, ?string $encoding = null): bool {
         $f = fopen($filename, 'r');
         if (!$f) {
             return false;
@@ -462,7 +453,7 @@ class Document extends \DOMDocument {
         throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::loadXML instead');
     }
 
-    public function save($filename, $options = null) {
+    public function save(string $filename, $options = null) {
         return file_put_contents($filename, $this->saveHTML());
     }
 
@@ -508,7 +499,7 @@ class Document extends \DOMDocument {
         return $this->serializeNode($node, $formatOutput);
     }
 
-    public function saveHTMLFile($filename): int {
+    public function saveHTMLFile(string $filename): int {
         return $this->save($filename);
     }
 

@@ -11,7 +11,7 @@ namespace MensBeam\HTML\DOM;
 
 # 4.2.6. Mixin ParentNode
 trait ParentNode {
-    use Node, ParentNodePolyfill;
+    use Node;
 
 
     protected function __get_children(): \DOMNodeList {
@@ -67,7 +67,7 @@ trait ParentNode {
         return $node;
     }
 
-    public function replaceChildren(...$nodes) {
+    public function replaceChildren(\DOMNode|string ...$nodes) {
         # The replaceChildren(nodes) method steps are:
         # 1. Let node be the result of converting nodes into a node given nodes and
         #    this’s node document.

@@ -11,10 +11,20 @@ namespace MensBeam\HTML\DOM;
 
 # 4.2.8. Mixin ChildNode
 trait ChildNode {
-    use ChildNodePolyfill;
-
-
     public function after(...$nodes): void {
+        // PHP's declaration for \DOMCharacterData::after doesn't include the
+        // DOMNode|string typing for the nodes that it should, so type checking will
+        // need to be done manually.
+        foreach ($nodes as $node) {
+            if (!$node instanceof \DOMNode && !is_string($node)) {
+                $type = gettype($node);
+                if ($type === 'object') {
+                    $type = get_class($node);
+                }
+                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', $type);
+            }
+        }
+
         # The after(nodes) method steps are:
         #
         # 1. Let parent be this’s parent.

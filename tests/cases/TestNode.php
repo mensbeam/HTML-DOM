@@ -17,17 +17,6 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\Node */
 class TestNode extends \PHPUnit\Framework\TestCase {
-    /** @covers \MensBeam\HTML\DOM\Node::convertNodesToNode */
-    public function testConvertNodesToNodeFailure(): void {
-        $this->expectException(Exception::class);
-        $this->expectExceptionCode(Exception::ARGUMENT_TYPE_ERROR);
-        $d = new Document();
-        $t = $d->createElement('template');
-        $d->appendChild($t);
-        $t->after(false);
-
-    }
-
     public function provideDisabledMethods(): iterable {
         return [
             [ function() {

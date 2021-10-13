@@ -56,11 +56,6 @@ trait Node {
         $document = ($this instanceof Document) ? $this : $this->ownerDocument;
         $node = (count($nodes) > 1) ? $document->createDocumentFragment() : null;
         foreach ($nodes as $k => &$n) {
-            // Can't do union types until PHP 8... OTL
-            if (!$n instanceof \DOMNode && !is_string($n)) {
-                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, $k, 'nodes', '\DOMNode|string', gettype($n));
-            }
-
             if (is_string($n)) {
                 $n = $this->ownerDocument->createTextNode($n);
             }

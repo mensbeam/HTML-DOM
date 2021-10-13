@@ -193,24 +193,6 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideDocumentCreationFailures(): iterable {
-        return [
-            [ true ],
-            [ (new Document)->createElement('ook') ]
-        ];
-    }
-
-    /**
-     * @dataProvider provideDocumentCreationFailures
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     */
-    public function testDocumentCreationFailures($source): void {
-        $this->expectException(Exception::class);
-        $this->expectExceptionCode(Exception::ARGUMENT_TYPE_ERROR);
-        $d = new Document($source);
-    }
-
-
     public function provideElementCreation(): iterable {
         return [
             // HTML element

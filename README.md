@@ -11,7 +11,7 @@ Coming soon
 
 ## Limitations ##
 
-The primary aim of this library is accuracy. If the document model differs from what the specification mandates, this is probably a bug. However, we are also constrained by PHP, which imposes various limtations. These are as follows:
+The primary aim of this library is accuracy. If the document model differs from what the specification mandates, this is probably a bug. However, we are also constrained by PHP, which imposes various limitations. These are as follows:
 
 1. Due to PHP's DOM being designed for XML 1.0 Second Edition, element and attribute names which are illegal in XML 1.0 Second Edition are mangled as recommended by the specification.
 2. Due to a PHP bug which severely degrades performance with large documents and in consideration of existing PHP software, HTML elements are placed in the null namespace rather than in the HTML namespace.

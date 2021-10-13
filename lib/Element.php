@@ -411,22 +411,12 @@ class Element extends \DOMElement {
         // NOTE: We create attribute nodes so that xmlns attributes
         // don't get lost; otherwise they cannot be serialized
         if ($namespace === Parser::XMLNS_NAMESPACE) {
-            // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
-            // cannot create attribute nodes if there's no document element. So, create a
-            // temporary one if necessary before creating the attribute node to be removed
-            // after the attribute node is created. This is normally handled in Document::createAttributeNS, but xmlns attributes have special bugs just for them. How lucky! Xmlns attribute nodes won't stick and can actually cause segmentation faults if created on a no longer existing document element, appended to another element, and then retrieved.
-            $tempDocumentElement = false;
-            if ($this->ownerDocument->documentElement === null) {
-                $tempDocumentElement = true;
-                $this->ownerDocument->appendChildWithoutPreInsertionValidity($this);
-            }
-
+            // Xmlns attributes have special bugs just for them. How lucky! Xmlns attribute
+            // nodes won't stick and can actually cause segmentation faults if created on a
+            // no longer existing document element, appended to another element, and then
+            // retrieved. So, use the methods used in Document::createAttributeNS to get an
+            // attribute node.
             $a = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
-
-            if ($tempDocumentElement) {
-                $this->ownerDocument->removeChild($this->ownerDocument->documentElement);
-            }
-
             $a->value = $this->escapeString($value, true);
             $this->setAttributeNodeNS($a);
         } else {

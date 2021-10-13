@@ -273,7 +273,6 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
-     * @covers \MensBeam\HTML\DOM\Document::__call
      * @covers \MensBeam\HTML\DOM\TokenList::add
      */
     public function testSetAttributeNS(): void {

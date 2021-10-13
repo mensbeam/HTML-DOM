@@ -156,7 +156,7 @@ class Document extends \DOMDocument {
     }
 
 
-    public function createAttribute($localName) {
+    public function createAttribute($localName): ?Attr {
         # The createAttribute(localName) method steps are:
         # 1. If localName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
@@ -170,90 +170,111 @@ class Document extends \DOMDocument {
         $localName = strtolower($localName);
 
         // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
-        // cannot create attribute nodes if there's no document element. So, create a
-        // temporary one if necessary before creating the attribute node to be removed
-        // after the attribute node is created.
-        $tempDocumentElement = false;
+        // cannot create attribute nodes if there's no document element. So, create the
+        // attribute node in a separate document which does have a document element and
+        // then import
         if ($this->documentElement === null) {
-            $tempDocumentElement = true;
-            $this->appendChild($this->createElement('html'));
+            $document = new \DOMDocument();
+            $document->appendChild($document->createElement('html'));
+
+            # 3. Return a new attribute whose local name is localName and node document is
+            # this.
+            // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+            // some characters. We have to coerce them sometimes.
+            try {
+                $attr = $document->createAttributeNS(null, $localName);
+            } catch (\DOMException $e) {
+                // The element name is invalid for XML
+                // Replace any offending characters with "UHHHHHH" where H are the
+                //   uppercase hexadecimal digits of the character's code point
+                $attr = $document->createAttributeNS(null, $this->coerceName($localName));
+            }
+
+            $attr = $this->importNode($attr);
+        } else {
+            # 3. Return a new attribute whose local name is localName and node document is
+            # this.
+            // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+            // some characters. We have to coerce them sometimes.
+            try {
+                $attr = parent::createAttributeNS(null, $localName);
+            } catch (\DOMException $e) {
+                // The element name is invalid for XML
+                // Replace any offending characters with "UHHHHHH" where H are the
+                //   uppercase hexadecimal digits of the character's code point
+                $attr = parent::createAttributeNS(null, $this->coerceName($localName));
+            }
         }
 
-        # 3. Return a new attribute whose local name is localName and node document is
-        # this.
-        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
-        // some characters. We have to coerce them sometimes.
-        try {
-            $result = parent::createAttributeNS(null, $localName);
-        } catch (\DOMException $e) {
-            // The element name is invalid for XML
-            // Replace any offending characters with "UHHHHHH" where H are the
-            //   uppercase hexadecimal digits of the character's code point
-            $result = parent::createAttributeNS(null, $this->coerceName($localName));
-        }
-
-        if ($tempDocumentElement) {
-            $this->removeChild($this->documentElement);
-        }
-
-        return $result;
+        return $attr;
     }
 
-    public function createAttributeNS(?string $namespace, string $qualifiedName) {
+    public function createAttributeNS(?string $namespace, string $qualifiedName): ?Attr {
         # The createAttributeNS(namespace, qualifiedName) method steps are:
         # 1. Let namespace, prefix, and localName be the result of passing namespace and
         #    qualifiedName to validate and extract.
         [ 'namespace' => $namespace, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespace);
 
         // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
-        // cannot create attribute nodes if there's no document element. So, create a
-        // temporary one if necessary before creating the attribute node to be removed
-        // after the attribute node is created.
-        $tempDocumentElement = false;
+        // cannot create attribute nodes if there's no document element. So, create the
+        // attribute node in a separate document which does have a document element and
+        // then import
         if ($this->documentElement === null) {
-            $tempDocumentElement = true;
-            $this->appendChild($this->createElement('html'));
-        }
+            $document = new \DOMDocument();
+            $document->appendChild($document->createElement('html'));
 
-        # 2. Return a new attribute whose namespace is namespace, namespace prefix is
-        # prefix, local name is localName, and node document is this.
-        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
-        // some characters. We have to coerce them sometimes.
-        try {
-            $result = parent::createAttributeNS($namespace, $qualifiedName);
-        } catch (\DOMException $e) {
-            // The element name is invalid for XML
-            // Replace any offending characters with "UHHHHHH" where H are the
-            //   uppercase hexadecimal digits of the character's code point
-            if ($namespace !== null) {
-                $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
-            } else {
-                $qualifiedName = $this->coerceName($qualifiedName);
+            # 2. Return a new attribute whose namespace is namespace, namespace prefix is
+            # prefix, local name is localName, and node document is this.
+            // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+            // some characters. We have to coerce them sometimes.
+            try {
+                $attr = $document->createAttributeNS($namespace, $qualifiedName);
+            } catch (\DOMException $e) {
+                // The element name is invalid for XML
+                // Replace any offending characters with "UHHHHHH" where H are the
+                //   uppercase hexadecimal digits of the character's code point
+                if ($namespace !== null) {
+                    $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
+                } else {
+                    $qualifiedName = $this->coerceName($qualifiedName);
+                }
+
+                // DEVIATION: When creating XMLNS attribute nodes on a document that does not
+                // yet contain a document element PHP's DOM will return false here. There is no
+                // way to avoid this other than allowing this method to return Attr|false. Since
+                // this library supports PHP 7.4 we cannot denote this in the method's
+                // signature.
+                $attr = $document->createAttributeNS($namespace, $qualifiedName);
             }
 
-            // DEVIATION: When creating XMLNS attribute nodes on a document that does not
-            // yet contain a document element PHP's DOM will return false here. There is no
-            // way to avoid this other than allowing this method to return Attr|false. Since
-            // this library supports PHP 7.4 we cannot denote this in the method's
-            // signature.
-            $result = parent::createAttributeNS($namespace, $qualifiedName);
+            $attr = $this->importNode($attr);
+        } else {
+            # 2. Return a new attribute whose namespace is namespace, namespace prefix is
+            # prefix, local name is localName, and node document is this.
+            // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+            // some characters. We have to coerce them sometimes.
+            try {
+                $attr = parent::createAttributeNS($namespace, $qualifiedName);
+            } catch (\DOMException $e) {
+                // The element name is invalid for XML
+                // Replace any offending characters with "UHHHHHH" where H are the
+                //   uppercase hexadecimal digits of the character's code point
+                if ($namespace !== null) {
+                    $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
+                } else {
+                    $qualifiedName = $this->coerceName($qualifiedName);
+                }
+
+                // DEVIATION: When creating XMLNS attribute nodes on a document that does not
+                // yet contain a document element PHP's DOM will return false here. There is no
+                // way to avoid this other than allowing this method to return Attr|false. Since
+                // this library supports PHP 7.4 we cannot denote this in the method's
+                // signature.
+                $attr = parent::createAttributeNS($namespace, $qualifiedName);
+            }
         }
 
-        if ($tempDocumentElement) {
-            // Can you believe it? There's yet another bug concerning namespace URI's
-            // on attribute nodes created without a document element. If you remove the
-            // document element as is about to happen below the namespace actually becomes
-            // corrupted. It most of the time will just display an empty string when
-            // requesting the namespace, but sometimes it'll display random garbage. Let's
-            // try to fix that. Below looks completely insane, but it's the only thing that
-            // seems to work AND preserves namespace URIs.
-            $d = new Document();
-            $result = $d->importNode($result);
-            $this->removeChild($this->documentElement);
-            $result = $this->importNode($result);
-        }
-
-        return $result;
+        return $attr;
     }
 
     public function createCDATASection(string $data) {
@@ -906,7 +927,7 @@ class Document extends \DOMDocument {
         return $element;
     }
 
-    private function replaceTemplates(\DOMNode $node) {
+    private function replaceTemplates(\DOMNode $node): void {
         if ($node instanceof HTMLTemplateElement) {
             $node = $node->content;
         }
@@ -929,39 +950,6 @@ class Document extends \DOMDocument {
         }
     }
 
-
-    public function __call(string $name, array $arguments) {
-        // This exists because of an edge case bug in PHP's DOM where xmlns attributes
-        // set on elements when the document has no document element. PHP's DOM has
-        // numerous bugs where this is involved that would take an entire document by
-        // itself to outline. The solution is to append the element whatever it is as
-        // the document element. This presents its own problem. Pre-insertion validity
-        // prevents anything but html elements from being inserted as the document
-        // element. This hidden method allows appending without pre-insertion validity.
-        if ($name === 'appendChildWithoutPreInsertionValidity') {
-            $backtrace = debug_backtrace();
-            $okay = false;
-            for ($len = count($backtrace), $i = $len - 1; $i >= 0; $i--) {
-                $cur = $backtrace[$i];
-                if ($cur['function'] === 'setAttributeNS' && $cur['class'] === __NAMESPACE__ . '\\Element') {
-                    $okay = true;
-                    break;
-                }
-            }
-
-            if ($okay) {
-                $result = parent::appendChild($arguments[0]);
-                if ($result !== false && $arguments[0] instanceof HTMLTemplateElement) {
-                    ElementMap::add($arguments[0]);
-                }
-                return $arguments[0];
-            }
-        }
-
-        // @codeCoverageIgnoreStart
-        throw new Exception(Exception::UNDEFINED_METHOD, __CLASS__, $name);
-        // @codeCoverageIgnoreEnd
-    }
 
     public function __destruct() {
         ElementMap::destroy($this);

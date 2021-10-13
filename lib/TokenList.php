@@ -15,8 +15,6 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
     use MagicProperties;
 
 
-    public bool $rebuild = false;
-
     protected string $localName;
     protected \WeakReference $element;
 
@@ -34,10 +32,16 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
     }
 
     protected function __get_value(): string {
+        # The value attribute must return the result of running this’s serialize steps.
         return $this->__toString();
     }
 
     protected function __set_value(string $value) {
+        # Setting the value attribute must set an attribute value for the associated
+        # element using associated attribute’s local name and the given value.
+        $element = $this->element->get();
+        $element->setAttribute($this->localName, $value);
+        // Also update the token set and the length.
         $this->tokenSet = $this->parseOrderedSet($value);
         $this->_length = count($this->tokenSet);
     }
@@ -67,7 +71,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         $this->attributeChange($attributeLocalName, $value, $value);
     }
 
-    public function add(...$tokens) {
+    public function add(...$tokens): void {
         # 1. For each token in tokens:
         foreach ($tokens as $token) {
             # 1. If token is the empty string, then throw a "SyntaxError" DOMException.
@@ -103,7 +107,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         return $this->_length;
     }
 
-    public function current() {
+    public function current(): string {
         return $this->item($this->position);
     }
 
@@ -111,35 +115,37 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         return $this->tokenSet[$index];
     }
 
-    public function key() {
+    public function key(): int {
         return $this->position;
     }
 
-    public function next() {
+    public function next(): void {
         ++$this->position;
     }
 
-    public function rewind() {
+    public function rewind(): void {
         $this->position = 0;
     }
 
-    public function offsetExists($offset) {
-        return $this->contains($offset);
+    public function offsetExists($offset): bool {
+        return isset($this->tokenSet[$offset]);
     }
 
     public function offsetGet($offset): string {
         return $this->item($offset);
     }
 
-    public function offsetSet($offset, $value) {
-        $this->add($offset);
+    public function offsetSet($offset, $value): void {
+        // Spec says nothing about setting values on DOMTokenList outside of add();
+        // browsers silently fail here.
     }
 
-    public function offsetUnset($offset) {
-        $this->remove($offset);
+    public function offsetUnset($offset): void {
+        // Spec says nothing about unsetting values on DOMTokenList outside of remove();
+        // browsers silently fail here.
     }
 
-    public function remove(...$tokens) {
+    public function remove(...$tokens): void {
         # 1. For each token in tokens:
         foreach ($tokens as $token) {
             # 1. If token is the empty string, then throw a "SyntaxError" DOMException.
@@ -157,8 +163,8 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         # For each token in tokens, remove token from this’s token set.
         $changed = false;
         foreach ($tokens as $token) {
-            if (in_array($token, $this->tokenSet)) {
-                unset($this->tokenSet[$token]);
+            if ($key = array_search($token, $this->tokenSet, true)) {
+                unset($this->tokenSet[$key]);
                 $this->_length--;
                 $changed = true;
             }
@@ -187,16 +193,15 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
 
         // The spec does not say to trim, but browsers do.
         $token = trim($token);
-        $newToken = trim($token);
+        $newToken = trim($newToken);
 
         # 3. If this’s token set does not contain token, then return false.
-        if (!isset($this->tokenSet[$token])) {
+        if (!($key = array_search($token, $this->tokenSet))) {
             return false;
         }
 
         # 4. Replace token in this’s token set with newToken.
-        $index = array_search($token, $this->tokenSet);
-        $this->tokenSet[$index] = $newToken;
+        $this->tokenSet[$key] = $newToken;
 
         # 5. Run the update steps.
         $this->update();
@@ -223,7 +228,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         return true;
     }
 
-    public function toggle(string $token, ?bool $force = false): bool {
+    public function toggle(string $token, ?bool $force = null): bool {
         # 1. If token is the empty string, then throw a "SyntaxError" DOMException.
         if ($token === '') {
             throw new DOMException(DOMException::SYNTAX_ERROR);
@@ -236,7 +241,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         }
 
         # 3. If this’s token set[token] exists, then:
-        if (isset($this->tokenSet[$token])) {
+        if (in_array($token, $this->tokenSet)) {
             # 1. If force is either not given or is false, then remove token from this’s
             # token set, run the update steps and return false.
             if (!$force) {
@@ -249,7 +254,7 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         }
         # 4. Otherwise, if force not given or is true, append token to this’s token set,
         # run the update steps, and return true.
-        else {
+        elseif ($force === null || $force === true) {
             $this->add($token);
             return true;
         }
@@ -269,17 +274,13 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         #
         # 1. If localName is associated attribute’s local name, namespace is null, and
         # value is null, then empty token set.
-        if ($localName !== $this->localName || $namespace !== null) {
-            return;
-        }
-
-        if ($value === null) {
+        if ($localName === $this->localName && $namespace === null && $value === null) {
             $this->tokenSet = [];
             $this->_length = 0;
         }
         # 2. Otherwise, if localName is associated attribute’s local name, namespace is
         # null, then set token set to value, parsed.
-        else {
+        elseif ($localName === $this->localName && $namespace === null) {
             $this->tokenSet = $this->parseOrderedSet($value);
             $this->_length = count($this->tokenSet);
         }

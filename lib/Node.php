@@ -8,11 +8,12 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-
-class Attr extends \DOMAttr {
-    use BaseNode;
-
-    // Should be in Node, but traits cannot have contants
+/**
+ * Exists not because other elements can inherit from it but so constants either
+ * defined below or inherited from \DOMNode may be accessed from it as expected
+ * in code.
+ */
+class Node extends \DOMNode {
     public const DOCUMENT_POSITION_DISCONNECTED = 0x01;
     public const DOCUMENT_POSITION_PRECEDING = 0x02;
     public const DOCUMENT_POSITION_FOLLOWING = 0x04;

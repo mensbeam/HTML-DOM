@@ -13,7 +13,7 @@ namespace MensBeam\HTML\DOM;
  * the insertion methods disabled.
  */
 trait LeafNode {
-    use Node;
+    use BaseNode;
 
     public function appendChild($node) {
         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);

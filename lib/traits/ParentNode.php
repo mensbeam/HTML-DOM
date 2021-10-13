@@ -11,7 +11,7 @@ namespace MensBeam\HTML\DOM;
 
 # 4.2.6. Mixin ParentNode
 trait ParentNode {
-    use Node;
+    use BaseNode;
 
 
     protected function __get_children(): \DOMNodeList {

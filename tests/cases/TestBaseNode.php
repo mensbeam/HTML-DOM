@@ -16,7 +16,7 @@ use MensBeam\HTML\DOM\{
 
 
 /** @covers \MensBeam\HTML\DOM\Node */
-class TestNode extends \PHPUnit\Framework\TestCase {
+class TestBaseNode extends \PHPUnit\Framework\TestCase {
     public function provideDisabledMethods(): iterable {
         return [
             [ function() {
@@ -32,8 +32,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideDisabledMethods
-     * @covers \MensBeam\HTML\DOM\Node::C14N
-     * @covers \MensBeam\HTML\DOM\Node::C14NFile
+     * @covers \MensBeam\HTML\DOM\BaseNode::C14N
+     * @covers \MensBeam\HTML\DOM\BaseNode::C14NFile
      */
     public function testDisabledMethods(\Closure $closure): void {
         $this->expectException(DOMException::class);
@@ -42,7 +42,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::getRootNode */
+    /** @covers \MensBeam\HTML\DOM\BaseNode::getRootNode */
     public function testGetRootNode(): void {
         $d = new Document();
         $t = $d->createElement('template');

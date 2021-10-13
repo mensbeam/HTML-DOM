@@ -133,7 +133,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Document::replaceTemplates
      * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\BaseNode::getRootNode
      */
     public function testDocumentCreation(): void {
         // Test null source

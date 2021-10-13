@@ -23,7 +23,7 @@ class TestDocumentFragment extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         // From a template
         $t = $d->createElement('template');
-        $this->assertSame(HTMLTemplateElement::class, $t->content->host::class);
+        $this->assertSame(HTMLTemplateElement::class, get_class($t->content->host));
         // From a created document fragment
         $df = $d->createDocumentFragment();
         $this->assertNull($df->host);

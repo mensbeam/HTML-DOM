@@ -28,7 +28,7 @@ if (version_compare(\PHP_VERSION, '8.0', '<')) {
             return $count;
         }
 
-        protected function __get_firstElementChild(): Element {
+        protected function __get_firstElementChild(): ?Element {
             # The firstElementChild getter steps are to return the first child that is an
             # element; otherwise null.
             foreach ($this->childNodes as $child) {
@@ -39,7 +39,7 @@ if (version_compare(\PHP_VERSION, '8.0', '<')) {
             return null;
         }
 
-        protected function __get_lastElementChild(): Element {
+        protected function __get_lastElementChild(): ?Element {
             # The lastElementChild getter steps are to return the last child that is an
             # element; otherwise null.
             for ($i = $this->childNodes->length - 1; $i >= 0; $i--) {

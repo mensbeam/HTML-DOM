@@ -138,7 +138,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     public function testDocumentCreation(): void {
         // Test null source
         $d = new Document();
-        $this->assertSame('MensBeam\HTML\DOM\Document', $d::class);
+        $this->assertSame('MensBeam\HTML\DOM\Document', get_class($d));
         $this->assertSame(null, $d->firstChild);
 
         // Test string source
@@ -152,7 +152,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d2->appendChild($d2->createElement('html'));
         $d2->loadDOM($d);
         $d3 = new Document($d);
-        $this->assertSame('MensBeam\HTML\DOM\Element', $d3->firstChild::class);
+        $this->assertSame('MensBeam\HTML\DOM\Element', get_class($d3->firstChild));
         $this->assertSame('html', $d3->firstChild->nodeName);
 
         // Test file source
@@ -188,8 +188,8 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         // Test templates in source
         $d = new Document('<!DOCTYPE html><html><body><template class="test"><template></template></template></body></html>');
         $t = $d->getElementsByTagName('template')->item(0);
-        $this->assertSame(HTMLTemplateElement::class, $t::class);
-        $this->assertSame(HTMLTemplateElement::class, $t->content->firstChild::class);
+        $this->assertSame(HTMLTemplateElement::class, get_class($t));
+        $this->assertSame(HTMLTemplateElement::class, get_class($t->content->firstChild));
     }
 
 
@@ -353,17 +353,17 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d2 = new Document();
         $t2 = $d2->importNode($t, true);
         $this->assertFalse($t2->ownerDocument->isSameNode($t->ownerDocument));
-        $this->assertSame($t2::class, $t::class);
+        $this->assertSame(get_class($t2), get_class($t));
 
         $d = new \DOMDocument();
         $t = $d->createElement('template');
         // Add a child template to cover recursive template conversions.
         $t->appendChild($d->createElement('template'));
-        $this->assertSame(\DOMElement::class, $t::class);
+        $this->assertSame(\DOMElement::class, get_class($t));
 
         $d2 = new Document();
         $t2 = $d2->importNode($t, true);
-        $this->assertSame(HTMLTemplateElement::class, $t2::class);
+        $this->assertSame(HTMLTemplateElement::class, get_class($t2));
     }
 
 
@@ -466,7 +466,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /** @covers \MensBeam\HTML\DOM\Document::__get_xpath */
     public function testPropertyGetXPath(): void {
         $d = new Document();
-        $this->assertSame('DOMXPath', $d->xpath::class);
+        $this->assertSame('DOMXPath', get_class($d->xpath));
     }
 
 

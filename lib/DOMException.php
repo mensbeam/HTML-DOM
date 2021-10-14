@@ -27,7 +27,7 @@ class DOMException extends Exception {
 
     public function __construct(int $code, ...$args) {
         self::$messages = array_replace(parent::$messages, [
-              3 => 'Hierarchy request error; supplied node is not allowed here',
+              3 => 'Hierarchy request error',
               4 => 'Supplied node does not belong to this document',
               5 => 'Invalid character',
               7 => 'Modification not allowed here',

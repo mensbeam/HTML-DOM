@@ -47,12 +47,21 @@ trait Walk {
      *
      * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
      *                            just yield every node.
+     * @param Comment|Element|ProcessingInstruction|Text|null $startingNode - An optional node to begin from.
      * @param bool $backwards - An optional setting that if true makes the generator instead walk backwards
      *                          through the child nodes.
      */
-    public function walkShallow(?\Closure $filter = null, bool $backwards = false): \Generator {
+    public function walkShallow(?\Closure $filter = null, Comment|Element|ProcessingInstruction|Text|null $startingNode = null, bool $backwards = false): \Generator {
         $node = (!$this instanceof TemplateElement) ? $this : $this->content;
-        $node = (!$backwards) ? $node->firstChild : $node->lastChild;
+        if ($startingNode === null) {
+            $node = (!$backwards) ? $node->firstChild : $node->lastChild;
+        } else {
+            if ($startingNode->parentNode === null || !$startingNode->parentNode->isSameNode($node)) {
+                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            }
+
+            $node = $startingNode;
+        }
 
         if ($node !== null) {
             do {

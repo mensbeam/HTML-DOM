@@ -14,6 +14,9 @@ namespace MensBeam\HTML\DOM;
  * \DOMNode descendant, so a trait is the next best thing.
  */
 trait BaseNode {
+    private static ?int $rand = null;
+
+
     // Disable C14N
     public function C14N($exclusive = null, $with_comments = null, ?array $xpath = null, ?array $ns_prefixes = null): bool {
         throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is meant for XML and buggy; use Document::saveHTML or cast to a string');
@@ -22,6 +25,97 @@ trait BaseNode {
     // Disable C14NFile
     public function C14NFile($uri, $exclusive = null, $with_comments = null, ?array $xpath = null, ?array $ns_prefixes = null): bool {
         throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is meant for XML and buggy; use Document::saveHTMLFile');
+    }
+
+    public function compareDocumentPosition(\DOMNode $other): int {
+        # The compareDocumentPosition(other) method steps are:
+        #
+        # 1. If this is other, then return zero.
+        if ($this->isSameNode($other)) {
+            return 0;
+        }
+
+        # 2. Let node1 be other and node2 be this.
+        $node1 = $other;
+        $node2 = $this;
+
+        # 3. Let attr1 and attr2 be null.
+        $attr1 = $attr2 = null;
+
+        # 4. If node1 is an attribute, then set attr1 to node1 and node1 to attr1’s
+        #   element.
+        if ($node1 instanceof Attr) {
+            $attr1 = $node1;
+            $node1 = $attr1->ownerElement;
+        }
+
+        # 5. If node2 is an attribute, then:
+        if ($node2 instanceof Attr) {
+            # 1. Set attr2 to node2 and node2 to attr2’s element.
+            $attr2 = $node2;
+            $node2 = $attr2->ownerElement;
+
+            # 2. If attr1 and node1 are non-null, and node2 is node1, then:
+            if ($attr1 !== null && $node1 !== null && $node2 === $node1) {
+                # 1. For each attr in node2’s attribute list:
+                foreach ($node2->attributes as $attr) {
+                    # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
+                    if ($attr->isSameNode($attr1)) {
+                        return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
+                    }
+
+                    # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
+                    if ($attr->isSameNode($attr2)) {
+                        return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_FOLLOWING;
+                    }
+                }
+            }
+        }
+
+        # 6. If node1 or node2 is null, or node1’s root is not node2’s root, then return the
+        #    result of adding DOCUMENT_POSITION_DISCONNECTED,
+        #    DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC, and either
+        #    DOCUMENT_POSITION_PRECEDING or DOCUMENT_POSITION_FOLLOWING, with the constraint
+        #    that this is to be consistent, together.
+        #
+        # NOTE: Whether to return DOCUMENT_POSITION_PRECEDING or
+        # DOCUMENT_POSITION_FOLLOWING is typically implemented via pointer comparison.
+        # In JavaScript implementations a cached Math.random() value can be used.
+        if (self::$rand === null) {
+            self::$rand = rand(0, 1);
+        }
+
+        if ($node1 === null || $node2 === null || !$node1->getRootNode()->isSameNode($node2->getRootNode())) {
+            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + (($rand === 0) ? DOCUMENT_POSITION_PRECEDING : DOCUMENT_POSITION_FOLLOWING);
+        }
+
+        # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2
+        #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINS to
+        #    DOCUMENT_POSITION_PRECEDING.
+        if (($node1->isSameNode($node2) && $attr2 !== null) || ($attr1 === null && $node2->moonwalk(function($n) use($node1) {
+            return ($n->isSameNode($node1));
+        })->current() !== null)) {
+            return Node::DOCUMENT_POSITION_CONTAINS + Node::DOCUMENT_POSITION_PRECEDING;
+        }
+
+        # 8. If node1 is a descendant of node2 and attr2 is null, or node1 is node2 and attr1
+        #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINED_BY to
+        #    DOCUMENT_POSITION_FOLLOWING.
+        if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $node2->walk(function($n) use($node1) {
+            return ($n->isSameNode($node1));
+        })->current() !== null)) {
+            return Node::DOCUMENT_POSITION_CONTAINED_BY + Node::DOCUMENT_POSITION_FOLLOWING;
+        }
+
+        # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
+        if ($node2->parentNode->walkShallow(function($n) use($node1) {
+            return ($n->isSameNode($node1));
+        }, $node2, true)) {
+            return Node::DOCUMENT_POSITION_PRECEDING;
+        }
+
+        # 10. Return DOCUMENT_POSITION_FOLLOWING.
+        return Node::DOCUMENT_POSITION_FOLLOWING;
     }
 
     // Disable getLineNo

@@ -10,6 +10,7 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
+    DOMException,
     Element
 };
 
@@ -49,21 +50,31 @@ class TestWalk extends \PHPUnit\Framework\TestCase {
 
 
     /** @covers \MensBeam\HTML\DOM\Walk::walkShallow */
-    public function testWalkShallowBackwards(): void {
+    public function testWalkShallow(): void {
         // Test walking backwards
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
         $d->body->innerHTML = '<span class="one">O</span><span class="two">O</span><span class="three">O</span><span class="four">K</span>';
-        $iterator = $d->body->walkShallow(null, true);
+        $iterator = $d->body->walkShallow(null, $d->body->firstChild->nextSibling, true);
         $count = 0;
         foreach ($iterator as $i) {
             $count++;
-            if ($i->getAttribute('class') === 'two') {
-                break;
-            }
         }
 
-        $this->assertSame(3, $count);
+        $this->assertSame(2, $count);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Walk::walkShallow */
+    public function testWalkShallowFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::HIERARCHY_REQUEST_ERROR);
+        // Test walking backwards
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->innerHTML = '<span class="one">O</span><span class="two">O</span><span class="three">O</span><span class="four">K</span>';
+        $d->body->walkShallow(null, $d->createElement('fail'), true)->current();
     }
 }

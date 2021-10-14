@@ -6,7 +6,7 @@
 
 # HTML DOM #
 
-Modern DOM library written in PHP for HTML documents. This implementation is a userland extension of PHP's built-in DOM. It exists because PHP's DOM is inaccurate, inadequate for use with HTML, and buggy. This implementation attempts to fix as much as possible the inaccuracies of the PHP DOM, add in features necessary for modern HTML development, and circumvent most of the bugs without recreating the entirety of the DOM specification in userland. There are other PHP DOM libraries such as [`phpgt/dom`][c] which do implement more of the DOM in userland but it doesn't address many of PHP DOM's bugs and is incredibly slow (see [Limitations \#5][e]).
+Modern DOM library written in PHP for HTML documents. This implementation is a userland extension of PHP's built-in DOM. It exists because PHP's DOM is inaccurate, inadequate for use with HTML, and buggy. This implementation attempts to fix as much as possible the inaccuracies of the PHP DOM, add in features necessary for modern HTML development, and circumvent most of the bugs without recreating the entirety of the DOM specification in userland. There is another PHP DOM library, [`phpgt/dom`][c], which does implement more of the DOM in userland; it, however, doesn't address many of PHP DOM's bugs and is incredibly slow (see [Limitations \#5][e]).
 
 ## Usage ##
 

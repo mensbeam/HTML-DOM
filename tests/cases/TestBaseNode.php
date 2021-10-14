@@ -19,14 +19,9 @@ use MensBeam\HTML\DOM\{
 class TestBaseNode extends \PHPUnit\Framework\TestCase {
     public function provideDisabledMethods(): iterable {
         return [
-            [ function() {
-                $d = new Document();
-                $d->C14N();
-            } ],
-            [ function() {
-                $d = new Document();
-                $d->C14NFile('fail');
-            } ],
+            [ 'C14N' ],
+            [ 'C14NFile', 'ook' ],
+            [ 'getLineNo' ]
         ];
     }
 
@@ -34,11 +29,13 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
      * @dataProvider provideDisabledMethods
      * @covers \MensBeam\HTML\DOM\BaseNode::C14N
      * @covers \MensBeam\HTML\DOM\BaseNode::C14NFile
+     * @covers \MensBeam\HTML\DOM\BaseNode::getLineNo
      */
-    public function testDisabledMethods(\Closure $closure): void {
+    public function testDisabledMethods(string $methodName, ...$arguments): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
-        $closure();
+        $d = new Document();
+        $d->$methodName(...$arguments);
     }
 
 

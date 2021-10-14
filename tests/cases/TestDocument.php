@@ -100,7 +100,12 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
             [ 'createCDATASection', 'ook' ],
             [ 'createEntityReference', 'ook' ],
             [ 'loadXML', 'ook' ],
+            [ 'registerNodeClass', 'ook', null ],
+            [ 'relaxNGValidate', 'ook' ],
+            [ 'relaxNGValidateSource', 'ook' ],
             [ 'saveXML', null ],
+            [ 'schemaValidate', 'ook', 0 ],
+            [ 'schemaValidateSource', 'ook', 0 ],
             [ 'validate', null ],
             [ 'xinclude', null ],
         ];
@@ -115,11 +120,11 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::xinclude
      * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
-    public function testDisabledMethods(string $methodName, ?string $argument): void {
+    public function testDisabledMethods(string $methodName, ...$arguments): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
         $d = new Document();
-        $d->$methodName($argument);
+        $d->$methodName(...$arguments);
     }
 
 

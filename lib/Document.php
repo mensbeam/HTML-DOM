@@ -135,13 +135,13 @@ class Document extends \DOMDocument {
     public function __construct(\DOMDocument|string|null $source = null, ?string $encoding = null) {
         parent::__construct();
 
-        $this->registerNodeClass('DOMAttr', '\MensBeam\HTML\DOM\Attr');
-        $this->registerNodeClass('DOMDocument', '\MensBeam\HTML\DOM\Document');
-        $this->registerNodeClass('DOMComment', '\MensBeam\HTML\DOM\Comment');
-        $this->registerNodeClass('DOMDocumentFragment', '\MensBeam\HTML\DOM\DocumentFragment');
-        $this->registerNodeClass('DOMElement', '\MensBeam\HTML\DOM\Element');
-        $this->registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\DOM\ProcessingInstruction');
-        $this->registerNodeClass('DOMText', '\MensBeam\HTML\DOM\Text');
+        parent::registerNodeClass('DOMAttr', '\MensBeam\HTML\DOM\Attr');
+        parent::registerNodeClass('DOMDocument', '\MensBeam\HTML\DOM\Document');
+        parent::registerNodeClass('DOMComment', '\MensBeam\HTML\DOM\Comment');
+        parent::registerNodeClass('DOMDocumentFragment', '\MensBeam\HTML\DOM\DocumentFragment');
+        parent::registerNodeClass('DOMElement', '\MensBeam\HTML\DOM\Element');
+        parent::registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\DOM\ProcessingInstruction');
+        parent::registerNodeClass('DOMText', '\MensBeam\HTML\DOM\Text');
 
         $this->_documentEncoding = $encoding;
 
@@ -458,7 +458,19 @@ class Document extends \DOMDocument {
     }
 
     public function loadXML($source, $options = null): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::loadXML instead');
+        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is only meant for HTML; use \\DOMDocument::loadXML instead');
+    }
+
+    public function registerNodeClass(string $baseClass, ?string $extendedClass): bool {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is non-standard and serves no additional purpose for this class');
+    }
+
+    public function relaxNGValidate(string $filename): bool {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+    }
+
+    public function relaxNGValidateSource(string $filename): bool {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
     }
 
     public function save(string $filename, $options = null) {
@@ -522,6 +534,14 @@ class Document extends \DOMDocument {
 
     public function saveXML(?\DOMNode $node = null, $options = null): bool {
         throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::saveXML instead');
+    }
+
+    public function schemaValidate(string $filename, int $flags = 0): bool {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+    }
+
+    public function schemaValidateSource(string $filename, int $flags = 0): bool {
+        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
     }
 
     public function validate(): bool {

@@ -63,7 +63,7 @@ trait ChildNode {
     public function before(...$nodes): void {
         // Before exists in PHP DOM, but it can insert incorrect nodes because of PHP
         // DOM's incorrect (for HTML) pre-insertion validation.
-        // PHP's declaration for \DOMCharacterData::after doesn't include the
+        // PHP's declaration for \DOMCharacterData::before doesn't include the
         // \DOMNode|string typing for the nodes that it should, so type checking will
         // need to be done manually.
         foreach ($nodes as $node) {
@@ -86,7 +86,8 @@ trait ChildNode {
             return;
         }
 
-        # 3. Let viablePreviousSibling be this’s first preceding sibling not in nodes; otherwise null.
+        # 3. Let viablePreviousSibling be this’s first preceding sibling not in nodes;
+        #    otherwise null.
         $n = $this;
         $viablePreviousSibling = null;
         while ($n = $n->previousSibling) {
@@ -100,13 +101,71 @@ trait ChildNode {
             break;
         }
 
-        # 4. Let node be the result of converting nodes into a node, given nodes and this’s node document.
+        # 4. Let node be the result of converting nodes into a node, given nodes and
+        #    this’s node document.
         $node = $this->convertNodesToNode($nodes);
 
-        # 5. If viablePreviousSibling is null, then set it to parent’s first child; otherwise to viablePreviousSibling’s next sibling.
+        # 5. If viablePreviousSibling is null, then set it to parent’s first child;
+        #    otherwise to viablePreviousSibling’s next sibling.
         $viablePreviousSibling = ($viablePreviousSibling === null) ? $parent->firstChild : $viablePreviousSibling->nextSibling;
 
         # 6. Pre-insert node into parent before viablePreviousSibling.
         $parent->insertBefore($node, $viablePreviousSibling);
+    }
+
+    public function replaceWith(...$nodes): void {
+        // Before exists in PHP DOM, but it can insert incorrect nodes because of PHP
+        // DOM's incorrect (for HTML) pre-insertion validation.
+        // PHP's declaration for \DOMCharacterData::replaceWith doesn't include the
+        // \DOMNode|string typing for the nodes that it should, so type checking will
+        // need to be done manually.
+        foreach ($nodes as $node) {
+            if (!$node instanceof \DOMNode && !is_string($node)) {
+                $type = gettype($node);
+                if ($type === 'object') {
+                    $type = get_class($node);
+                }
+                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', $type);
+            }
+        }
+
+        # The replaceWith(nodes) method steps are:
+        #
+        # 1. Let parent be this’s parent.
+        $parent = $this->parentNode;
+
+        # 2. If parent is null, then return.
+        if ($parent === null) {
+            return;
+        }
+
+        # 3. Let viableNextSibling be this’s first following sibling not in nodes;
+        #    otherwise null.
+        $n = $this;
+        $viableNextSibling = null;
+        while ($n = $n->nextSibling) {
+            foreach ($nodes as $nodeOrString) {
+                if ($nodeOrString instanceof \DOMNode && $nodeOrString->isSameNode($n)) {
+                    continue 2;
+                }
+            }
+
+            $viableNextSibling = $n;
+            break;
+        }
+
+        # 4. Let node be the result of converting nodes into a node, given nodes and
+        #    this’s node document.
+        $node = $this->convertNodesToNode($nodes);
+
+        # 5. If this’s parent is parent, replace this with node within parent.
+        # Note: This could have been inserted into node.
+        if ($this->parentNode === $parent) {
+            $parent->replaceChild($node, $this);
+        }
+        # 6. Otherwise, pre-insert node into parent before viableNextSibling.
+        else {
+            $parent->insertBefore($node, $viableNextSibling);
+        }
     }
 }

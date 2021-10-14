@@ -27,10 +27,10 @@ class Document extends \DOMDocument {
     public const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
     protected ?Element $_body = null;
-    /** Nonstandard */
+    /** Non-standard */
     protected ?string $_documentEncoding = null;
     protected int $_quirksMode = Parser::NO_QUIRKS_MODE;
-    /** Nonstandard */
+    /** Non-standard */
     protected ?\DOMXPath $_xpath = null;
 
     // List of elements that are treated as block elements for the purposes of
@@ -465,9 +465,18 @@ class Document extends \DOMDocument {
         return file_put_contents($filename, $this->saveHTML());
     }
 
-    public function saveHTML(\DOMNode $node = null): string {
+    public function saveHTML(?\DOMNode $node = null): string {
         $node = $node ?? $this;
         $formatOutput = $this->formatOutput;
+
+        // Because we cannot change the delcaration to be more type specific we must typecheck
+        if ($node !== $this && !$node instanceof Comment && !$node instanceof Document && !$node instanceof DocumentFragment && !$node instanceof \DOMDocumentType && !$node instanceof Element && !$node instanceof ProcessingInstruction && !$node instanceof Text) {
+            $type = gettype($node);
+            if ($type === 'object') {
+                $type = get_class($node);
+            }
+            throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'node', 'Comment|Document|DocumentFragment|\DOMDocumentType|ProcessingInstruction|Text|null', $type);
+        }
 
         if ($node !== $this) {
             if (!$node->ownerDocument->isSameNode($this)) {

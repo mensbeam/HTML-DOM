@@ -10,7 +10,8 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
-    DOMException
+    DOMException,
+    Exception
 };
 use MensBeam\HTML\Parser;
 
@@ -129,14 +130,38 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Document::saveHTML */
-    public function testSerializerFailure(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
-        $d = new Document();
-        $h = $d->createElement('html');
-        $d2 = new Document();
-        $d2->saveHTML($h);
+    public function provideSerializerFailures(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $h = $d->createElement('html');
+                $d2 = new Document();
+                $d2->saveHTML($h);
+            }, DOMException::class, DOMException::WRONG_DOCUMENT ],
+            [ function() {
+                $d = new Document();
+                $d->saveHTML($d->createAttribute('fail'));
+            }, Exception::class, Exception::ARGUMENT_TYPE_ERROR ],
+            [ function() {
+                $d = new Document();
+                $d->saveHTML(new \DOMDocument());
+            }, Exception::class, Exception::ARGUMENT_TYPE_ERROR ],
+            [ function() {
+                $d = new Document();
+                $d2 = new \DOMDocument();
+                $d->saveHTML($d2->createComment('fail'));
+            }, Exception::class, Exception::ARGUMENT_TYPE_ERROR ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideSerializerFailures
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     */
+    public function testSerializerFailures(\Closure $closure, string $exceptionClassName, int $errorCode): void {
+        $this->expectException($exceptionClassName);
+        $this->expectExceptionCode($errorCode);
+        $closure();
     }
 
 

@@ -26,7 +26,7 @@ trait BaseNode {
 
     // Disable getLineNo
     public function getLineNo(): int {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is not in the standard and is buggy and useless');
+        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is not in the standard, is buggy, and useless');
     }
 
     public function getRootNode(): ?\DOMNode {

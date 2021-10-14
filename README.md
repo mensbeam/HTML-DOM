@@ -12,6 +12,50 @@ Modern DOM library written in PHP for HTML documents. This implementation is a u
 
 Coming soon
 
+## Examples ##
+
+- Creating a new document:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document();
+  ```
+
+- Creating a new document from a string:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
+  ```
+
+  or:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document();
+  $d->loadHTML('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
+  ```
+
+- Creating a new document from existing DOM:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document(new DOMDocument());
+  ```
+
+  or:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document();
+  $d->loadDOM(new DOMDocument());
+  ```
+
 ## Limitations ##
 
 The primary aim of this library is accuracy. If the document model differs from what the specification mandates, this is probably a bug. However, we are also constrained by PHP, which imposes various limitations. These are as follows:

@@ -10,8 +10,8 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
-    DOMException,
-    Element
+    Element,
+    Exception
 };
 
 
@@ -49,32 +49,70 @@ class TestWalk extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Walk::walkShallow */
-    public function testWalkShallow(): void {
-        // Test walking backwards
+    public function provideWalkFailures(): iterable {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
-        $d->body->innerHTML = '<span class="one">O</span><span class="two">O</span><span class="three">O</span><span class="four">K</span>';
-        $iterator = $d->body->walkShallow(null, $d->body->firstChild->nextSibling, true);
-        $count = 0;
-        foreach ($iterator as $i) {
-            $count++;
-        }
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2>Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
 
-        $this->assertSame(2, $count);
+        return [
+            [ function() use ($d) {
+                $d->body->walk(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->walk(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->firstChild->walkFollowing(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->firstChild->walkFollowing(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->lastChild->walkPreceding(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->lastChild->walkPreceding(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideWalkFailures
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\Walk::walk
+     * @covers \MensBeam\HTML\DOM\Walk::walkFollowing
+     * @covers \MensBeam\HTML\DOM\Walk::walkPreceding
+     */
+    public function testWalkFailures(\Closure $closure): void {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::CLOSURE_RETURN_TYPE_ERROR);
+        $closure();
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Walk::walkShallow */
-    public function testWalkShallowFailure(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::HIERARCHY_REQUEST_ERROR);
-        // Test walking backwards
+    /** @covers \MensBeam\HTML\DOM\Walk::walk */
+    public function testWalkPreceding(): void {
+        // Test removal of elements when walking
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
-        $d->body->innerHTML = '<span class="one">O</span><span class="two">O</span><span class="three">O</span><span class="four">K</span>';
-        $d->body->walkShallow(null, $d->createElement('fail'), true)->current();
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2>Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
+
+        $this->assertNotNull($d->body->lastChild->walkPreceding(function($n) {
+            return ($n instanceof Element && $n->nodeName === 'main');
+        }, true)->current());
     }
 }

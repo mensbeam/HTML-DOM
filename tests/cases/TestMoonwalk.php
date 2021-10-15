@@ -10,7 +10,8 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
-    Element
+    Element,
+    Exception
 };
 
 
@@ -51,5 +52,39 @@ class TestMoonwalk extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($t->content->isSameNode($w->current()));
         $w->next();
         $this->assertTrue($t->isSameNode($w->current()));
+    }
+
+    public function provideMoonwalkFailures(): iterable {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2>Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
+        $main = $d->body->getElementsByTagName('main')->item(0);
+
+        return [
+            [ function() use ($main) {
+                $main->moonwalk(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($main) {
+                $main->moonwalk(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideMoonwalkFailures
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\Walk::walk
+     * @covers \MensBeam\HTML\DOM\Walk::walkFollowing
+     * @covers \MensBeam\HTML\DOM\Walk::walkPreceding
+     */
+    public function testMoonwalkFailures(\Closure $closure): void {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::CLOSURE_RETURN_TYPE_ERROR);
+        $closure();
     }
 }

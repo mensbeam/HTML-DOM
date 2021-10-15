@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e1451c0dbcfa654af5768e49e9d6ade6",
+    "content-hash": "c11fdde4a081e999e47b166934319a92",
     "packages": [
         {
             "name": "mensbeam/framework",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://code.mensbeam.com/MensBeam/Framework",
-                "reference": "6399a592bb4c5ffd0a228cfa4b9a2a47e346d70a"
+                "reference": "d2999f53be0a0484a81639a0999ffd1f1832b31c"
             },
             "require": {
                 "php": ">=7.4"
@@ -40,7 +40,7 @@
                 }
             ],
             "description": "Common classes and traits used in many Mensbeam projects",
-            "time": "2021-10-12T20:46:20+00:00"
+            "time": "2021-10-15T14:15:35+00:00"
         },
         {
             "name": "mensbeam/html-parser",
@@ -2617,7 +2617,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "ext-dom": "*"
     },
     "platform-dev": [],

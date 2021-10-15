@@ -171,9 +171,9 @@ trait ParentNode {
             #    child.
             if ($node instanceof DocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
-                if ($nodeChildElementCount > 1 || $node->walkShallow(function($n) {
+                if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
                     return ($n instanceof Text);
-                })->current() !== null) {
+                }, true)->current() !== null) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 } elseif ($nodeChildElementCount === 1) {
                     if ($this->childElementCount > 0 || $child instanceof \DOMDocumentType) {

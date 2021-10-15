@@ -16,20 +16,31 @@ trait Walk {
      *
      * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
      *                            just yield every node.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
      */
-    public function walk(?\Closure $filter = null): \Generator {
-        $node = $this->firstChild;
+    public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        $node = ($includeReferenceNode) ? $this : $this->firstChild;
         if ($node !== null) {
             do {
                 $next = $node->nextSibling;
-                $parent = $node->parentNode;
-                if ($filter === null || $filter($node) === true) {
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
                     yield $node;
                 }
 
-                // If the node was removed mid-loop then there's no reason to walk through its
-                // contents
-                if ($node->parentNode !== null) {
+                // If the filter returns true (accept) or false (skip) and the node wasn't
+                // removed in the filter iterate through the children
+                if ($result !== null && $node->parentNode !== null) {
                     if ($node instanceof HTMLTemplateElement) {
                         $node = $node->content;
                     }
@@ -43,30 +54,59 @@ trait Walk {
     }
 
     /**
-     * Generator which just walks through a node's child nodes. Nonstandard.
+     * Generator which walks forwards through an element's siblings. Nonstandard.
      *
      * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
      *                            just yield every node.
-     * @param Comment|Element|ProcessingInstruction|Text|null $startingNode - An optional node to begin from.
-     * @param bool $backwards - An optional setting that if true makes the generator instead walk backwards
-     *                          through the child nodes.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
      */
-    public function walkShallow(?\Closure $filter = null, Comment|Element|ProcessingInstruction|Text|null $startingNode = null, bool $backwards = false): \Generator {
-        $node = (!$this instanceof TemplateElement) ? $this : $this->content;
-        if ($startingNode === null) {
-            $node = (!$backwards) ? $node->firstChild : $node->lastChild;
-        } else {
-            if ($startingNode->parentNode === null || !$startingNode->parentNode->isSameNode($node)) {
-                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-            }
-
-            $node = $startingNode;
-        }
-
+    public function walkFollowing(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        $node = ($includeReferenceNode) ? $this : $this->nextSibling;
         if ($node !== null) {
             do {
-                $next = (!$backwards) ? $node->nextSibling : $node->previousSibling;
-                if ($filter === null || $filter($node) === true) {
+                $next = $node->nextSibling;
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
+                    yield $node;
+                }
+            } while ($node = $next);
+        }
+    }
+
+    /**
+     * Generator which walks backwards through an element's siblings. Nonstandard.
+     *
+     * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
+     *                            just yield every node.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
+     */
+    public function walkPreceding(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        $node = ($includeReferenceNode) ? $this : $this->previousSibling;
+        if ($node !== null) {
+            do {
+                $next = $node->previousSibling;
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
                     yield $node;
                 }
             } while ($node = $next);

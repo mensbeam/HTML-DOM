@@ -108,9 +108,9 @@ trait BaseNode {
         }
 
         # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
-        if ($node2->parentNode->walkShallow(function($n) use($node1) {
+        if ($node2->walkPreceding(function($n) use($node1) {
             return ($n->isSameNode($node1));
-        }, $node2, true)) {
+        })->current() !== null) {
             return Node::DOCUMENT_POSITION_PRECEDING;
         }
 
@@ -137,9 +137,7 @@ trait BaseNode {
         }
 
         return $this->moonwalk(function($n) {
-            if ($n->parentNode === null) {
-                return true;
-            }
+            return ($n->parentNode === null);
         })->current();
     }
 

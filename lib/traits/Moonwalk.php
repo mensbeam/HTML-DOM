@@ -16,18 +16,28 @@ trait Moonwalk {
      *
      * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
      *                            just yield every node.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
      */
-    public function moonwalk(?\Closure $filter = null): \Generator {
+    public function moonwalk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
         $node = $this->parentNode;
         if ($node !== null) {
             do {
                 $next = $node->parentNode;
-                if ($filter === null || $filter($node) === true) {
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
                     yield $node;
                 }
 
-                // If node hasn't been removed and is an instance of DocumentFragment then set
-                // the node to its host if it isn't null.
                 if ($node instanceof DocumentFragment) {
                     $host = $node->host;
                     if ($host !== null) {

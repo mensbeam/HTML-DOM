@@ -555,13 +555,9 @@ class Document extends \DOMDocument {
 
     protected function blockElementFilterFactory(\DOMNode $ignoredNode): \Closure {
         return function($n) use ($ignoredNode) {
-            if (!$n->isSameNode($ignoredNode) && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
-                if ($nn instanceof Element && $this->isHTMLNamespace($nn) && in_array($nn->nodeName, self::BLOCK_ELEMENTS)) {
-                    return true;
-                }
-            })->current() !== null)) {
-                return true;
-            }
+            return (!$n->isSameNode($ignoredNode) && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
+                return ($nn instanceof Element && $this->isHTMLNamespace($nn) && in_array($nn->nodeName, self::BLOCK_ELEMENTS));
+            })->current() !== null));
         };
     }
 
@@ -634,13 +630,13 @@ class Document extends \DOMDocument {
 
                         // If a block element, an inline element with block element siblings, or an
                         // inline element with block element descendants...
-                        if (in_array($tagName, self::BLOCK_ELEMENTS) || $currentNode->parentNode->walkShallow($blockElementFilter)->current() !== null || ($hasChildNodes && $currentNode->walk($blockElementFilter)->current() !== null)) {
+                        if (in_array($tagName, self::BLOCK_ELEMENTS) || $currentNode->parentNode->firstChild->walkFollowing($blockElementFilter, true)->current() !== null || ($hasChildNodes && $currentNode->walk($blockElementFilter)->current() !== null)) {
                             $modify = true;
                         }
                     } else {
                         // If a foreign element with block element siblings
                         if ($foreignElement === null) {
-                            if ($currentNode->parentNode->walkShallow($blockElementFilter)->current() !== null) {
+                            if ($currentNode->parentNode->firstChild->walkFollowing($blockElementFilter, true)->current() !== null) {
                                 $foreignElementWithBlockElementSiblings = true;
                                 $modify = true;
                             }
@@ -966,9 +962,7 @@ class Document extends \DOMDocument {
         // they would also need to be unpacked because the NodeList is live and would
         // create an infinite loop if not unpacked to an array.
         $templates = [ ...$node->walk(function($n) {
-            if ($n instanceof Element && !$n instanceof HTMLTemplateElement && $this->isHTMLNamespace($n) && strtolower($n->nodeName) === 'template') {
-                return true;
-            }
+            return ($n instanceof Element && !$n instanceof HTMLTemplateElement && $this->isHTMLNamespace($n) && strtolower($n->nodeName) === 'template');
         }) ];
 
         for ($templatesLength = count($templates), $i = $templatesLength - 1; $i >= 0; $i--) {

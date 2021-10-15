@@ -10,6 +10,7 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
+    Element,
     Exception
 };
 
@@ -107,5 +108,132 @@ class TestChildNode extends \PHPUnit\Framework\TestCase {
         $this->expectException(Exception::class);
         $this->expectExceptionCode(Exception::ARGUMENT_TYPE_ERROR);
         $closure();
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\ChildNode::moonwalk */
+    public function testMoonwalk(): void {
+        // Test removal of elements when moonwalking
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $div = $d->body->appendChild($d->createElement('div'));
+        $div = $div->appendChild($d->createElement('div'));
+        $div = $div->appendChild($d->createElement('div'));
+        $div->setAttribute('class', 'delete-me');
+        $div = $div->appendChild($d->createElement('div'));
+        $t = $div->appendChild($d->createTextNode('ook'));
+
+        $divs = $t->moonwalk(function($n) {
+            return ($n instanceof Element && $n->nodeName === 'div');
+        });
+
+        foreach ($divs as $div) {
+            if ($div->getAttribute('class') === 'delete-me') {
+                $div->parentNode->removeChild($div);
+            }
+        }
+
+        $this->assertSame('<body><div><div></div></div></body>', (string)$d->body);
+
+        // Test moonwalking through template barriers
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $t = $d->body->appendChild($d->createElement('template'));
+
+        $w = $t->content->appendChild($d->createTextNode('ook'))->moonwalk();
+        $this->assertTrue($t->content->isSameNode($w->current()));
+        $w->next();
+        $this->assertTrue($t->isSameNode($w->current()));
+    }
+
+    public function provideMoonwalkFailures(): iterable {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2>Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
+        $main = $d->body->getElementsByTagName('main')->item(0);
+
+        return [
+            [ function() use ($main) {
+                $main->moonwalk(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($main) {
+                $main->moonwalk(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideMoonwalkFailures
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\ChildNode::moonwalk
+     */
+    public function testMoonwalkFailures(\Closure $closure): void {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::CLOSURE_RETURN_TYPE_ERROR);
+        $closure();
+    }
+
+
+    public function provideWalkFailures(): iterable {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2>Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
+
+        return [
+            [ function() use ($d) {
+                $d->body->firstChild->walkFollowing(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->firstChild->walkFollowing(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->lastChild->walkPreceding(function($n) {
+                    return 'ook';
+                })->current();
+            } ],
+            [ function() use ($d) {
+                $d->body->lastChild->walkPreceding(function($n) {
+                    return new \DateTime();
+                })->current();
+            } ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideWalkFailures
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\ChildNode::walkFollowing
+     * @covers \MensBeam\HTML\DOM\ChildNode::walkPreceding
+     */
+    public function testWalkFailures(\Closure $closure): void {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::CLOSURE_RETURN_TYPE_ERROR);
+        $closure();
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\ParentNode::walk */
+    public function testWalkPreceding(): void {
+        // Test removal of elements when walking
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2>Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
+
+        $this->assertNotNull($d->body->lastChild->walkPreceding(function($n) {
+            return ($n instanceof Element && $n->nodeName === 'main');
+        }, true)->current());
     }
 }

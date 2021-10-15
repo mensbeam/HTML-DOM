@@ -12,7 +12,7 @@ use MensBeam\HTML\Parser;
 
 
 class Element extends \DOMElement {
-    use ChildNode, DocumentOrElement, MagicProperties, Moonwalk, ParentNode, ToString, Walk;
+    use ChildNode, DocumentOrElement, MagicProperties, ParentNode, ToString;
 
     // Should be in Node, but traits cannot have contants
     public const DOCUMENT_POSITION_DISCONNECTED = 0x01;

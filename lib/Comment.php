@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 class Comment extends \DOMComment {
-    use ChildNode, LeafNode, Moonwalk, ToString;
+    use ChildNode, LeafNode, ToString;
 
     // Should be in Node, but traits cannot have contants
     public const DOCUMENT_POSITION_DISCONNECTED = 0x01;

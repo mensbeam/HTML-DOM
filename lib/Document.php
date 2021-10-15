@@ -16,7 +16,7 @@ use MensBeam\HTML\Parser\{
 
 
 class Document extends \DOMDocument {
-    use DocumentOrElement, MagicProperties, ParentNode, Walk;
+    use DocumentOrElement, MagicProperties, ParentNode;
 
     // Should be in Node, but traits cannot have contants
     public const DOCUMENT_POSITION_DISCONNECTED = 0x01;

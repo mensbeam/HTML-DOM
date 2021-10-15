@@ -86,7 +86,7 @@ trait BaseNode {
         }
 
         if ($node1 === null || $node2 === null || !$node1->getRootNode()->isSameNode($node2->getRootNode())) {
-            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + (($rand === 0) ? DOCUMENT_POSITION_PRECEDING : DOCUMENT_POSITION_FOLLOWING);
+            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
         }
 
         # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2

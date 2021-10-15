@@ -24,10 +24,8 @@
       <file>cases/TestElement.php</file>
       <file>cases/TestElementMap.php</file>
       <file>cases/TestLeafNode.php</file>
-      <file>cases/TestMoonwalk.php</file>
       <file>cases/TestParentNode.php</file>
       <file>cases/TestTokenList.php</file>
-      <file>cases/TestWalk.php</file>
     </testsuite>
     <testsuite name="Serializer">
       <file>cases/Serializer/TestSerializer.php</file>

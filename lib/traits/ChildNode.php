@@ -113,6 +113,44 @@ trait ChildNode {
         $parent->insertBefore($node, $viablePreviousSibling);
     }
 
+    /**
+     * Generator which walks backwards through the DOM from the node the method is
+     * being run on. Nonstandard.
+     *
+     * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
+     *                            just yield every node.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
+     */
+    public function moonwalk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        $node = $this->parentNode;
+        if ($node !== null) {
+            do {
+                $next = $node->parentNode;
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
+                    yield $node;
+                }
+
+                if ($node instanceof DocumentFragment) {
+                    $host = $node->host;
+                    if ($host !== null) {
+                        $next = $host;
+                    }
+                }
+            } while ($node = $next);
+        }
+    }
+
     public function replaceWith(...$nodes): void {
         // Before exists in PHP DOM, but it can insert incorrect nodes because of PHP
         // DOM's incorrect (for HTML) pre-insertion validation.
@@ -166,6 +204,66 @@ trait ChildNode {
         # 6. Otherwise, pre-insert node into parent before viableNextSibling.
         else {
             $parent->insertBefore($node, $viableNextSibling);
+        }
+    }
+
+    /**
+     * Generator which walks forwards through an element's siblings. Nonstandard.
+     *
+     * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
+     *                            just yield every node.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
+     */
+    public function walkFollowing(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        $node = ($includeReferenceNode) ? $this : $this->nextSibling;
+        if ($node !== null) {
+            do {
+                $next = $node->nextSibling;
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
+                    yield $node;
+                }
+            } while ($node = $next);
+        }
+    }
+
+    /**
+     * Generator which walks backwards through an element's siblings. Nonstandard.
+     *
+     * @param ?\Closure $filter - An optional callback function used to filter; if not provided the generator will
+     *                            just yield every node.
+     * @param bool $includeReferenceNode - An optional boolean flag which if true includes the reference node ($this) in
+     *                                     the iteration.
+     */
+    public function walkPreceding(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        $node = ($includeReferenceNode) ? $this : $this->previousSibling;
+        if ($node !== null) {
+            do {
+                $next = $node->previousSibling;
+                $result = ($filter === null) ? true : $filter($node);
+                // Have to do type checking here because PHP is lacking in advanced typing
+                if ($result !== true && $result !== false && $result !== null) {
+                    $type = gettype($result);
+                    if ($type === 'object') {
+                        $type = get_class($result);
+                    }
+                    throw new Exception(Exception::CLOSURE_RETURN_TYPE_ERROR, '?bool', $type);
+                }
+
+                if ($result === true) {
+                    yield $node;
+                }
+            } while ($node = $next);
         }
     }
 }

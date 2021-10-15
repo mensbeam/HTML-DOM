@@ -11,7 +11,7 @@ use MensBeam\Framework\MagicProperties;
 
 
 class DocumentFragment extends \DOMDocumentFragment {
-    use MagicProperties, ParentNode, Walk;
+    use MagicProperties, ParentNode;
 
     // Should be in Node, but traits cannot have contants
     public const DOCUMENT_POSITION_DISCONNECTED = 0x01;

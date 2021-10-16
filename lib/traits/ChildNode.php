@@ -43,7 +43,7 @@ trait ChildNode {
         $viableNextSibling = null;
         while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString->isSameNode($n)) {
+                if ($nodeOrString instanceof \DOMNode && $nodeOrString === $n) {
                     continue 2;
                 }
             }
@@ -92,7 +92,7 @@ trait ChildNode {
         $viablePreviousSibling = null;
         while ($n = $n->previousSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString->isSameNode($n)) {
+                if ($nodeOrString instanceof \DOMNode && $nodeOrString === $n) {
                     continue 2;
                 }
             }
@@ -183,7 +183,7 @@ trait ChildNode {
         $viableNextSibling = null;
         while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString->isSameNode($n)) {
+                if ($nodeOrString instanceof \DOMNode && $nodeOrString === $n) {
                     continue 2;
                 }
             }

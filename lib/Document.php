@@ -85,7 +85,7 @@ class Document extends \DOMDocument implements Node {
 
         if ($this->_body !== null) {
             # 2. Otherwise, if the new value is the same as the body element, return.
-            if ($value->isSameNode($this->_body)) {
+            if ($value === $this->_body) {
                 return;
             }
 
@@ -489,7 +489,7 @@ class Document extends \DOMDocument implements Node {
         }
 
         if ($node !== $this) {
-            if (!$node->ownerDocument->isSameNode($this)) {
+            if ($node->ownerDocument !== $this) {
                 throw new DOMException(DOMException::WRONG_DOCUMENT);
             }
 
@@ -553,7 +553,7 @@ class Document extends \DOMDocument implements Node {
 
     protected function blockElementFilterFactory(\DOMNode $ignoredNode): \Closure {
         return function($n) use ($ignoredNode) {
-            return (!$n->isSameNode($ignoredNode) && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
+            return ($n !== $ignoredNode && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
                 return ($nn instanceof Element && $this->isHTMLNamespace($nn) && in_array($nn->nodeName, self::BLOCK_ELEMENTS));
             })->current() !== null));
         };
@@ -746,7 +746,7 @@ class Document extends \DOMDocument implements Node {
                     // the element is foreign and doesn't contain any children close the element
                     // instead and continue on to the next child node.
                     $hasChildNodes = $currentNode->hasChildNodes();
-                    if (!$foreign || $hasChildNodes || ($foreign && !$hasChildNodes && ($foreignElement === null || $foreignElement->isSameNode($currentNode)))) {
+                    if (!$foreign || $hasChildNodes || ($foreign && !$hasChildNodes && ($foreignElement === null || $foreignElement === $currentNode))) {
                         $s .= '>';
                     } elseif (!$hasChildNodes) {
                         $s .= '/>';
@@ -796,10 +796,10 @@ class Document extends \DOMDocument implements Node {
                         }
                     }
 
-                    if ($foreignElement !== null && $currentNode->isSameNode($foreignElement)) {
+                    if ($foreignElement !== null && $currentNode === $foreignElement) {
                         $foreignElement = null;
                         $foreignElementWithBlockElementSiblings = false;
-                    } elseif ($preformattedElement !== null && $currentNode->isSameNode($preformattedElement)) {
+                    } elseif ($preformattedElement !== null && $currentNode === $preformattedElement) {
                         $preformattedElement = null;
                     }
 

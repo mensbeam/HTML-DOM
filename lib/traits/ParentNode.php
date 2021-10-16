@@ -168,16 +168,16 @@ trait ParentNode {
         # A is an inclusive ancestor of B, or if B’s root has a non-null host and A is a
         # host-including inclusive ancestor of B’s root’s host.
         if ($node->parentNode !== null) {
-            if ($this->parentNode !== null && ($this->isSameNode($node) || $this->moonwalk(function($n) use($node) {
-                return ($n->isSameNode($node));
+            if ($this->parentNode !== null && ($this === $node || $this->moonwalk(function($n) use($node) {
+                return ($n === $node);
             })->current() !== null)) {
                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
             } else {
                 $parentRoot = $this->getRootNode();
                 if ($parentRoot instanceof DocumentFragment) {
                     $parentRootHost = $parentRoot->host;
-                    if ($parentRootHost !== null && ($parentRootHost->isSameNode($node) || $parentRootHost->moonwalk(function($n) use ($node) {
-                        return ($n->isSameNode($node));
+                    if ($parentRootHost !== null && ($parentRootHost === $node || $parentRootHost->moonwalk(function($n) use ($node) {
+                        return ($n === $node);
                     })->current() !== null)) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
@@ -187,7 +187,7 @@ trait ParentNode {
 
         # 3. If child is non-null and its parent is not parent, then throw a
         #    "NotFoundError" DOMException.
-        if ($child !== null && ($child->parentNode === null || !$child->parentNode->isSameNode($this))) {
+        if ($child !== null && ($child->parentNode === null || $child->parentNode !== $this)) {
             throw new DOMException(DOMException::NOT_FOUND);
         }
 

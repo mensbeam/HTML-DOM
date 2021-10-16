@@ -27,7 +27,7 @@ trait NodeTrait {
         # The compareDocumentPosition(other) method steps are:
         #
         # 1. If this is other, then return zero.
-        if ($this->isSameNode($other)) {
+        if ($this === $other) {
             return 0;
         }
 
@@ -56,12 +56,12 @@ trait NodeTrait {
                 # 1. For each attr in node2’s attribute list:
                 foreach ($node2->attributes as $attr) {
                     # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
-                    if ($attr->isSameNode($attr1)) {
+                    if ($attr === $attr1) {
                         return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
                     }
 
                     # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
-                    if ($attr->isSameNode($attr2)) {
+                    if ($attr === $attr2) {
                         return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_FOLLOWING;
                     }
                 }
@@ -81,15 +81,15 @@ trait NodeTrait {
             self::$rand = rand(0, 1);
         }
 
-        if ($node1 === null || $node2 === null || !$node1->getRootNode()->isSameNode($node2->getRootNode())) {
+        if ($node1 === null || $node2 === null || $node1->getRootNode() !== $node2->getRootNode()) {
             return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
         }
 
         # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINS to
         #    DOCUMENT_POSITION_PRECEDING.
-        if (($node1->isSameNode($node2) && $attr2 !== null) || ($attr1 === null && $node2->moonwalk(function($n) use($node1) {
-            return ($n->isSameNode($node1));
+        if (($node1 === $node2 && $attr2 !== null) || ($attr1 === null && $node2->moonwalk(function($n) use($node1) {
+            return ($n === $node1);
         })->current() !== null)) {
             return Node::DOCUMENT_POSITION_CONTAINS + Node::DOCUMENT_POSITION_PRECEDING;
         }
@@ -98,14 +98,14 @@ trait NodeTrait {
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINED_BY to
         #    DOCUMENT_POSITION_FOLLOWING.
         if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $node2->walk(function($n) use($node1) {
-            return ($n->isSameNode($node1));
+            return ($n === $node1);
         })->current() !== null)) {
             return Node::DOCUMENT_POSITION_CONTAINED_BY + Node::DOCUMENT_POSITION_FOLLOWING;
         }
 
         # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
         if ($node2->walkPreceding(function($n) use($node1) {
-            return ($n->isSameNode($node1));
+            return ($n === $node1);
         })->current() !== null) {
             return Node::DOCUMENT_POSITION_PRECEDING;
         }

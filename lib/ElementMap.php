@@ -32,7 +32,7 @@ class ElementMap {
         }
 
         foreach (self::$elements[$index] as $v) {
-            if ($v->isSameNode($element)) {
+            if ($v === $element) {
                 return false;
             }
         }
@@ -46,7 +46,7 @@ class ElementMap {
         $index = self::index($document);
         if ($index !== -1) {
             foreach (self::$elements[$index] as $k => $v) {
-                if ($v->isSameNode($element)) {
+                if ($v === $element) {
                     unset(self::$elements[$index][$k]);
                     self::$elements[$index] = array_values(self::$elements[$index]);
                     return true;
@@ -75,7 +75,7 @@ class ElementMap {
         $index = self::index($document);
         if ($index !== -1) {
             foreach (self::$elements[$index] as $v) {
-                if ($v->isSameNode($element)) {
+                if ($v === $element) {
                     return true;
                 }
             }
@@ -86,7 +86,7 @@ class ElementMap {
 
     protected static function index(Document $document): int {
         foreach (self::$documents as $k => $d) {
-            if ($d->isSameNode($document)) {
+            if ($d === $document) {
                 return $k;
             }
         }

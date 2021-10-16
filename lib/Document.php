@@ -238,11 +238,6 @@ class Document extends \DOMDocument {
                     $qualifiedName = $this->coerceName($qualifiedName);
                 }
 
-                // DEVIATION: When creating XMLNS attribute nodes on a document that does not
-                // yet contain a document element PHP's DOM will return false here. There is no
-                // way to avoid this other than allowing this method to return Attr|false. Since
-                // this library supports PHP 7.4 we cannot denote this in the method's
-                // signature.
                 $attr = $document->createAttributeNS($namespace, $qualifiedName);
             }
 
@@ -387,8 +382,19 @@ class Document extends \DOMDocument {
 
         $node = parent::importNode($node, $deep);
 
-        if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
-            if ($node instanceof \DOMElement && !$node instanceof HTMLTemplateElement && $this->isHTMLNamespace($node) && strtolower($node->nodeName) === 'template') {
+        if ($node instanceof Element || $node instanceof DocumentFragment) {
+            // Yet another PHP DOM hang-up that is either a bug or a feature. When
+            // elements are imported their id attributes aren't able to be picked up by
+            // Element::getElementById, so let's fix that.
+            $elementsWithIds = $node->walk(function($n) {
+                return ($n instanceof Element && $n->hasAttribute('id'));
+            }, true);
+
+            foreach ($elementsWithIds as $e) {
+                $e->setIdAttributeNode($e->getAttributeNode('id'), true);
+            }
+
+            if ($node instanceof Element && !$node instanceof HTMLTemplateElement && $this->isHTMLNamespace($node) && strtolower($node->nodeName) === 'template') {
                 $node = $this->convertTemplate($node);
             } else {
                 $this->replaceTemplates($node);

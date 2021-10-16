@@ -22,10 +22,12 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
-        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2 id="eek">Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
+        $d->body->innerHTML = '<header><h1>Ook</h1></header><main><h2 id="eek" class="ack">Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer>';
         $m = $d->getElementsByTagName('main')->item(0);
         $f = $d->getElementsByTagName('footer')->item(0);
-        $h2Id = $d->getElementById('eek')->getAttributeNode('id');
+        $e = $d->getElementById('eek');
+        $h2Id = $e->getAttributeNode('id');
+        $h2Class = $e->getAttributeNode('class');
         $aHref = $d->getElementsByTagName('a')->item(0)->getAttributeNode('href');
 
         $compareMainToBody = $m->compareDocumentPosition($d->body);
@@ -36,6 +38,12 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(2, $compareFooterToMain);
         $compareMainToFooter = $m->compareDocumentPosition($f);
         $this->assertEquals(4, $compareMainToFooter);
+        $compareH2IdToAHref = $h2Id->compareDocumentPosition($aHref);
+        $this->assertEquals(4, $compareH2IdToAHref);
+        $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
+        $this->assertEquals(36, $compareH2IdToH2Class);
+        $compareH2ClassToH2Id = $h2Class->compareDocumentPosition($h2Id);
+        $this->assertEquals(34, $compareH2ClassToH2Id);
         $this->assertEquals(0, $m->compareDocumentPosition($m));
 
         $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_CONTAINS);
@@ -48,6 +56,10 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
 
         $this->assertGreaterThan(0, $compareFooterToMain & Document::DOCUMENT_POSITION_PRECEDING);
         $this->assertGreaterThan(0, $compareMainToFooter & Document::DOCUMENT_POSITION_FOLLOWING);
+
+        $this->assertGreaterThan(0, $compareH2IdToAHref & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertGreaterThan(0, $compareH2IdToH2Class & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertGreaterThan(0, $compareH2ClassToH2Id & Document::DOCUMENT_POSITION_PRECEDING);
 
         $m->parentNode->removeChild($m);
         $compareDetachedMainToFooter = $m->compareDocumentPosition($f);

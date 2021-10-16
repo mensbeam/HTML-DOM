@@ -118,7 +118,8 @@ trait ParentNode {
      *                                     the iteration.
      */
     public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = ($includeReferenceNode) ? $this : $this->firstChild;
+        $node = ($includeReferenceNode && !$this instanceof DocumentFragment) ? $this : $this->firstChild;
+
         if ($node !== null) {
             do {
                 $next = $node->nextSibling;

@@ -101,6 +101,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
      * @covers \MensBeam\HTML\DOM\Element::__set_innerHTML
+     * @covers \MensBeam\HTML\DOM\Document::importNode
      */
     public function testPropertyGetSetInnerHTML(): void {
         $d = new Document();
@@ -110,8 +111,8 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $s->appendChild($d->createTextNode('ook'));
         $this->assertSame('<span>ook</span>', $d->body->innerHTML);
 
-        $d->body->innerHTML = '<div>eek</div>';
-        $this->assertSame('<div>eek</div>', $d->body->innerHTML);
+        $d->body->innerHTML = '<div id ="ook">eek</div>';
+        $this->assertSame('<div id="ook">eek</div>', $d->body->innerHTML);
 
         $t = $d->body->appendChild($d->createElement('template'));
         $t->innerHTML = 'ook';

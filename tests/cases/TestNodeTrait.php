@@ -15,8 +15,8 @@ use MensBeam\HTML\DOM\{
 };
 
 
-/** @covers \MensBeam\HTML\DOM\Node */
-class TestBaseNode extends \PHPUnit\Framework\TestCase {
+/** @covers \MensBeam\HTML\DOM\NodeTrait */
+class TestNodeTrait extends \PHPUnit\Framework\TestCase {
     /** @covers \MensBeam\HTML\DOM\NodeTrait::compareDocumentPosition */
     public function testCompareDocumentPosition(): void {
         $d = new Document();
@@ -98,5 +98,54 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
         $t = $d->createElement('template');
         $div = $t->content->appendChild($d->createElement('div'));
         $this->assertTrue($t->content->isSameNode($div->getRootNode()));
+    }
+
+    /** @covers \MensBeam\HTML\DOM\NodeTrait::isEqualNode */
+    public function testIsEqualNode(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->innerHTML = '<main><h1>Ook</h1><p>Eek</p></main><footer></footer>';
+
+        $d2 = new Document();
+        $d2->appendChild($d2->createElement('html'));
+        $d2->documentElement->appendChild($d2->createElement('body'));
+        $d2->body->innerHTML = '<main><h1>Ook</h1><p>Eek</p></main><footer></footer>';
+
+        $this->assertTrue($d->isEqualNode($d2));
+
+        $d = new Document();
+        $de = $d->createElement('html');
+        $this->assertFalse($d->isEqualNode($de));
+
+        $d = new Document();
+        $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+
+        $d2 = new Document();
+        $d2->appendChild($d2->implementation->createDocumentType('ook', 'eek', 'ack'));
+        $this->assertFalse($d->isEqualNode($d2));
+
+        $d = new Document('<!DOCTYPE html><html lang="en"><head><title>Ook!</title></head><body><head><h1>Eek</h1></head><footer></footer></body></html>');
+        $d2 = new Document('<!DOCTYPE html><html lang="en"><head><title>Eek!</title></head><body><head><h1>Eek</h1></head><footer></footer></body></html>');
+        $this->assertFalse($d->isEqualNode($d2));
+
+        $d = new Document();
+        $f = $d->createDocumentFragment();
+        $f->appendChild($d->createElement('span'));
+        $f->appendChild($d->createTextNode('Ook'));
+
+        $f2 = $d->createDocumentFragment();
+        $f2->appendChild($d->createElement('span'));
+        $this->assertFalse($f->isEqualNode($f2));
+
+        $s = $d->createElement('span');
+        $s->setAttribute('id', 'ook');
+        $s2 = $d->createElement('span');
+        $s2->setAttribute('class', 'ook');
+        $this->assertFalse($s->isEqualNode($s2));
+
+        $s = $d->createElement('span');
+        $br = $d->createElement('br');
+        $this->assertFalse($s->isEqualNode($br));
     }
 }

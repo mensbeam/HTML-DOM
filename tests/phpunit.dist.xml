@@ -16,7 +16,6 @@
   </coverage>
   <testsuites>
     <testsuite name="DOM">
-      <file>cases/TestBaseNode.php</file>
       <file>cases/TestChildNode.php</file>
       <file>cases/TestDocument.php</file>
       <file>cases/TestDocumentFragment.php</file>
@@ -24,6 +23,7 @@
       <file>cases/TestElement.php</file>
       <file>cases/TestElementMap.php</file>
       <file>cases/TestLeafNode.php</file>
+      <file>cases/TestNodeTrait.php</file>
       <file>cases/TestParentNode.php</file>
       <file>cases/TestTokenList.php</file>
     </testsuite>

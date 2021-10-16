@@ -114,6 +114,92 @@ trait NodeTrait {
         return Node::DOCUMENT_POSITION_FOLLOWING;
     }
 
+    public function isEqualNode(\DOMDocumentType|Node $otherNode): bool {
+        # The isEqualNode(otherNode) method steps are to return true if otherNode is
+        # non-null and this equals otherNode; otherwise false.
+
+        # A node A equals a node B if all of the following conditions are true:
+        #
+        # • A and B implement the same interfaces.
+        if ($this::class !== $otherNode::class) {
+            return false;
+        }
+
+        # • The following are equal, switching on the interface A implements:
+        $thisClass = substr($this::class, strrpos($this::class, '\\') + 1);
+        switch ($thisClass) {
+            # - DocumentType
+            #     Its name, public ID, and system ID.
+            // DEVIATION: $this can never be a \DOMDocumentType seeing as we we cannot extend
+            // \DOMDocumentType, so there is no need to check for it.
+
+            # - Element
+            #   Its namespace, namespace prefix, local name, and its attribute list’s size.
+            // PCOV is stupid
+            // @codeCoverageIgnoreStart
+            case 'Element':
+            // @codeCoverageIgnoreEnd
+                if ($this->namespaceURI !== $otherNode->namespaceURI || $this->prefix !== $otherNode->prefix || $this->localName !== $otherNode->localName || $this->attributes->length !== $otherNode->attributes->length) {
+                    return false;
+                }
+
+                # • If A is an element, each attribute in its attribute list has an attribute that
+                #   equals an attribute in B’s attribute list.
+                foreach ($this->attributes as $key => $attr) {
+                    if (!$attr->isEqualNode($otherNode->attributes[$key])) {
+                        return false;
+                    }
+                }
+            break;
+            # - Attr
+            #     Its namespace, local name, and value.
+            // PCOV is stupid
+            // @codeCoverageIgnoreStart
+            case 'Attr':
+            // @codeCoverageIgnoreEnd
+                if ($this->namespaceURI !== $otherNode->namespaceURI || $this->localName !== $otherNode->localName || $this->value !== $otherNode->value) {
+                    return false;
+                }
+            break;
+            # - Text
+            # - Comment
+            #   Its data.
+            // PCOV is stupid
+            // @codeCoverageIgnoreStart
+            case 'Text':
+            case 'Comment':
+            // @codeCoverageIgnoreEnd
+                if ($this->data !== $otherNode->data) {
+                    return false;
+                }
+            break;
+        }
+
+        if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
+            # • A and B have the same number of children.
+            if ($this->childNodes->length !== $otherNode->childNodes->length) {
+                return false;
+            }
+
+            # • Each child of A equals the child of B at the identical index.
+            foreach ($this->childNodes as $key => $child) {
+                // Have to work around the fact we cannot extend \DOMDocumentType
+                if (!$child instanceof \DOMDocumentType) {
+                    if (!$child->isEqualNode($otherNode->childNodes[$key])) {
+                        return false;
+                    }
+                } else {
+                    $other = $otherNode->childNodes[$key];
+                    if ($child->name !== $other->name || $child->publicId !== $other->publicId || $child->systemId !== $other->systemId) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
     // Disable getLineNo
     public function getLineNo(): int {
         throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is not in the standard, is buggy, and useless');

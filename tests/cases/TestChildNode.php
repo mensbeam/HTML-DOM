@@ -21,7 +21,7 @@ class TestChildNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\ChildNode::after
      * @covers \MensBeam\HTML\DOM\ChildNode::before
      * @covers \MensBeam\HTML\DOM\ChildNode::replaceWith
-     * @covers \MensBeam\HTML\DOM\BaseNode::convertNodesToNode
+     * @covers \MensBeam\HTML\DOM\NodeTrait::convertNodesToNode
      */
     public function testAfterBeforeReplaceWith(): void {
         $d = new Document();

@@ -44,7 +44,7 @@ Coming soon
   ```php
   use MensBeam\HTML\DOM;
 
-  $d = new Document(new DOMDocument());
+  $d = new Document(new \DOMDocument());
   ```
 
   or:
@@ -53,7 +53,7 @@ Coming soon
   use MensBeam\HTML\DOM;
 
   $d = new Document();
-  $d->loadDOM(new DOMDocument());
+  $d->loadDOM(new \DOMDocument());
   ```
 
 ## Limitations ##

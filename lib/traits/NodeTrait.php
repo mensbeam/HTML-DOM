@@ -9,11 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
-/**
- * Not in standard. Exists because extensions to PHP DOM cannot inherit from a
- * \DOMNode descendant, so a trait is the next best thing.
- */
-trait BaseNode {
+trait NodeTrait {
     private static ?int $rand = null;
 
 

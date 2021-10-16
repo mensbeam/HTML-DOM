@@ -8,14 +8,6 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-class Text extends \DOMText {
+class Text extends \DOMText implements CharacterData {
     use ChildNode, LeafNode, ToString;
-
-    // Should be in Node, but traits cannot have contants
-    public const DOCUMENT_POSITION_DISCONNECTED = 0x01;
-    public const DOCUMENT_POSITION_PRECEDING = 0x02;
-    public const DOCUMENT_POSITION_FOLLOWING = 0x04;
-    public const DOCUMENT_POSITION_CONTAINS = 0x08;
-    public const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-    public const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 }

@@ -17,7 +17,7 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\Node */
 class TestBaseNode extends \PHPUnit\Framework\TestCase {
-    /** @covers \MensBeam\HTML\DOM\BaseNode::compareDocumentPosition */
+    /** @covers \MensBeam\HTML\DOM\NodeTrait::compareDocumentPosition */
     public function testCompareDocumentPosition(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
@@ -80,9 +80,9 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @dataProvider provideDisabledMethods
-     * @covers \MensBeam\HTML\DOM\BaseNode::C14N
-     * @covers \MensBeam\HTML\DOM\BaseNode::C14NFile
-     * @covers \MensBeam\HTML\DOM\BaseNode::getLineNo
+     * @covers \MensBeam\HTML\DOM\NodeTrait::C14N
+     * @covers \MensBeam\HTML\DOM\NodeTrait::C14NFile
+     * @covers \MensBeam\HTML\DOM\NodeTrait::getLineNo
      */
     public function testDisabledMethods(string $methodName, ...$arguments): void {
         $this->expectException(DOMException::class);
@@ -92,7 +92,7 @@ class TestBaseNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\BaseNode::getRootNode */
+    /** @covers \MensBeam\HTML\DOM\NodeTrait::getRootNode */
     public function testGetRootNode(): void {
         $d = new Document();
         $t = $d->createElement('template');

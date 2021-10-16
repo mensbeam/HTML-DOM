@@ -15,15 +15,15 @@ trait ChildNode {
         // After exists in PHP DOM, but it can insert incorrect nodes because of PHP
         // DOM's incorrect (for HTML) pre-insertion validation.
         // PHP's declaration for \DOMCharacterData::after doesn't include the
-        // \DOMNode|string typing for the nodes that it should, so type checking will
+        // Node|string typing for the nodes that it should, so type checking will
         // need to be done manually.
         foreach ($nodes as $node) {
-            if (!$node instanceof \DOMNode && !is_string($node)) {
+            if (!$node instanceof Node && !is_string($node)) {
                 $type = gettype($node);
                 if ($type === 'object') {
                     $type = get_class($node);
                 }
-                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', $type);
+                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', 'Node|string', $type);
             }
         }
 
@@ -43,7 +43,7 @@ trait ChildNode {
         $viableNextSibling = null;
         while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString === $n) {
+                if ($nodeOrString instanceof Node && $nodeOrString === $n) {
                     continue 2;
                 }
             }
@@ -64,15 +64,15 @@ trait ChildNode {
         // Before exists in PHP DOM, but it can insert incorrect nodes because of PHP
         // DOM's incorrect (for HTML) pre-insertion validation.
         // PHP's declaration for \DOMCharacterData::before doesn't include the
-        // \DOMNode|string typing for the nodes that it should, so type checking will
+        // Node|string typing for the nodes that it should, so type checking will
         // need to be done manually.
         foreach ($nodes as $node) {
-            if (!$node instanceof \DOMNode && !is_string($node)) {
+            if (!$node instanceof Node && !is_string($node)) {
                 $type = gettype($node);
                 if ($type === 'object') {
                     $type = get_class($node);
                 }
-                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', $type);
+                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', 'Node|string', $type);
             }
         }
 
@@ -92,7 +92,7 @@ trait ChildNode {
         $viablePreviousSibling = null;
         while ($n = $n->previousSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString === $n) {
+                if ($nodeOrString instanceof Node && $nodeOrString === $n) {
                     continue 2;
                 }
             }
@@ -155,15 +155,15 @@ trait ChildNode {
         // Before exists in PHP DOM, but it can insert incorrect nodes because of PHP
         // DOM's incorrect (for HTML) pre-insertion validation.
         // PHP's declaration for \DOMCharacterData::replaceWith doesn't include the
-        // \DOMNode|string typing for the nodes that it should, so type checking will
+        // Node|string typing for the nodes that it should, so type checking will
         // need to be done manually.
         foreach ($nodes as $node) {
-            if (!$node instanceof \DOMNode && !is_string($node)) {
+            if (!$node instanceof Node && !is_string($node)) {
                 $type = gettype($node);
                 if ($type === 'object') {
                     $type = get_class($node);
                 }
-                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', '\DOMNode|string', $type);
+                throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'nodes', 'Node|string', $type);
             }
         }
 
@@ -183,7 +183,7 @@ trait ChildNode {
         $viableNextSibling = null;
         while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof \DOMNode && $nodeOrString === $n) {
+                if ($nodeOrString instanceof Node && $nodeOrString === $n) {
                     continue 2;
                 }
             }

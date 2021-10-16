@@ -62,7 +62,7 @@ trait DocumentOrElement {
         #
         # The comparisons for the classes must be done in an ASCII case-insensitive manner
         # if root’s node document’s mode is "quirks"; otherwise in an identical to manner.
-        // DEVIATION: Since we can't just create a \DOMNodeList we must instead query
+        // DEVIATION: Since we can't just create a NodeList we must instead query
         // the document with XPath with the root element to get a list.
 
         $query = '//*';
@@ -90,7 +90,7 @@ trait DocumentOrElement {
         return ($attribute) ? str_replace('"', '&quot;', $string) : str_replace(['<', '>'], ['&lt;', '&gt;'], $string);
     }
 
-    protected function isHTMLNamespace(?\DOMNode $node = null): bool {
+    protected function isHTMLNamespace(?Node $node = null): bool {
         $node = $node ?? $this;
         return ($node->namespaceURI === null || $node->namespaceURI === Parser::HTML_NAMESPACE);
     }

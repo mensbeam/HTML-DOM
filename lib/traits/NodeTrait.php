@@ -23,7 +23,7 @@ trait NodeTrait {
         throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is meant for XML and buggy; use Document::saveHTMLFile');
     }
 
-    public function compareDocumentPosition(\DOMNode $other): int {
+    public function compareDocumentPosition(Node $other): int {
         # The compareDocumentPosition(other) method steps are:
         #
         # 1. If this is other, then return zero.
@@ -119,7 +119,7 @@ trait NodeTrait {
         throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is not in the standard, is buggy, and useless');
     }
 
-    public function getRootNode(): ?\DOMNode {
+    public function getRootNode(): ?Node {
         # The getRootNode(options) method steps are to return this’s shadow-including
         # root if options["composed"] is true; otherwise this’s root.
         // DEVIATION: This implementation does not have scripting, so there's no Shadow
@@ -138,7 +138,7 @@ trait NodeTrait {
     }
 
 
-    private function convertNodesToNode(array $nodes): \DOMNode {
+    private function convertNodesToNode(array $nodes): Node {
         # To convert nodes into a node, given nodes and document, run these steps:
         # 1. Let node be null.
         # 2. Replace each string in nodes with a new Text node whose data is the string

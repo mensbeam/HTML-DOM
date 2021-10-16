@@ -38,7 +38,7 @@ class Document extends \DOMDocument implements Node {
     protected const VOID_ELEMENTS = [ 'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'embed', 'frame', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr' ];
 
 
-    protected function __get_body(): ?\DOMNode {
+    protected function __get_body(): ?Node {
         if ($this->documentElement === null || $this->documentElement->childNodes->length === 0) {
             return null;
         }
@@ -71,7 +71,7 @@ class Document extends \DOMDocument implements Node {
         return null;
     }
 
-    protected function __set_body(\DOMNode $value) {
+    protected function __set_body(Node $value) {
         # On setting, the following algorithm must be run:
         #
         # 1. If the new value is not a body or frameset element, then throw a
@@ -551,7 +551,7 @@ class Document extends \DOMDocument implements Node {
     }
 
 
-    protected function blockElementFilterFactory(\DOMNode $ignoredNode): \Closure {
+    protected function blockElementFilterFactory(Node $ignoredNode): \Closure {
         return function($n) use ($ignoredNode) {
             return ($n !== $ignoredNode && $n instanceof Element && $this->isHTMLNamespace($n) && (in_array($n->nodeName, self::BLOCK_ELEMENTS) || $n->walk(function($nn) {
                 return ($nn instanceof Element && $this->isHTMLNamespace($nn) && in_array($nn->nodeName, self::BLOCK_ELEMENTS));
@@ -562,7 +562,7 @@ class Document extends \DOMDocument implements Node {
     /**
      * Recursively serializes nodes
      *
-     * @param \DOMNode $node - The node to serialize
+     * @param Node $node - The node to serialize
      * @param bool $formatOutput - Flag for formatting output
      * @param bool $first - True if the first run
      * @param ?Element $foreignElement - Stores the root foreign element when parsing its descendants
@@ -572,7 +572,7 @@ class Document extends \DOMDocument implements Node {
      * @param ?string $previousNonTextNodeSiblingName - Stores the previous non text node name so it can be used to check for adding
      *                                                  additional space.
      */
-    protected function serializeNode(\DOMNode $node, bool $formatOutput = false, bool $first = true, ?Element $foreignElement = null, bool $foreignElementWithBlockElementSiblings = false, int $indent = 0, ?Element $preformattedElement = null, ?string $previousNonTextNodeSiblingName = null): string {
+    protected function serializeNode(Node $node, bool $formatOutput = false, bool $first = true, ?Element $foreignElement = null, bool $foreignElementWithBlockElementSiblings = false, int $indent = 0, ?Element $preformattedElement = null, ?string $previousNonTextNodeSiblingName = null): string {
         # 13.3. Serializing HTML fragments
         #
         # 1. If the node serializes as void, then return the empty string.
@@ -949,7 +949,7 @@ class Document extends \DOMDocument implements Node {
         return $element;
     }
 
-    private function replaceTemplates(\DOMNode $node): void {
+    private function replaceTemplates(Node $node): void {
         if ($node instanceof HTMLTemplateElement) {
             $node = $node->content;
         }

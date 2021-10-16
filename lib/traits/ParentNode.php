@@ -17,9 +17,9 @@ trait ParentNode {
     protected function __get_children(): \DOMNodeList {
         # The children getter steps are to return an HTMLCollection collection rooted at
         # this matching only element children.
-        // DEVIATION: HTMLCollection doesn't exist in PHP's DOM, and \DOMNodeList is
+        // DEVIATION: HTMLCollection doesn't exist in PHP's DOM, and NodeList is
         // almost identical; so, using that. PHP's DOM doesn't provide the end user any
-        // way to create a \DOMNodeList from scratch, so going to cheat and use XPath to
+        // way to create a NodeList from scratch, so going to cheat and use XPath to
         // make one for us.
         $document = ($this instanceof Document) ? $this : $this->ownerDocument;
         return $document->xpath->query('child::*', $this);
@@ -67,7 +67,7 @@ trait ParentNode {
         return $node;
     }
 
-    public function replaceChildren(\DOMNode|string ...$nodes) {
+    public function replaceChildren(Node|string ...$nodes) {
         # The replaceChildren(nodes) method steps are:
         # 1. Let node be the result of converting nodes into a node given nodes and
         #    this’s node document.
@@ -153,7 +153,7 @@ trait ParentNode {
     }
 
 
-    protected function preInsertionValidity(\DOMNode $node, ?\DOMNode $child = null) {
+    protected function preInsertionValidity(\DOMDocumentType|Node $node, \DOMDocumentType|Node $child = null) {
         // "parent" in the spec comments below is $this
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw

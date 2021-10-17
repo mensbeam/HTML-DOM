@@ -264,7 +264,7 @@ class Document extends \DOMDocument implements Node {
     }
 
     public function createCDATASection(string $data) {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; CDATA sections do not exist in HTML DOM');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML; CDATA sections do not exist in HTML DOM');
     }
 
     public function createElement(string $name, ?string $value = null): Element {
@@ -363,7 +363,7 @@ class Document extends \DOMDocument implements Node {
     }
 
     public function createEntityReference(string $name) {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; entity references do not exist in HTML DOM');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML; entity references do not exist in HTML DOM');
     }
 
     public function importNode(\DOMNode $node, bool $deep = false) {
@@ -456,19 +456,19 @@ class Document extends \DOMDocument implements Node {
     }
 
     public function loadXML($source, $options = null): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is only meant for HTML; use \\DOMDocument::loadXML instead');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, 'It is only meant for HTML; use \\DOMDocument::loadXML instead');
     }
 
     public function registerNodeClass(string $baseClass, ?string $extendedClass): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is non-standard and serves no additional purpose for this class');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, 'It is only meant for HTML; use \\DOMDocument::loadXML instead');
     }
 
     public function relaxNGValidate(string $filename): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML');
     }
 
     public function relaxNGValidateSource(string $filename): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML');
     }
 
     public function save(string $filename, $options = null) {
@@ -531,23 +531,23 @@ class Document extends \DOMDocument implements Node {
     }
 
     public function saveXML(?\DOMNode $node = null, $options = null): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::saveXML instead');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML; use \\DOMDocument::saveXML instead');
     }
 
     public function schemaValidate(string $filename, int $flags = 0): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML');
     }
 
     public function schemaValidateSource(string $filename, int $flags = 0): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML');
     }
 
     public function validate(): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML');
     }
 
     public function xinclude($options = null): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __CLASS__ . ' is only meant for HTML');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, __CLASS__ . ' is only meant for HTML');
     }
 
 

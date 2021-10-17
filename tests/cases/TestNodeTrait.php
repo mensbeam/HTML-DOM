@@ -70,6 +70,22 @@ class TestNodeTrait extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /** @covers \MensBeam\HTML\DOM\NodeTrait::contains */
+    public function testContains(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $o = $d->body->appendChild($d->createTextNode('Ook!'));
+        $d2 = new Document();
+        $d2->appendChild($d2->createElement('html'));
+
+        $this->assertTrue($d->documentElement->contains($d->body));
+        $this->assertTrue($d->contains($o));
+        $this->assertFalse($o->contains($d));
+        $this->assertFalse($d->contains($d2->documentElement));
+    }
+
+
     public function provideDisabledMethods(): iterable {
         return [
             [ 'C14N' ],
@@ -85,8 +101,8 @@ class TestNodeTrait extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\NodeTrait::getLineNo
      */
     public function testDisabledMethods(string $methodName, ...$arguments): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::DISABLED_METHOD);
         $d = new Document();
         $d->$methodName(...$arguments);
     }

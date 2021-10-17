@@ -121,8 +121,8 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMException::__construct
      */
     public function testDisabledMethods(string $methodName, ...$arguments): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(Exception::DISABLED_METHOD);
         $d = new Document();
         $d->$methodName(...$arguments);
     }

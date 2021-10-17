@@ -15,12 +15,12 @@ trait NodeTrait {
 
     // Disable C14N
     public function C14N($exclusive = null, $with_comments = null, ?array $xpath = null, ?array $ns_prefixes = null): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is meant for XML and buggy; use Document::saveHTML or cast to a string');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, 'It is meant for XML and buggy; use Document::saveHTML or cast to a string');
     }
 
     // Disable C14NFile
     public function C14NFile($uri, $exclusive = null, $with_comments = null, ?array $xpath = null, ?array $ns_prefixes = null): bool {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is meant for XML and buggy; use Document::saveHTMLFile');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, 'It is meant for XML and buggy; use Document::saveHTML or cast to a string');
     }
 
     public function compareDocumentPosition(Node $other): int {
@@ -114,6 +114,25 @@ trait NodeTrait {
         return Node::DOCUMENT_POSITION_FOLLOWING;
     }
 
+    public function contains(\DOMDocumentType|Node|null $other): bool {
+        # The contains(other) method steps are to return true if other is an inclusive
+        # descendant of this; otherwise false (including when other is null).
+        // The spec is remarkably vague about this method, so I'm going to do some
+        // additional time saving checks.
+        if ($other === null || $other->parentNode === null || $other instanceof Attr || $other instanceof Document || $other instanceof DocumentFragment || (!$this instanceof Document && !$this instanceof DocumentFragment && !$this instanceof Element)) {
+            return false;
+        }
+
+        $thisDoc = ($this instanceof Document) ? $this : $this->ownerDocument;
+        if ($thisDoc !== $other->ownerDocument) {
+            return false;
+        }
+
+        return ($this->walk(function($n) use($other) {
+            return ($n === $other);
+        })->current() !== null);
+    }
+
     public function isEqualNode(\DOMDocumentType|Node $otherNode): bool {
         # The isEqualNode(otherNode) method steps are to return true if otherNode is
         # non-null and this equals otherNode; otherwise false.
@@ -202,7 +221,7 @@ trait NodeTrait {
 
     // Disable getLineNo
     public function getLineNo(): int {
-        throw new DOMException(DOMException::NOT_SUPPORTED, __METHOD__ . ' is not in the standard, is buggy, and useless');
+        throw new Exception(Exception::DISABLED_METHOD, __METHOD__, 'It is meant for XML and buggy; use Document::saveHTML or cast to a string');
     }
 
     public function getRootNode(): ?Node {

@@ -41,7 +41,9 @@ class Element extends \DOMElement implements Node {
 
         # 2. Let fragment be the result of invoking the fragment parsing algorithm with
         # the new value as markup, and with context element.
-        $fragment = Parser::parseFragment($this, $this->ownerDocument->quirksMode, $value, 'UTF-8');
+
+
+        $fragment = Parser::parseFragment($this, ($this->ownerDocument->compatMode === 'CSS1Compat') ? Parser::NO_QUIRKS_MODE : Parser::QUIRKS_MODE, $value, 'UTF-8');
         $fragment = $this->ownerDocument->importNode($fragment);
 
         # 3. If the context object is a template element, then let context object be the
@@ -132,7 +134,7 @@ class Element extends \DOMElement implements Node {
 
         # 5. Let fragment be the result of invoking the fragment parsing algorithm with
         # the new value as markup, and parent as the context element.
-        $fragment = Parser::parseFragment($parent, $this->ownerDocument->quirksMode, $value, 'UTF-8');
+        $fragment = Parser::parseFragment($parent, ($this->ownerDocument->compatMode === 'CSS1Compat') ? Parser::NO_QUIRKS_MODE : Parser::QUIRKS_MODE, $value, 'UTF-8');
         $fragment = $this->ownerDocument->importNode($fragment);
 
         # 6. Replace the context object with fragment within the context object's

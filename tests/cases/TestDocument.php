@@ -137,7 +137,8 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::loadHTMLFile
      * @covers \MensBeam\HTML\DOM\Document::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Document::replaceTemplates
-     * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
+     * @covers \MensBeam\HTML\DOM\Document::__get_compatMode
+     * @covers \MensBeam\HTML\DOM\Document::__get_URL
      * @covers \MensBeam\HTML\DOM\NodeTrait::getRootNode
      */
     public function testDocumentCreation(): void {
@@ -146,9 +147,9 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame('MensBeam\HTML\DOM\Document', get_class($d));
         $this->assertSame(null, $d->firstChild);
 
-        // Test string source
+        // Test compatibility mode
         $d = new Document('<html><body>Ook!</body></html>');
-        $this->assertSame(Parser::QUIRKS_MODE, $d->quirksMode);
+        $this->assertSame('BackCompat', $d->compatMode);
 
         // Test DOM source
         $d = new \DOMDocument();
@@ -177,18 +178,25 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertFalse(@$d->load('fileDoesNotExist.html'));
         $d->load($f);
         $this->assertNotNull($d->documentElement);
-        $this->assertSame('ISO-2022-JP', $d->documentEncoding);
+        $this->assertSame('ISO-2022-JP', $d->charset);
 
         // Test http source
         $d = new Document();
         $d->load('https://google.com');
         $this->assertNotNull($d->documentElement);
-        $this->assertSame('UTF-8', $d->documentEncoding);
+        $this->assertSame('UTF-8', $d->charset);
+        $this->assertSame('https://google.com', $d->URL);
+        $this->assertNull($d->documentURI);
 
         // Test document encoding
         $d = new Document();
         $d->loadHTMLFile($f, null, 'UTF-8');
-        $this->assertSame('UTF-8', $d->documentEncoding);
+        $this->assertSame('UTF-8', $d->charset);
+
+        // Test real document loading
+        $d = new Document();
+        $d->loadHTMLFile(dirname(__FILE__) . '/../test.html', null, 'UTF-8');
+        $this->assertStringStartsWith('file://', $d->URL);
 
         // Test templates in source
         $d = new Document('<!DOCTYPE html><html><body><template class="test"><template></template></template></body></html>');
@@ -419,34 +427,49 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Document::__get_documentEncoding */
-    public function testPropertyGetDocumentEncoding(): void {
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::__get_charset
+     * @covers \MensBeam\HTML\DOM\Document::__get_characterSet
+     * @covers \MensBeam\HTML\DOM\Document::__get_inputEncoding
+     */
+    public function testPropertyGetCharset(): void {
         $d = new Document(null, 'UTF-8');
-        $this->assertSame('UTF-8', $d->documentEncoding);
+        $this->assertSame('UTF-8', $d->charset);
+        $this->assertSame('UTF-8', $d->characterSet);
+        $this->assertSame('UTF-8', $d->inputEncoding);
 
         $d = new Document('<!DOCTYPE html><html><head><meta charset="GB18030"></head></html>');
-        $this->assertSame('gb18030', $d->documentEncoding);
+        $this->assertSame('gb18030', $d->charset);
+        $this->assertSame('gb18030', $d->characterSet);
+        $this->assertSame('gb18030', $d->inputEncoding);
     }
 
 
-    public function providePropertyGetQuirksMode(): iterable {
+    public function providePropertyGetCompatMode(): iterable {
         return [
             // Empty document
-            [ null,                           Parser::NO_QUIRKS_MODE ],
+            [ null,                           'CSS1Compat' ],
             // Document without doctype
-            [ '<html></html>',                Parser::QUIRKS_MODE ],
+            [ '<html></html>',                'BackCompat' ],
             // Document with doctype
-            [ '<!DOCTYPE html><html></html>', Parser::NO_QUIRKS_MODE ]
+            [ '<!DOCTYPE html><html></html>', 'CSS1Compat' ]
         ];
     }
 
     /**
-     * @dataProvider providePropertyGetQuirksMode
-     * @covers \MensBeam\HTML\DOM\Document::__get_quirksMode
+     * @dataProvider providePropertyGetCompatMode
+     * @covers \MensBeam\HTML\DOM\Document::__get_compatMode
      */
-    public function testPropertyGetQuirksMode(?string $html, int $quirksMode): void {
+    public function testPropertyGetCompatMode(?string $html, string $compatMode): void {
         $d = new Document($html);
-        $this->assertSame($quirksMode, $d->quirksMode);
+        $this->assertSame($compatMode, $d->compatMode);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Document::__get_contentType */
+    public function testPropertyGetContentType(): void {
+        $d = new Document();
+        $this->assertSame('text/html', $d->contentType);
     }
 
 

@@ -19,9 +19,9 @@ class Document extends \DOMDocument implements Node {
     use DocumentOrElement, MagicProperties, ParentNode;
 
     protected ?Element $_body = null;
-    /** Non-standard */
-    protected ?string $_documentEncoding = null;
-    protected int $_quirksMode = Parser::NO_QUIRKS_MODE;
+    protected string $_charset = 'windows-1252';
+    protected string $_compatMode = 'CSS1Compat';
+    protected string $_URL = '';
     /** Non-standard */
     protected ?\DOMXPath $_xpath = null;
 
@@ -108,12 +108,28 @@ class Document extends \DOMDocument implements Node {
         $this->_body = $value;
     }
 
-    protected function __get_documentEncoding(): ?string {
-        return $this->_documentEncoding;
+    protected function __get_characterSet(): string {
+        return $this->_charset;
     }
 
-    protected function __get_quirksMode(): int {
-        return $this->_quirksMode;
+    protected function __get_charset(): string {
+        return $this->_charset;
+    }
+
+    protected function __get_compatMode(): string {
+        return $this->_compatMode;
+    }
+
+    protected function __get_contentType(): string {
+        return 'text/html';
+    }
+
+    protected function __get_inputEncoding(): string {
+        return $this->_charset;
+    }
+
+    protected function __get_URL(): string {
+        return $this->_URL;
     }
 
     protected function __get_xpath(): \DOMXPath {
@@ -135,14 +151,14 @@ class Document extends \DOMDocument implements Node {
         parent::registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\DOM\ProcessingInstruction');
         parent::registerNodeClass('DOMText', '\MensBeam\HTML\DOM\Text');
 
-        $this->_documentEncoding = $encoding;
-
         if ($source !== null) {
             if (is_string($source)) {
                 $this->loadHTML($source, null, $encoding);
             } else {
                 $this->loadDOM($source, $encoding);
             }
+        } elseif ($encoding !== null) {
+            $this->_charset = Charset::fromCharset((string)$encoding) ?? 'windows-1252';
         }
     }
 
@@ -404,19 +420,25 @@ class Document extends \DOMDocument implements Node {
 
         $data = stream_get_contents($f);
         $encoding = Charset::fromCharset((string)$encoding) ?? Charset::fromTransport((string)$encoding);
-        if (!$encoding) {
-            $meta = stream_get_meta_data($f);
-            if ($meta['wrapper_type'] === 'http') {
-                // Try to find a Content-Type header field
-                foreach ($meta['wrapper_data'] as $h) {
-                    $h = explode(':', $h, 2);
-                    if (count($h) === 2 && preg_match("/^\s*Content-Type\s*$/i", $h[0])) {
-                        // Try to get an encoding from it
-                        $encoding = Charset::fromTransport($h[1]);
-                        break;
-                    }
+        $meta = stream_get_meta_data($f);
+        $wrapperType = $meta['wrapper_type'];
+        if (!$encoding && $wrapperType === 'http') {
+            // Try to find a Content-Type header field
+            foreach ($meta['wrapper_data'] as $h) {
+                $h = explode(':', $h, 2);
+                if (count($h) === 2 && preg_match("/^\s*Content-Type\s*$/i", $h[0])) {
+                    // Try to get an encoding from it
+                    $encoding = Charset::fromTransport($h[1]);
+                    break;
                 }
             }
+        }
+        
+        if ($wrapperType === 'plainfile') {
+            $filename = realpath($filename);
+            $this->_URL = "file://$filename";
+        } else {
+            $this->_URL = $filename;
         }
 
         $this->loadHTML($data, null, $encoding);
@@ -424,8 +446,8 @@ class Document extends \DOMDocument implements Node {
     }
 
     public function loadDOM(\DOMDocument $source, ?string $encoding = null, int $quirksMode = Parser::NO_QUIRKS_MODE) {
-        $this->_documentEncoding = $encoding;
-        $this->_quirksMode = $quirksMode;
+        $this->_charset = Charset::fromCharset((string)$encoding) ?? 'windows-1252';
+        $this->_compatMode = ($quirksMode === Parser::NO_QUIRKS_MODE || $quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
 
         // If there are already-existing child nodes then remove them before loading the
         // DOM.

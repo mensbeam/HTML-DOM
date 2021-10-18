@@ -1,7 +1,7 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -377,7 +377,7 @@ class Document extends \DOMDocument implements Node {
         if ($node instanceof Element || $node instanceof DocumentFragment) {
             // Yet another PHP DOM hang-up that is either a bug or a feature. When
             // elements are imported their id attributes aren't able to be picked up by
-            // Element::getElementById, so let's fix that.
+            // NonElementParentNode::getElementById, so let's fix that.
             $elementsWithIds = $node->walk(function($n) {
                 return ($n instanceof Element && $n->hasAttribute('id'));
             }, true);

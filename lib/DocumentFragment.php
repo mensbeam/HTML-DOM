@@ -1,7 +1,7 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -49,6 +49,19 @@ class DocumentFragment extends \DOMDocumentFragment implements Node {
         }
 
         $this->_host = \WeakReference::create($value);
+    }
+
+
+    public function getElementById(string $elementId): ?Element {
+        # The getElementById(elementId) method steps are to return the first element, in
+        # tree order, within this’s descendants, whose ID is elementId; otherwise, if
+        # there is no such element, null.
+        // This method is supposed to be within a NonElementParentNode trait, but
+        // Document has an adequate implementation already from PHP DOM. It doesn't,
+        // however, implement one for \DOMDocumentFragment, so here goes.
+        return $this->walk(function($n) use($elementId) {
+            return ($n instanceof Element && $n->getAttribute('id') === $elementId);
+        })->current();
     }
 
 

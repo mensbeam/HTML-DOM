@@ -6,7 +6,8 @@
         "php": ">=8.0",
         "ext-dom": "*",
         "mensbeam/html-parser": ">=1.0",
-        "mensbeam/framework": "^1.0"
+        "mensbeam/framework": "^1.0",
+        "symfony/css-selector": "^5.3"
     },
     "scripts": {
         "post-install-cmd": ["@composer bin all install"],

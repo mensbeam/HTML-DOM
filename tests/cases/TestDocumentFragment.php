@@ -1,7 +1,7 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -11,6 +11,7 @@ namespace MensBeam\HTML\DOM\TestCase;
 use MensBeam\HTML\DOM\{
     Document,
     DocumentFragment,
+    Element,
     Exception,
     HTMLTemplateElement
 };
@@ -18,6 +19,16 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\DocumentFragment */
 class TestDocumentFragment extends \PHPUnit\Framework\TestCase {
+    /** @covers \MensBeam\HTML\DOM\DocumentFragment::getElementById */
+    public function testGetElementById(): void {
+        $d = new Document();
+        $df = $d->createDocumentFragment();
+        $o = $df->appendChild($d->createElement('span'));
+        $o->setAttribute('id', 'eek');
+        $this->assertSame(Element::class, $df->getElementById('eek')::class);
+        $this->assertNull($df->getElementById('ook'));
+    }
+
     /** @covers \MensBeam\HTML\DOM\DocumentFragment::__get_host */
     public function testGetHost(): void {
         $d = new Document();

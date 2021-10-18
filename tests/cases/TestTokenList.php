@@ -1,7 +1,7 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -12,7 +12,6 @@ use MensBeam\HTML\DOM\{
     Document,
     DOMException
 };
-use MensBeam\HTML\Parser;
 
 
 /** @covers \MensBeam\HTML\DOM\TokenList */
@@ -92,6 +91,15 @@ class TestTokenList extends \PHPUnit\Framework\TestCase {
         $e = $d->appendChild($d->createElement('html'));
         $e->classList->add('ook', 'eek', 'ack', 'ookeek');
         $this->assertSame(4, count($e->classList));
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\TokenList::item */
+    public function testItem(): void {
+        $d = new Document();
+        $e = $d->appendChild($d->createElement('html'));
+        $e->classList->add('ook', 'eek', 'ack', 'ookeek');
+        $this->assertNull($e->classList->item(42));
     }
 
 

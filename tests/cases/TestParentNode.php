@@ -1,7 +1,7 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -13,7 +13,8 @@ use MensBeam\HTML\DOM\{
     DOMException,
     Element,
     ElementMap,
-    Exception
+    Exception,
+    NodeList
 };
 
 
@@ -148,6 +149,39 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
         $d->documentElement->appendChild($d->createElement('body'));
 
         $this->assertSame(1, $d->documentElement->children->length);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\ParentNode::querySelector
+     * @covers \MensBeam\HTML\DOM\ParentNode::querySelectorAll
+     * @covers \MensBeam\HTML\DOM\ParentNode::scopeMatchSelector
+     * @covers \MensBeam\HTML\DOM\NodeList::__construct
+     * @covers \MensBeam\HTML\DOM\NodeList::item
+     */
+    public function testQuerySelector(): void {
+        $d = new Document('<!DOCTYPE html><html><body><div>ook</div><div id="eek">eek</div></body></html>');
+        $div = $d->body->querySelector('div');
+        $this->assertSame('div', $div->nodeName);
+
+        $divs = $d->body->querySelectorAll('div');
+        $this->assertEquals(2, $divs->length);
+        $this->assertSame('eek', $divs->item(1)->getAttribute('id'));
+
+        $this->assertNull($d->querySelector('.ook'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\ParentNode::querySelector
+     * @covers \MensBeam\HTML\DOM\ParentNode::querySelectorAll
+     * @covers \MensBeam\HTML\DOM\ParentNode::scopeMatchSelector
+     */
+    public function testQuerySelectorFailure(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::SYNTAX_ERROR);
+        $d = new Document();
+        $d->querySelector('ook?');
     }
 
 

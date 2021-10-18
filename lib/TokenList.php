@@ -1,7 +1,7 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
@@ -107,11 +107,17 @@ class TokenList implements \ArrayAccess, \Countable, \Iterator {
         return $this->_length;
     }
 
-    public function current(): string {
+    public function current(): ?string {
         return $this->item($this->position);
     }
 
-    public function item(int $index): string {
+    public function item(int $index): ?string {
+        # The item(index) method steps are:
+        # 1. If index is equal to or greater than this’s token set’s size, then return null.
+        if ($index >= $this->_length) {
+            return null;
+        }
+        # 2. Return this’s token set[index].
         return $this->tokenSet[$index];
     }
 

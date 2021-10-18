@@ -1,12 +1,13 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017, Dustin Wilson, J. King et al.
+ * Copyright 2017 Dustin Wilson, J. King, et al.
  * See LICENSE and AUTHORS files for details
  */
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use Symfony\Component\CssSelector\CssSelectorConverter;
 
 
 # 4.2.6. Mixin ParentNode
@@ -43,6 +44,21 @@ trait ParentNode {
             ElementMap::add($node);
         }
         return $node;
+    }
+
+    public function querySelector(string $selectors): ?Element {
+        # The querySelector(selectors) method steps are to return the first result of
+        # running scope-match a selectors string selectors against this, if the result
+        # is not an empty list; otherwise null.
+        $result = $this->scopeMatchSelector($selectors);
+        return ($result !== null) ? $result[0] : null;
+    }
+
+    public function querySelectorAll(string $selectors): NodeList {
+        # The querySelectorAll(selectors) method steps are to return the static result
+        # of running scope-match a selectors string selectors against this.
+        $nodeList = $this->scopeMatchSelector($selectors);
+        return new NodeList($nodeList);
     }
 
     public function removeChild($child) {
@@ -153,7 +169,7 @@ trait ParentNode {
     }
 
 
-    protected function preInsertionValidity(\DOMDocumentType|Node $node, \DOMDocumentType|Node $child = null) {
+    private function preInsertionValidity(\DOMDocumentType|Node $node, \DOMDocumentType|Node $child = null) {
         // "parent" in the spec comments below is $this
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
@@ -284,5 +300,29 @@ trait ParentNode {
                 }
             }
         }
+    }
+
+    private function scopeMatchSelector(string $selectors): ?\DOMNodeList {
+        # To scope-match a selectors string selectors against a node, run these steps:
+        # 1. Let s be the result of parse a selector selectors. [SELECTORS4]
+        // This implementation will instead convert the CSS selector to an XPath query
+        // using Symfony's CSS selector converter library.
+        try {
+            $converter = new CssSelectorConverter();
+            $s = $converter->toXPath($selectors);
+        } catch (\Exception $e) {
+            # 2. If s is failure, then throw a "SyntaxError" DOMException.
+            throw new DOMException(DOMException::SYNTAX_ERROR);
+        }
+
+        # 3. Return the result of match a selector against a tree with s and node’s root
+        #    using scoping root node. [SELECTORS4].
+        $doc = ($this instanceof Document) ? $this : $this->ownerDocument;
+        $nodeList = $doc->xpath->query($s, $this);
+        if ($nodeList->length === 0) {
+            return null;
+        }
+
+        return $nodeList;
     }
 }

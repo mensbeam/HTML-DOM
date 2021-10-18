@@ -66,17 +66,58 @@ The primary aim of this library is accuracy. If the document model differs from 
 4. The DOM specification mentions that [`HTMLCollection`][a] has to be kept around for backwards compatibility in browsers, but any new implementations should use [`sequence<T>`][b] instead which is essentially just a typed array object of some kind. Any methods should also return a copy of an object instead of a reference to the platform object, meaning the bane of any web developer's existence -- live lists -- shouldn't be in any new additions to the DOM. Since this implementation is not a fully userland PHP implementation of the DOM but instead an extension of it, this implementation will use `DOMNodeList` where the specification says to use an `HTMLCollection` and an array where the specification says to use a `sequence<T>`. In addition, if the specification states to return a static `NodeList` this implementation will use `MensBeam\\HTML\\DOM\\NodeList` instead; this is because `DOMNodeList` is always live in PHP.
 5. Aside from `HTMLTemplateElement` there are no other specific element classes such as `HTMLAnchorElement`, `HTMLDivElement`, etc. and therefore are no DOM methods and properties that are specific to those elements. Implementing them is possible, but we weighed it against its utility as each specific element slows down the DOM seemingly exponentially especially when parsing serialized HTML because each element has to be converted to the specific variety manually and recursively. For instance, when parsing the WHATWG's single page HTML specification (which is an absurdly enormous HTML document on the very edge of what we should be able to parse) in our tests it takes around 6.5 seconds; with specific element classes it instead takes *15 minutes*. [`phpgt/dom`][c] mitigates this by only converting when querying for elements, but it's still slow. We decided not to go this route.
 6. This implementation will not implement the `NodeIterator` and `TreeWalker` APIs. They are horribly conceived and impractical APIs that few people actually use because it's literally easier to write recursive loops to walk through the DOM than it is to use those APIs. They have instead been replaced with the `ChildNode::moonwalk`, `ParentNode::walk`, `ChildNode::walkFollowing`, and `ChildNode::walkPreceding` generators.
-7. Readonly properties inherited from PHP DOM cannot be overridden in this implementation and therefore might produce incorrect data. Below are the properties that will show invalid or useless data along with suggested replacements:
+7. Readonly properties inherited from PHP DOM cannot be overridden in this implementation and therefore might produce incorrect data. In many cases an additional standard property exists, but in most cases the property is simply useless for HTML so does absolutely nothing. Below are the properties that will show invalid or useless data along with suggested replacements if any:
 
-  | property                        | replacement(s)                                                           |
-  | ------------------------------- | ------------------------------------------------------------------------ |
-  | `Document::documentURI`         | `Document::URL`                                                          |
-  | `Document::actualEncoding`      | `Document::characterSet`, `Document::charset`, `Document::inputEncoding` |
-  | `Document::encoding`            | `Document::characterSet`, `Document::charset`, `Document::inputEncoding` |
-  | `Document::preserveWhitespace`  |                                                                          |
-  | `Document::recover`             |                                                                          |
-  | `Document::resolveExternals`    |                                                                          |
-  | `Document::standalone`          |                                                                          |
-  | `Document::strictErrorChecking` |                                                                          |
-  | `Document::substituteEntities`  |                                                                          |
-  | `Document::validateOnParse`     |                                                                          |
+      <table>
+       <thead>
+        <tr>
+         <th>Property</th>
+         <th>Replacement(s)</th>
+        </tr>
+       </thead>
+       <tbody>
+        <tr>
+         <th colspan="2"><code>Document</code></th>
+        </tr>
+        <tr>
+         <td><code>Document::documentURI</code></td>
+         <td><code>Document::URL</code></td>
+        </tr>
+        <tr>
+         <td><code>Document::actualEncoding</code></td>
+         <td><code>Document::characterSet</code>, <code>Document::charset</code>, <code>Document::inputEncoding</code></td>
+        </tr>
+        <tr>
+         <td><code>Document::encoding</code></td>
+         <td><code>Document::characterSet</code>, <code>Document::charset</code>, <code>Document::inputEncoding</code></td>
+        </tr>
+        <tr>
+         <td><code>Document::preserveWhitespace</code></td>
+         <td></td>
+        </tr>
+        <tr>
+         <td><code>Document::recover</code></td>
+         <td></td>
+        </tr>
+        <tr>
+         <td><code>Document::resolveExternals</code></td>
+         <td></td>
+        </tr>
+        <tr>
+         <td><code>Document::standalone</code></td>
+         <td></td>
+        </tr>
+        <tr>
+         <td><code>Document::strictErrorChecking</code></td>
+         <td></td>
+        </tr>
+        <tr>
+         <td><code>Document::substituteEntities</code></td>
+         <td></td>
+        </tr>
+        <tr>
+         <td><code>Document::validateOnParse</code></td>
+         <td></td>
+        </tr>
+       </tbody>
+      </table>

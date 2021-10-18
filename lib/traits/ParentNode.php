@@ -7,7 +7,8 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use Symfony\Component\CssSelector\CssSelectorConverter;
+use Symfony\Component\CssSelector\CssSelectorConverter,
+    Symfony\Component\CssSelector\Exception\SyntaxErrorException as SymfonySyntaxErrorException;
 
 
 # 4.2.6. Mixin ParentNode
@@ -312,7 +313,13 @@ trait ParentNode {
             $s = $converter->toXPath($selectors);
         } catch (\Exception $e) {
             # 2. If s is failure, then throw a "SyntaxError" DOMException.
-            throw new DOMException(DOMException::SYNTAX_ERROR);
+            // Symfony's library will throw an exception if something is unsupported, too,
+            // so only throw exception when an actual syntax error, otherwise return null.
+            if ($e instanceof SymfonySyntaxErrorException) {
+                throw new DOMException(DOMException::SYNTAX_ERROR);
+            }
+
+            return null;
         }
 
         # 3. Return the result of match a selector against a tree with s and node’s root

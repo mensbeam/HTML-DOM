@@ -163,12 +163,13 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
         $d = new Document('<!DOCTYPE html><html><body><div>ook</div><div id="eek">eek</div></body></html>');
         $div = $d->body->querySelector('div');
         $this->assertSame('div', $div->nodeName);
+        $this->assertNull($d->querySelector('body::before'));
 
         $divs = $d->body->querySelectorAll('div');
         $this->assertEquals(2, $divs->length);
         $this->assertSame('eek', $divs->item(1)->getAttribute('id'));
-
         $this->assertNull($d->querySelector('.ook'));
+        $this->assertEquals(0, $d->querySelectorAll('body::before')->length);
     }
 
 

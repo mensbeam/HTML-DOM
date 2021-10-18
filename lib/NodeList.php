@@ -26,7 +26,11 @@ class NodeList implements \ArrayAccess, \Countable, \Iterator {
     }
 
 
-    public function __construct(iterable $iterable) {
+    public function __construct(?iterable $iterable = []) {
+        if ($iterable === null) {
+            $iterable = [];
+        }
+
         // Per the specification one cannot create a NodeList via its constructor, but
         // this implementation is not going to build up the framework for that.
 

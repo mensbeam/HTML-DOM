@@ -143,13 +143,13 @@ class Document extends \DOMDocument implements Node {
     public function __construct(\DOMDocument|string|null $source = null, ?string $encoding = null) {
         parent::__construct();
 
-        parent::registerNodeClass('DOMAttr', '\MensBeam\HTML\DOM\Attr');
-        parent::registerNodeClass('DOMDocument', '\MensBeam\HTML\DOM\Document');
-        parent::registerNodeClass('DOMComment', '\MensBeam\HTML\DOM\Comment');
-        parent::registerNodeClass('DOMDocumentFragment', '\MensBeam\HTML\DOM\DocumentFragment');
-        parent::registerNodeClass('DOMElement', '\MensBeam\HTML\DOM\Element');
-        parent::registerNodeClass('DOMProcessingInstruction', '\MensBeam\HTML\DOM\ProcessingInstruction');
-        parent::registerNodeClass('DOMText', '\MensBeam\HTML\DOM\Text');
+        parent::registerNodeClass('DOMAttr', Attr::class);
+        parent::registerNodeClass('DOMDocument', self::class);
+        parent::registerNodeClass('DOMComment', Comment::class);
+        parent::registerNodeClass('DOMDocumentFragment', DocumentFragment::class);
+        parent::registerNodeClass('DOMElement', Element::class);
+        parent::registerNodeClass('DOMProcessingInstruction', ProcessingInstruction::class);
+        parent::registerNodeClass('DOMText', Text::class);
 
         if ($source !== null) {
             if (is_string($source)) {
@@ -162,6 +162,44 @@ class Document extends \DOMDocument implements Node {
         }
     }
 
+
+    public function adoptNode(\DOMNode $node): Node|\DOMDocumentType|null {
+        # The adoptNode(node) method steps are:
+        #
+        # 1. If node is a document, then throw a "NotSupportedError" DOMException.
+        if ($node instanceof \DOMDocument) {
+            throw new DOMException(DOMException::NOT_SUPPORTED);
+        }
+
+        # 2. If node is a shadow root, then throw a "HierarchyRequestError" DOMException.
+        // DEVIATION: There is no scripting in this implementation.
+
+        # 3. If node is a DocumentFragment node whose host is non-null, then return.
+        if ($node instanceof DocumentFragment && $node->host !== null) {
+            return null;
+        }
+
+        # 4. Adopt node into this.
+        # To adopt a node into a document, run these steps:
+        #
+        # 1. Let oldDocument be node’s node document.
+        $oldDocument = $node->ownerDocument;
+        # 2. If node’s parent is non-null, then remove node.
+        if ($node->parentNode !== null) {
+            $node->parentNode->removeChild($node);
+        }
+        # 3. If document is not oldDocument, then:
+        if ($this !== $oldDocument) {
+            // DEVIATION: Steps 1 & 2 of the sub algorithm here all have to do with scripting
+            # 3. For each inclusiveDescendant in node’s shadow-including inclusive descendants,
+            #    in shadow-including tree order, run the adopting steps with inclusiveDescendant
+            #    and oldDocument.
+            $node = $this->importNode($node, true);
+        }
+
+        # 5. Return node.
+        return $this->convertAdoptedImportedNodes($node);
+    }
 
     public function createAttribute(string $localName): ?Attr {
         # The createAttribute(localName) method steps are:
@@ -389,27 +427,7 @@ class Document extends \DOMDocument implements Node {
         }
 
         $node = parent::importNode($node, $deep);
-
-        if ($node instanceof Element || $node instanceof DocumentFragment) {
-            // Yet another PHP DOM hang-up that is either a bug or a feature. When
-            // elements are imported their id attributes aren't able to be picked up by
-            // NonElementParentNode::getElementById, so let's fix that.
-            $elementsWithIds = $node->walk(function($n) {
-                return ($n instanceof Element && $n->hasAttribute('id'));
-            }, true);
-
-            foreach ($elementsWithIds as $e) {
-                $e->setIdAttributeNode($e->getAttributeNode('id'), true);
-            }
-
-            if ($node instanceof Element && !$node instanceof HTMLTemplateElement && $this->isHTMLNamespace($node) && strtolower($node->nodeName) === 'template') {
-                $node = $this->convertTemplate($node);
-            } else {
-                $this->replaceTemplates($node);
-            }
-        }
-
-        return $node;
+        return $this->convertAdoptedImportedNodes($node);
     }
 
     public function load(string $filename, $options = null, ?string $encoding = null): bool {
@@ -433,7 +451,7 @@ class Document extends \DOMDocument implements Node {
                 }
             }
         }
-        
+
         if ($wrapperType === 'plainfile') {
             $filename = realpath($filename);
             $this->_URL = "file://$filename";
@@ -941,6 +959,29 @@ class Document extends \DOMDocument implements Node {
         return $s;
     }
 
+
+    private function convertAdoptedImportedNodes(\DOMDocumentType|Node $node): \DOMDocumentType|Node {
+        if ($node instanceof Element || $node instanceof DocumentFragment) {
+            // Yet another PHP DOM hang-up that is either a bug or a feature. When
+            // elements are imported their id attributes aren't able to be picked up by
+            // NonElementParentNode::getElementById, so let's fix that.
+            $elementsWithIds = $node->walk(function($n) {
+                return ($n instanceof Element && $n->hasAttribute('id'));
+            }, true);
+
+            foreach ($elementsWithIds as $e) {
+                $e->setIdAttributeNode($e->getAttributeNode('id'), true);
+            }
+
+            if ($node instanceof Element && !$node instanceof HTMLTemplateElement && $this->isHTMLNamespace($node) && strtolower($node->nodeName) === 'template') {
+                $node = $this->convertTemplate($node);
+            } else {
+                $this->replaceTemplates($node);
+            }
+        }
+
+        return $node;
+    }
 
     private function convertTemplate(\DOMElement $element): \DOMElement {
         if ($this->isHTMLNamespace($element) && strtolower($element->nodeName) === 'template') {

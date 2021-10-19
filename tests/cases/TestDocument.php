@@ -22,6 +22,27 @@ use MensBeam\HTML\Parser,
 
 /** @covers \MensBeam\HTML\DOM\Document */
 class TestDocument extends \PHPUnit\Framework\TestCase {
+    /** @covers \MensBeam\HTML\DOM\Document::adoptNode */
+    public function testAdoptNode() {
+        $d = new Document();
+        $t = $d->createElement('template');
+
+        $d2 = new Document();
+        $t2 = $d2->adoptNode($t, true);
+        $this->assertSame($d2, $t2->ownerDocument);
+        $this->assertNull($t->parentNode);
+
+        /*$d = new \DOMDocument();
+        $t = $d->createElement('template');
+        // Add a child template to cover recursive template conversions.
+        $t->appendChild($d->createElement('template'));
+        $this->assertSame(\DOMElement::class, $t::class);
+
+        $d2 = new Document();
+        $t2 = $d2->importNode($t, true);
+        $this->assertSame(HTMLTemplateElement::class, $t2::class);*/
+    }
+
     public function provideAttributeNodeCreation(): iterable {
         return [
             [ 'test',      'test' ],
@@ -341,24 +362,24 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
 
     /** @covers \MensBeam\HTML\DOM\Document::importNode */
-    public function testImportingNodes() {
+    public function testImportNode() {
         $d = new Document();
         $t = $d->createElement('template');
 
         $d2 = new Document();
         $t2 = $d2->importNode($t, true);
         $this->assertFalse($t2->ownerDocument->isSameNode($t->ownerDocument));
-        $this->assertSame(get_class($t2), get_class($t));
+        $this->assertSame($t2::class, $t::class);
 
         $d = new \DOMDocument();
         $t = $d->createElement('template');
         // Add a child template to cover recursive template conversions.
         $t->appendChild($d->createElement('template'));
-        $this->assertSame(\DOMElement::class, get_class($t));
+        $this->assertSame(\DOMElement::class, $t::class);
 
         $d2 = new Document();
         $t2 = $d2->importNode($t, true);
-        $this->assertSame(HTMLTemplateElement::class, get_class($t2));
+        $this->assertSame(HTMLTemplateElement::class, $t2::class);
     }
 
 

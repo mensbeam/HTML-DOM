@@ -125,18 +125,4 @@ abstract class Node {
     protected function __construct(\DOMNode $innerNode) {
         $this->innerNode = $innerNode;
     }
-
-
-    public function appendChild(Node $node): void {
-        die(var_export($this->getInnerNode($node)));
-    }
-
-
-    protected function getInnerNode(?Node $node = null) {
-        $node = $node ?? $this;
-        $reflector = new \ReflectionClass($node::class);
-        $innerNode = new \ReflectionProperty($node, 'innerNode');
-        $innerNode->setAccessible(true);
-        return $innerNode->getValue($node);
-    }
 }

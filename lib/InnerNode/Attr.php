@@ -6,9 +6,7 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM;
+namespace MensBeam\HTML\DOM\InnerNode;
 
 
-class Attr extends \DOMAttr implements Node {
-    use LeafNode, NodeTrait;
-}
+class Attr extends \DOMAttr {}

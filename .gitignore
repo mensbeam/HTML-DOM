@@ -1,8 +1,9 @@
-# html5-parser specific
+# HTML-DOM specific
 manual
 node_modules
 /test*.html
 /test*.php
+lib/old
 
 # General
 *.DS_Store

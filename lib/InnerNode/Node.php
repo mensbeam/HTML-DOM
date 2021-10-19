@@ -6,8 +6,9 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM;
+namespace MensBeam\HTML\DOM\InnerNode;
 
-class Comment extends \DOMComment implements CharacterData {
-    use ChildNode, LeafNode, ToString;
+
+trait Node {
+    
 }

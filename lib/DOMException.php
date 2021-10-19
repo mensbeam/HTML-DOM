@@ -24,6 +24,8 @@ class DOMException extends Exception {
     const INVALID_ACCESS_ERROR = 15;
     const VALIDATION_ERROR = 16;
 
+    const CLIENT_ONLY_NOT_IMPLEMENTED = 301;
+
 
     public function __construct(int $code, ...$args) {
         self::$messages = array_replace(parent::$messages, [
@@ -37,7 +39,9 @@ class DOMException extends Exception {
              13 => 'Invalid modification error',
              14 => 'Namespace error',
              15 => 'Invalid access error',
-             16 => 'Validation error'
+             16 => 'Validation error',
+
+             301 => '%s is client side only; not implemented'
         ]);
 
         parent::__construct($code, ...$args);

@@ -10,6 +10,20 @@ namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties;
 
 
+# A NodeList object is a collection of nodes.
+#
+# A collection is an object that represents a list of nodes. A collection can be
+# either live or static. Unless otherwise stated, a collection must be live.
+#
+# If a collection is live, then the attributes and methods on that object must
+# operate on the actual underlying data, not a snapshot of the data.
+#
+# When a collection is created, a filter and a root are associated with it.
+#
+# The collection then represents a view of the subtree rooted at the
+# collection’s root, containing only nodes that match the given filter. The view
+# is linear. In the absence of specific requirements to the contrary, the nodes
+# within the collection must be sorted in tree order.
 class NodeList implements \ArrayAccess, \Countable, \Iterator {
     use MagicProperties;
 
@@ -57,7 +71,7 @@ class NodeList implements \ArrayAccess, \Countable, \Iterator {
 
     public function count(): int {
         if ($this->nodeArray !== null) {
-            return count($this->nodeArray);
+            return $this->_length;
         }
 
         $nodeArray = ($this->filter)();
@@ -77,7 +91,7 @@ class NodeList implements \ArrayAccess, \Countable, \Iterator {
 
         $nodeArray = ($this->nodeArray !== null) ? $this->nodeArray : ($this->filter)();
         if (array_key_exists($index, $nodeArray)) {
-            return $this->nodeList[$index];
+            return $nodeArray[$index];
         }
 
         return null;

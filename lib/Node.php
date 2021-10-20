@@ -34,44 +34,52 @@ abstract class Node {
     public const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
     public const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
+    protected ?NodeList $_childNodes = null;
     protected \DOMNode $innerNode;
 
     protected function __get_childNodes(): NodeList {
         // NodeLists cannot be created from their constructors normally.
-        // DEVIATION: Going to optimize here and only create a truly live NodeList if
-        // the object is even capable of having children, otherwise will just be an
-        // empty NodeList. There is no sense in generating a live list that will never
-        // update.
-        return Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) ? function() {
-            $result = [];
-            $innerChildNodes = $this->innerNode->childNodes;
-            foreach ($innerChildNodes as $i) {
-                $result[] = $this->innerNode->ownerDocument->getWrapperNode($i);
-            }
+        // OPTIMIZATION: Going to optimize here and only create a truly live NodeList if
+        // the node is even capable of having children, otherwise will just be an empty
+        // NodeList. There is no sense in generating a live list that will never update.
+        if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
+            $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->nodeDocument;
+            return Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', function() use($doc) {
+                $result = [];
+                $innerChildNodes = $this->innerNode->childNodes;
+                foreach ($innerChildNodes as $i) {
+                    $result[] = $doc->getWrapperNode($i);
+                }
 
-            return $result;
-        } : []);
+                return $result;
+            });
+        }
 
-        return $nodeList;
+        if ($this->_childNodes !== null) {
+            return $this->_childNodes;
+        }
+
+        $this->_childNodes = Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\Nodelist', []);
+        return $this->_childNodes;
     }
 
     protected function __get_firstChild(): ?Node {
-        // PHP's DOM does this effectively already.
+        // PHP's DOM does this correctly already.
         return $this->innerNode->firstChild;
     }
 
     protected function __get_lastChild(): ?Node {
-        // PHP's DOM does this effectively already.
+        // PHP's DOM does this correctly already.
         return $this->innerNode->lastChild;
     }
 
     protected function __get_previousSibling(): ?Node {
-        // PHP's DOM does this effectively already.
+        // PHP's DOM does this correctly already.
         return $this->innerNode->previousSibling;
     }
 
     protected function __get_nextSibling(): ?Node {
-        // PHP's DOM does this effectively already.
+        // PHP's DOM does this correctly already.
         return $this->innerNode->nextSibling;
     }
 
@@ -95,9 +103,43 @@ abstract class Node {
         return $this->innerNode->nodeType;
     }
 
+    protected function __get_nodeValue(): ?string {
+        # The nodeValue getter steps are to return the following, switching on the
+        # interface this implements:
+
+        # ↪ Otherwise
+        #     Null.
+        if ($this instanceof Element) {
+            return null;
+        }
+
+        // PHP's DOM mostly does this correctly with the exception of Element, so let's
+        // fall back to PHP's DOM on everything else.
+        return $this->innerNode->nodeValue;
+    }
+
+    protected function __set_nodeValue(?string $value) {
+        # The nodeValue setter steps are to, if the given value is null, act as if it
+        # was the empty string instead, and then do as described below, switching on the
+        # interface this implements:
+
+        # ↪ Otherwise
+        #     Do nothing.
+        if ($this instanceof Element) {
+            return;
+        }
+
+        // PHP's DOM mostly does this correctly with the exception of Element, so let's
+        // fall back to PHP's DOM on everything else.
+        $this->innerNode->nodeValue = $value;
+    }
+
     protected function __get_ownerDocument(): Document {
+        # The ownerDocument getter steps are to return null, if this is a document;
+        # otherwise this’s node document.
+        // PHP's DOM does this correctly already.
         if ($this instanceof Document) {
-            return $this;
+            return null;
         }
 
         return $this->innerNode->ownerDocument->getWrapperNode();
@@ -129,6 +171,26 @@ abstract class Node {
         return $parent->ownerDocument->getWrapperNode($parent);
     }
 
+    protected function __get_textContent(): string {
+        # The textContent getter steps are to return the following, switching on the interface this implements:
+        // PHP's DOM has some weird bugs concerning textContent, and because there isn't
+        // a special element class for template elements will return the contents of any
+        // template elements. So, let's do this manually, shall we?
+
+        # ↪ DocumentFragment
+        # ↪ Element
+        #     The descendant text content of this.
+        if ($node instanceof DocumentFragment || $node instanceof Element) {}
+        # ↪ Attr
+        #     this’s value.
+
+        # ↪ CharacterData
+        #     this’s data.
+
+        # ↪ Otherwise
+        #     Null.
+    }
+
 
     protected function __construct(\DOMNode $innerNode) {
         $this->innerNode = $innerNode;
@@ -139,7 +201,7 @@ abstract class Node {
         # The appendChild(node) method steps are to return the result of appending node to
         # this.
         $this->preInsertionValidity($node);
-        $inner = $this->getInnerNode($node);
+        $inner = Factory::getProtectedProperty($node, 'innerNode');
         $this->innerNode->appendChild($inner);
         return $node;
     }
@@ -153,23 +215,18 @@ abstract class Node {
     }
 
     public function hasChildNodes(): bool {
+        // PHP's DOM does this correctly already.
         return $this->innerNode->hasChildNodes();
     }
 
-
-    protected function getInnerNode(Node $node) {
-        if ($node === $this) {
-            return $this->innerNode;
-        }
-
-        $reflector = new \ReflectionClass($node::class);
-        $innerNode = new \ReflectionProperty($node, 'innerNode');
-        $innerNode->setAccessible(true);
-        return $innerNode->getValue($node);
+    public function isSameNode(?Node $otherNode) {
+        # The isSameNode(otherNode) method steps are to return true if otherNode is
+        # this; otherwise false.
+        return ($otherNode === $this);
     }
 
 
-    private function preInsertionValidity(Node $node, ?Node $child = null) {
+    protected function preInsertionValidity(Node $node, ?Node $child = null) {
         // "parent" in the spec comments below is $this
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
@@ -247,6 +304,7 @@ abstract class Node {
                     }
                 }
             }
+
             # element
             #    parent has an element child, child is a doctype, or child is non-null and a
             #    doctype is following child.

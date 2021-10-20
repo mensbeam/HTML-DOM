@@ -7,7 +7,8 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties;
+use MensBeam\Framework\MagicProperties,
+    MensBeam\HTML\DOM\InnerNode\Factory;
 
 
 abstract class Node {
@@ -35,12 +36,45 @@ abstract class Node {
 
     protected \DOMNode $innerNode;
 
-    /**
-     * The nodeName read-only property returns the name of the current Node as a
-     * string.
-     *
-     * @property-read string nodeName
-     */
+    protected function __get_childNodes(): NodeList {
+        // NodeLists cannot be created from their constructors normally.
+        // DEVIATION: Going to optimize here and only create a truly live NodeList if
+        // the object is even capable of having children, otherwise will just be an
+        // empty NodeList. There is no sense in generating a live list that will never
+        // update.
+        return Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) ? function() {
+            $result = [];
+            $innerChildNodes = $this->innerNode->childNodes;
+            foreach ($innerChildNodes as $i) {
+                $result[] = $this->innerNode->ownerDocument->getWrapperNode($i);
+            }
+
+            return $result;
+        } : []);
+
+        return $nodeList;
+    }
+
+    protected function __get_firstChild(): ?Node {
+        // PHP's DOM does this effectively already.
+        return $this->innerNode->firstChild;
+    }
+
+    protected function __get_lastChild(): ?Node {
+        // PHP's DOM does this effectively already.
+        return $this->innerNode->lastChild;
+    }
+
+    protected function __get_previousSibling(): ?Node {
+        // PHP's DOM does this effectively already.
+        return $this->innerNode->previousSibling;
+    }
+
+    protected function __get_nextSibling(): ?Node {
+        // PHP's DOM does this effectively already.
+        return $this->innerNode->nextSibling;
+    }
+
     protected function __get_nodeName(): string {
         # The nodeName getter steps are to return the first matching statement,
         # switching on the interface this implements:
@@ -56,24 +90,11 @@ abstract class Node {
         return $this->innerNode->nodeName;
     }
 
-    /**
-     * The read-only Node.nodeType property is an integer that identifies what the
-     * node is. It distinguishes different kind of nodes from each other, such as
-     * elements, text and comments.
-     *
-     * @property-read int nodeType
-     */
     protected function __get_nodeType(): int {
         // PHP's DOM does this correctly already.
         return $this->innerNode->nodeType;
     }
 
-    /**
-     * The ownerDocument read-only property of the Node interface returns the
-     * top-level document object of the node.
-     *
-     * @property-read Document ownerDocument
-     */
     protected function __get_ownerDocument(): Document {
         if ($this instanceof Document) {
             return $this;
@@ -82,13 +103,6 @@ abstract class Node {
         return $this->innerNode->ownerDocument->getWrapperNode();
     }
 
-    /**
-     * The Node.parentElement read-only property returns the DOM node's parent
-     * Element, or null if the node either has no parent, or its parent isn't a DOM
-     * Element.
-     *
-     * @property-read ?Element parentElement
-     */
     protected function __get_parentElement(): ?Element {
         # The parentElement getter steps are to return this’s parent element.
         # A node’s parent of type Element is known as its parent element. If the node
@@ -97,12 +111,6 @@ abstract class Node {
         return ($parent instanceof Element) ? $parent : null;
     }
 
-    /**
-     * The Node.parentNode read-only property returns the parent of the specified
-     * node in the DOM tree.
-     *
-     * @property-read ?Node parentNode
-     */
     protected function __get_parentNode(): ?Node {
         # The parentNode getter steps are to return this’s parent.
         # An object that participates in a tree has a parent, which is either null or an
@@ -127,16 +135,167 @@ abstract class Node {
     }
 
 
-    public function appendChild(Node $node): void {
-        die(var_export($this->getInnerNode($node)));
+    public function appendChild(Node $node): Node {
+        # The appendChild(node) method steps are to return the result of appending node to
+        # this.
+        $this->preInsertionValidity($node);
+        $inner = $this->getInnerNode($node);
+        $this->innerNode->appendChild($inner);
+        return $node;
+    }
+
+    public function contains(?Node $other): bool {
+        # The contains(other) method steps are to return true if other is an inclusive
+        # descendant of this; otherwise false (including when other is null).
+        return ($other->moonWalk(function($n) use($other) {
+            return ($n === $other);
+        })->current() !== null);
+    }
+
+    public function hasChildNodes(): bool {
+        return $this->innerNode->hasChildNodes();
     }
 
 
-    protected function getInnerNode(?Node $node = null) {
-        $node = $node ?? $this;
+    protected function getInnerNode(Node $node) {
+        if ($node === $this) {
+            return $this->innerNode;
+        }
+
         $reflector = new \ReflectionClass($node::class);
         $innerNode = new \ReflectionProperty($node, 'innerNode');
         $innerNode->setAccessible(true);
         return $innerNode->getValue($node);
+    }
+
+
+    private function preInsertionValidity(Node $node, ?Node $child = null) {
+        // "parent" in the spec comments below is $this
+
+        # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
+        #    a "HierarchyRequestError" Exception.
+        if (!$this instanceof Document && !$this instanceof DocumentFragment && !$this instanceof Element) {
+            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 2. If node is a host-including inclusive ancestor of parent, then throw a
+        #    "HierarchyRequestError" Exception.
+        #
+        # An object A is a host-including inclusive ancestor of an object B, if either
+        # A is an inclusive ancestor of B, or if B’s root has a non-null host and A is a
+        # host-including inclusive ancestor of B’s root’s host.
+        if ($node->parentNode !== null) {
+            if ($this->parentNode !== null && ($this === $node || $node->contains($this))) {
+                throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+            } else {
+                $parentRoot = $this->getRootNode();
+                if ($parentRoot instanceof DocumentFragment) {
+                    $parentRootHost = $parentRoot->host;
+                    if ($parentRootHost !== null && ($parentRootHost === $node || $node->contains($parentRootHost))) {
+                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                    }
+                }
+            }
+        }
+
+        # 3. If child is non-null and its parent is not parent, then throw a
+        #    "NotFoundError" Exception.
+        if ($child !== null && ($child->parentNode === null || $child->parentNode !== $this)) {
+            throw new Exception(Exception::NOT_FOUND);
+        }
+
+        # 4. If node is not a DocumentFragment, DocumentType, Element, Text,
+        #    ProcessingInstruction, or Comment node, then throw a "HierarchyRequestError"
+        #    Exception.
+        if (!$node instanceof DocumentFragment && !$node instanceof DocumentType && !$node instanceof Element && !$node instanceof Text && !$node instanceof ProcessingInstruction && !$node instanceof Comment) {
+            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 5. If either node is a Text node and parent is a document, or node is a
+        #    doctype and parent is not a document, then throw a "HierarchyRequestError"
+        #    Exception.
+        if (($node instanceof Text && $this instanceof Document) || ($node instanceof DocumentType && !$this instanceof Document)) {
+            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 6. If parent is a document, and any of the statements below, switched on the
+        #    interface node implements, are true, then throw a "HierarchyRequestError".
+        if ($this instanceof Document) {
+            # DocumentFragment node
+            #    If node has more than one element child or has a Text node child.
+            #    Otherwise, if node has one element child and either parent has an element
+            #    child, child is a doctype, or child is non-null and a doctype is following
+            #    child.
+            if ($node instanceof DocumentFragment) {
+                $nodeChildElementCount = $node->childElementCount;
+                if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
+                    return ($n instanceof Text);
+                }, true)->current() !== null) {
+                    throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                } elseif ($nodeChildElementCount === 1) {
+                    if ($this->childElementCount > 0 || $child instanceof DocumentType) {
+                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                    }
+
+                    if ($child !== null) {
+                        $n = $child;
+                        while ($n = $n->nextSibling) {
+                            if ($n instanceof DocumentType) {
+                                throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                            }
+                        }
+                    }
+                }
+            }
+            # element
+            #    parent has an element child, child is a doctype, or child is non-null and a
+            #    doctype is following child.
+            elseif ($node instanceof Element) {
+                if ($child instanceof DocumentType) {
+                    throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                }
+
+                if ($child !== null) {
+                    $n = $child;
+                    while ($n = $n->nextSibling) {
+                        if ($n instanceof DocumentType) {
+                            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        }
+                    }
+                }
+
+                foreach ($this->childNodes as $c) {
+                    if ($c instanceof Element) {
+                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                    }
+                }
+            }
+
+            # doctype
+            #    parent has a doctype child, child is non-null and an element is preceding
+            #    child, or child is null and parent has an element child.
+            elseif ($node instanceof DocumentType) {
+                foreach ($this->childNodes as $c) {
+                    if ($c instanceof DocumentType) {
+                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                    }
+                }
+
+                if ($child !== null) {
+                    $n = $child;
+                    while ($n = $n->previousSibling) {
+                        if ($n instanceof Element) {
+                            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        }
+                    }
+                } else {
+                    foreach ($this->childNodes as $c) {
+                        if ($c instanceof Element) {
+                            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

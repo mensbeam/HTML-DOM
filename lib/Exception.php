@@ -12,19 +12,20 @@ use MensBeam\Framework\Exception;
 
 class DOMException extends Exception {
     // From PHP's DOMException; keeping error codes consistent
-    const HIERARCHY_REQUEST_ERROR = 3;
-    const WRONG_DOCUMENT = 4;
-    const INVALID_CHARACTER = 5;
-    const NO_MODIFICATION_ALLOWED = 7;
-    const NOT_FOUND = 8;
-    const NOT_SUPPORTED = 9;
-    const SYNTAX_ERROR = 12;
-    const INVALID_MODIFICATION_ERROR = 13;
-    const NAMESPACE_ERROR = 14;
-    const INVALID_ACCESS_ERROR = 15;
-    const VALIDATION_ERROR = 16;
+    public const HIERARCHY_REQUEST_ERROR = 3;
+    public const WRONG_DOCUMENT = 4;
+    public const INVALID_CHARACTER = 5;
+    public const NO_MODIFICATION_ALLOWED = 7;
+    public const NOT_FOUND = 8;
+    public const NOT_SUPPORTED = 9;
+    public const SYNTAX_ERROR = 12;
+    public const INVALID_MODIFICATION_ERROR = 13;
+    public const NAMESPACE_ERROR = 14;
+    public const INVALID_ACCESS_ERROR = 15;
+    public const VALIDATION_ERROR = 16;
 
-    const CLIENT_ONLY_NOT_IMPLEMENTED = 301;
+    public const RETURN_TYPE_ERROR = 301;
+    public const CLIENT_ONLY_NOT_IMPLEMENTED = 302;
 
 
     public function __construct(int $code, ...$args) {
@@ -41,7 +42,9 @@ class DOMException extends Exception {
              15 => 'Invalid access error',
              16 => 'Validation error',
 
-             301 => '%s is client side only; not implemented'
+             301 => '%s must return type %s, %s given',
+             302 => '%s is client side only; not implemented',
+
         ]);
 
         parent::__construct($code, ...$args);

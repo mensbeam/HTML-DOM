@@ -11,6 +11,8 @@ use MensBeam\HTML\DOM\InnerNode\Document as InnerDocument;
 
 
 class Document extends Node {
+    use ParentNode;
+
     public function __construct() {
         parent::__construct(new InnerDocument($this));
     }

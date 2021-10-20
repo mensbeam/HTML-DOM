@@ -18,8 +18,14 @@ use MensBeam\HTML\Parser;
 class Document extends \DOMDocument {
     use MagicProperties;
 
-    protected WrapperDocument $wrapperNode;
     protected NodeMap $nodeMap;
+    protected \WeakReference $_wrapperNode;
+
+    protected function __get_wrapperNode(): WrapperNode {
+        return $this->_wrapperNode->get();
+    }
+
+    private static ?string $parentNamespace = null;
 
 
     public function __construct(WrapperDocument $wrapperNode) {
@@ -34,8 +40,13 @@ class Document extends \DOMDocument {
         parent::registerNodeClass('DOMProcessingInstruction', ProcessingInstruction::class);
         parent::registerNodeClass('DOMText', Text::class);
 
-        $this->wrapperNode = $wrapperNode;
         $this->nodeMap = new NodeMap();
+        // Use a weak reference here to prevent a circular reference
+        $this->_wrapperNode = \WeakReference::create($wrapperNode);
+
+        if (self::$parentNamespace === null) {
+            self::$parentNamespace = substr(__NAMESPACE__, 0, strrpos(__NAMESPACE__, '\\'));
+        }
     }
 
 
@@ -55,38 +66,31 @@ class Document extends \DOMDocument {
         // based upon the node's class name
         $className = $node::class;
         switch ($className) {
-            case __NAMESPACE__ . '\\Attr': $className = "MensBeam\\HTML\\DOM\\Attr";
+            case __NAMESPACE__ . '\\Attr': $className = self::$parentNamespace . "\\Attr";
             break;
-            case __NAMESPACE__ . '\\CDATASection': $className = "MensBeam\\HTML\\DOM\\CDATASection";
+            case __NAMESPACE__ . '\\CDATASection': $className = self::$parentNamespace . "\\CDATASection";
             break;
-            case __NAMESPACE__ . '\\Comment': $className = "MensBeam\\HTML\\DOM\\Comment";
+            case __NAMESPACE__ . '\\Comment': $className = self::$parentNamespace . "\\Comment";
             break;
-            case __NAMESPACE__ . '\\Document': $className = "MensBeam\\HTML\\DOM\\Document";
+            case __NAMESPACE__ . '\\Document': $className = self::$parentNamespace . "\\Document";
             break;
-            case __NAMESPACE__ . '\\DocumentFragment': $className = "MensBeam\\HTML\\DOM\\DocumentFragment";
+            case __NAMESPACE__ . '\\DocumentFragment': $className = self::$parentNamespace . "\\DocumentFragment";
             break;
             case __NAMESPACE__ . '\\Element':
                 if (($node->namespaceURI === null || $node->namespaceURI === Parser::HTML_NAMESPACE) && $node->nodeName === 'template') {
-                    $className = "MensBeam\\HTML\\DOM\\HTMLTemplateElement";
+                    $className = self::$parentNamespace . "\\HTMLTemplateElement";
                 } else {
-                    $className = "MensBeam\\HTML\\DOM\\Element";
+                    $className = self::$parentNamespace . "\\Element";
                 }
             break;
-            case __NAMESPACE__ . '\\ProcessingInstruction': $className = "MensBeam\\HTML\\DOM\\ProcessingInstruction";
+            case __NAMESPACE__ . '\\ProcessingInstruction': $className = self::$parentNamespace . "\\ProcessingInstruction";
             break;
-            case __NAMESPACE__ . '\\Text': $className = "MensBeam\\HTML\\DOM\\ProcessingInstruction";
+            case __NAMESPACE__ . '\\Text': $className = self::$parentNamespace . "\\Text";
             break;
+            default: die("WHAT IN THE FUCK?! $className");
         }
 
-        // Nodes cannot be created from their constructors normally, so let's bypass all
-        // that shit.
-        $reflector = new \ReflectionClass($className);
-        $wrapper = $reflector->newInstanceWithoutConstructor();
-        $constructor = new \ReflectionMethod($wrapper, '__construct');
-        $constructor->setAccessible(true);
-        $constructor->invoke($wrapper, $node);
-        $this->nodeMap->set($wrapper, $node);
-
-        return $wrapper;
+        // Nodes cannot be created from their constructors normally
+        return Factory::createFromProtectedConstructor($className, $node);
     }
 }

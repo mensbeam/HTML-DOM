@@ -14,14 +14,17 @@ use MensBeam\HTML\DOM\InnerNode\Element as InnerElement,
 class HTMLTemplateElement extends Element {
     protected DocumentFragment $_content;
 
+    // Templates can contain content in both light and shadow, so its content
+    // fragment must be stored here instead of in PHP's main inner document tree.
     protected function __get_content(): DocumentFragment {
         return $this->_content;
     }
 
+
     protected function __construct(InnerElement $element) {
         parent::__construct($element);
 
-        $this->_content = $this->ownerWrapperDocument->get()->createDocumentFragment();
+        $this->_content = $this->ownerDocument->createDocumentFragment();
         Factory::setProtectedProperty($this->_content, 'host', \WeakReference::create($this));
     }
 }

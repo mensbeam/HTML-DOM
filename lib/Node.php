@@ -36,7 +36,6 @@ abstract class Node {
 
     protected ?NodeList $_childNodes = null;
     protected \DOMNode $innerNode;
-    protected ?\WeakReference $ownerWrapperDocument = null;
 
     protected function __get_childNodes(): NodeList {
         // NodeLists cannot be created from their constructors normally.
@@ -179,7 +178,6 @@ abstract class Node {
 
     protected function __construct(\DOMNode $innerNode) {
         $this->innerNode = $innerNode;
-        $this->ownerWrapperDocument = (!$this instanceof Document) ? \WeakReference::create($innerNode->ownerDocument->wrapperNode) : null;
     }
 
 
@@ -187,9 +185,14 @@ abstract class Node {
         # The appendChild(node) method steps are to return the result of appending node to
         # this.
         $this->preInsertionValidity($node);
-        $inner = Factory::getProtectedProperty($node, 'innerNode');
-        $this->innerNode->appendChild($inner);
+        $this->innerNode->appendChild($this->getInnerNode($node));
         return $node;
+    }
+
+    public function cloneNode(?bool $deep = false): Node {
+        // PHP's DOM does this correctly already.
+        $newInner = $this->innerNode->cloneNode($deep);
+        return $newInner->ownerDocument->getWrapperNode($newInner);
     }
 
     public function contains(?Node $other): bool {
@@ -217,13 +220,21 @@ abstract class Node {
     }
 
 
+    protected function getInnerNode(?Node $node = null): \DOMNode {
+        if ($node === null) {
+            return $this->innerNode;
+        }
+
+        return Factory::getProtectedProperty($node, 'innerNode');
+    }
+
     protected function preInsertionValidity(Node $node, ?Node $child = null) {
         // "parent" in the spec comments below is $this
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" Exception.
         if (!$this instanceof Document && !$this instanceof DocumentFragment && !$this instanceof Element) {
-            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 2. If node is a host-including inclusive ancestor of parent, then throw a
@@ -234,13 +245,13 @@ abstract class Node {
         # host-including inclusive ancestor of B’s root’s host.
         if ($node->parentNode !== null) {
             if ($this->parentNode !== null && ($this === $node || $node->contains($this))) {
-                throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
             } else {
                 $parentRoot = $this->getRootNode();
                 if ($parentRoot instanceof DocumentFragment) {
                     $parentRootHost = Factory::getProtectedProperty($parentRoot, 'host')->get();
                     if ($parentRootHost !== null && ($parentRootHost === $node || $node->contains($parentRootHost))) {
-                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }
             }
@@ -249,21 +260,21 @@ abstract class Node {
         # 3. If child is non-null and its parent is not parent, then throw a
         #    "NotFoundError" Exception.
         if ($child !== null && ($child->parentNode === null || $child->parentNode !== $this)) {
-            throw new Exception(Exception::NOT_FOUND);
+            throw new DOMException(DOMException::NOT_FOUND);
         }
 
         # 4. If node is not a DocumentFragment, DocumentType, Element, Text,
         #    ProcessingInstruction, or Comment node, then throw a "HierarchyRequestError"
         #    Exception.
         if (!$node instanceof DocumentFragment && !$node instanceof DocumentType && !$node instanceof Element && !$node instanceof Text && !$node instanceof ProcessingInstruction && !$node instanceof Comment) {
-            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 5. If either node is a Text node and parent is a document, or node is a
         #    doctype and parent is not a document, then throw a "HierarchyRequestError"
         #    Exception.
         if (($node instanceof Text && $this instanceof Document) || ($node instanceof DocumentType && !$this instanceof Document)) {
-            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 6. If parent is a document, and any of the statements below, switched on the
@@ -279,17 +290,17 @@ abstract class Node {
                 if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
                     return ($n instanceof Text);
                 }, true)->current() !== null) {
-                    throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 } elseif ($nodeChildElementCount === 1) {
                     if ($this->childElementCount > 0 || $child instanceof DocumentType) {
-                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 
                     if ($child !== null) {
                         $n = $child;
                         while ($n = $n->nextSibling) {
                             if ($n instanceof DocumentType) {
-                                throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                             }
                         }
                     }
@@ -301,14 +312,14 @@ abstract class Node {
             #    doctype is following child.
             elseif ($node instanceof Element) {
                 if ($child instanceof DocumentType) {
-                    throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 }
 
                 if ($child !== null) {
                     $n = $child;
                     while ($n = $n->nextSibling) {
                         if ($n instanceof DocumentType) {
-                            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     }
                 }
@@ -316,7 +327,7 @@ abstract class Node {
                 $childNodes = $this->childNodes;
                 foreach ($childNodes as $c) {
                     if ($c instanceof Element) {
-                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }
             }
@@ -328,7 +339,7 @@ abstract class Node {
                 $childNodes = $this->childNodes;
                 foreach ($childNodes as $c) {
                     if ($c instanceof DocumentType) {
-                        throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }
 
@@ -336,14 +347,14 @@ abstract class Node {
                     $n = $child;
                     while ($n = $n->previousSibling) {
                         if ($n instanceof Element) {
-                            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     }
                 } else {
                     $childNodes = $this->childNodes;
                     foreach ($childNodes as $c) {
                         if ($c instanceof Element) {
-                            throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     }
                 }

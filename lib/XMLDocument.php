@@ -6,9 +6,9 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\InnerNode;
+namespace MensBeam\HTML\DOM;
 
 
-trait Node {
-    
+class XMLDocument extends Document {
+    protected string $_contentType = 'application/xml';
 }

@@ -58,7 +58,7 @@ class NodeList implements \ArrayAccess, \Countable, \Iterator {
                     if ($type === 'object') {
                         $type = get_class($i);
                     }
-                    throw new Exception(Exception::ARGUMENT_TYPE_ERROR, 1, 'arrayOrClosure', 'array<Node>|\\Closure<array<Node>>', $type);
+                    throw new DOMException(DOMException::ARGUMENT_TYPE_ERROR, 1, 'arrayOrClosure', 'array<Node>|\\Closure<array<Node>>', $type);
                 }
 
                 $array[] = $i;

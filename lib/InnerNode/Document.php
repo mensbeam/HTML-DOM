@@ -76,6 +76,8 @@ class Document extends \DOMDocument {
             break;
             case __NAMESPACE__ . '\\DocumentFragment': $className = self::$parentNamespace . "\\DocumentFragment";
             break;
+            case 'DOMDocumentType': $className = self::$parentNamespace . "\\DocumentType";
+            break;
             case __NAMESPACE__ . '\\Element':
                 if (($node->namespaceURI === null || $node->namespaceURI === Parser::HTML_NAMESPACE) && $node->nodeName === 'template') {
                     $className = self::$parentNamespace . "\\HTMLTemplateElement";
@@ -87,7 +89,8 @@ class Document extends \DOMDocument {
             break;
             case __NAMESPACE__ . '\\Text': $className = self::$parentNamespace . "\\Text";
             break;
-            default: die("WHAT IN THE FUCK?! $className");
+            case __NAMESPACE__ . '\\XMLDocument': $className = self::$parentNamespace . "\\XMLDocument";
+            break;
         }
 
         // Nodes cannot be created from their constructors normally

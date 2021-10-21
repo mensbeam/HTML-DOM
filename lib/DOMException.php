@@ -24,8 +24,7 @@ class DOMException extends Exception {
     public const INVALID_ACCESS_ERROR = 15;
     public const VALIDATION_ERROR = 16;
 
-    public const RETURN_TYPE_ERROR = 301;
-    public const CLIENT_ONLY_NOT_IMPLEMENTED = 302;
+    public const CLIENT_ONLY_NOT_IMPLEMENTED = 301;
 
 
     public function __construct(int $code, ...$args) {
@@ -42,9 +41,7 @@ class DOMException extends Exception {
              15 => 'Invalid access error',
              16 => 'Validation error',
 
-             301 => '%s must return type %s, %s given',
-             302 => '%s is client side only; not implemented',
-
+             301 => '%s is client side only; not implemented'
         ]);
 
         parent::__construct($code, ...$args);

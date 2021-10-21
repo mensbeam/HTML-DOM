@@ -36,6 +36,7 @@ abstract class Node {
 
     protected ?NodeList $_childNodes = null;
     protected \DOMNode $innerNode;
+    protected ?\WeakReference $ownerWrapperDocument = null;
 
     protected function __get_childNodes(): NodeList {
         // NodeLists cannot be created from their constructors normally.
@@ -43,7 +44,7 @@ abstract class Node {
         // the node is even capable of having children, otherwise will just be an empty
         // NodeList. There is no sense in generating a live list that will never update.
         if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
-            $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->nodeDocument;
+            $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
             return Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', function() use($doc) {
                 $result = [];
                 $innerChildNodes = $this->innerNode->childNodes;
@@ -158,7 +159,6 @@ abstract class Node {
         # An object that participates in a tree has a parent, which is either null or an
         # object, and has children, which is an ordered set of objects. An object A
         # whose parent is object B is a child of B.
-
         if ($this instanceof Document) {
             return null;
         }
@@ -172,28 +172,14 @@ abstract class Node {
     }
 
     protected function __get_textContent(): string {
-        # The textContent getter steps are to return the following, switching on the interface this implements:
-        // PHP's DOM has some weird bugs concerning textContent, and because there isn't
-        // a special element class for template elements will return the contents of any
-        // template elements. So, let's do this manually, shall we?
-
-        # ↪ DocumentFragment
-        # ↪ Element
-        #     The descendant text content of this.
-        if ($node instanceof DocumentFragment || $node instanceof Element) {}
-        # ↪ Attr
-        #     this’s value.
-
-        # ↪ CharacterData
-        #     this’s data.
-
-        # ↪ Otherwise
-        #     Null.
+        // PHP's DOM does this correctly already.
+        return $this->innerNode->textContent;
     }
 
 
     protected function __construct(\DOMNode $innerNode) {
         $this->innerNode = $innerNode;
+        $this->ownerWrapperDocument = (!$this instanceof Document) ? \WeakReference::create($innerNode->ownerDocument->wrapperNode) : null;
     }
 
 
@@ -225,6 +211,11 @@ abstract class Node {
         return ($otherNode === $this);
     }
 
+    public function normalize(): void {
+        // PHP's DOM does this correctly already.
+        $this->innerNode->normalize();
+    }
+
 
     protected function preInsertionValidity(Node $node, ?Node $child = null) {
         // "parent" in the spec comments below is $this
@@ -247,7 +238,7 @@ abstract class Node {
             } else {
                 $parentRoot = $this->getRootNode();
                 if ($parentRoot instanceof DocumentFragment) {
-                    $parentRootHost = $parentRoot->host;
+                    $parentRootHost = Factory::getProtectedProperty($parentRoot, 'host')->get();
                     if ($parentRootHost !== null && ($parentRootHost === $node || $node->contains($parentRootHost))) {
                         throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
                     }
@@ -322,7 +313,8 @@ abstract class Node {
                     }
                 }
 
-                foreach ($this->childNodes as $c) {
+                $childNodes = $this->childNodes;
+                foreach ($childNodes as $c) {
                     if ($c instanceof Element) {
                         throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
                     }
@@ -333,7 +325,8 @@ abstract class Node {
             #    parent has a doctype child, child is non-null and an element is preceding
             #    child, or child is null and parent has an element child.
             elseif ($node instanceof DocumentType) {
-                foreach ($this->childNodes as $c) {
+                $childNodes = $this->childNodes;
+                foreach ($childNodes as $c) {
                     if ($c instanceof DocumentType) {
                         throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
                     }
@@ -347,7 +340,8 @@ abstract class Node {
                         }
                     }
                 } else {
-                    foreach ($this->childNodes as $c) {
+                    $childNodes = $this->childNodes;
+                    foreach ($childNodes as $c) {
                         if ($c instanceof Element) {
                             throw new Exception(Exception::HIERARCHY_REQUEST_ERROR);
                         }

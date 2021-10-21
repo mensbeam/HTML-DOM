@@ -18,8 +18,11 @@ class Document extends Node {
     }
 
 
+    public function createDocumentFragment(): DocumentFragment {
+        return $this->innerNode->getWrapperNode($this->innerNode->createDocumentFragment());
+    }
+
     public function createElement(string $localName): Element {
-        $element = $this->innerNode->createElement($localName);
-        return $this->innerNode->getWrapperNode($element);
+        return $this->innerNode->getWrapperNode($this->innerNode->createElement($localName));
     }
 }

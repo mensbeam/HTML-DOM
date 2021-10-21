@@ -25,4 +25,11 @@ class Factory {
         $property->setAccessible(true);
         return $property->getValue($instance);
     }
+
+    public static function setProtectedProperty(mixed $instance, string $propertyName, mixed $value): mixed {
+        $reflector = new \ReflectionClass($instance::class);
+        $property = new \ReflectionProperty($instance, $propertyName);
+        $property->setAccessible(true);
+        return $property->setValue($instance, $value);
+    }
 }

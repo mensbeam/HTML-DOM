@@ -184,6 +184,7 @@ abstract class Node {
     public function appendChild(Node $node): Node {
         # The appendChild(node) method steps are to return the result of appending node to
         # this.
+        // Aside from pre-insertion validity PHP's DOM does this correctly already.
         $this->preInsertionValidity($node);
         $this->innerNode->appendChild($this->getInnerNode($node));
         return $node;
@@ -208,6 +209,15 @@ abstract class Node {
         return $this->innerNode->hasChildNodes();
     }
 
+    public function insertBefore(Node $node, ?Node $child): Node {
+        # The insertBefore(node, child) method steps are to return the result of
+        # pre-inserting node into this before child.
+        // Aside from pre-insertion validity PHP's DOM does this correctly already.
+        $this->preInsertionValidity($node, $child);
+        $this->innerNode->insertBefore($this->getInnerNode($node));
+        return $node;
+    }
+
     public function isSameNode(?Node $otherNode) {
         # The isSameNode(otherNode) method steps are to return true if otherNode is
         # this; otherwise false.
@@ -217,6 +227,126 @@ abstract class Node {
     public function normalize(): void {
         // PHP's DOM does this correctly already.
         $this->innerNode->normalize();
+    }
+
+    public function removeChild(Node $child): Node {
+        // PHP's DOM does this correctly already.
+        $this->innerNode->removeChild($this->getInnerNode($child));
+        return $node;
+    }
+
+    public function replaceChild(Node $node, Node $child): Node {
+        # The replaceChild(node, child) method steps are to return the result of
+        # replacing child with node within this.
+        // PHP's DOM has some issues due to not checking for some edge cases the DOM
+        // spec outlines for Node::replaceChild, so let's follow those before using the
+        // PHP DOM to replace.
+
+        # To replace a child with node within a parent, run these steps:
+        #
+        # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
+        #    a "HierarchyRequestError" DOMException.
+        if (!$this instanceof Document && !$this instanceof DocumentFragment && !$this instanceof Element) {
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 2. If node is a host-including inclusive ancestor of parent, then throw a
+        #    "HierarchyRequestError" DOMException.
+        if ($node->contains($this)) {
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 3. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
+        if ($child->parentNode !== $this) {
+            throw new DOMException(DOMException::NOT_FOUND);
+        }
+
+        # 4. If node is not a DocumentFragment, DocumentType, Element, or CharacterData
+        #    node, then throw a "HierarchyRequestError" DOMException.
+        if (!$node instanceof DocumentFragment && !$node instanceof DocumentType && !$node instanceof Element && !$node instanceof CharacterData) {
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 5. If either node is a Text node and parent is a document, or node is a
+        #    doctype and parent is not a document, then throw a "HierarchyRequestError"
+        #    DOMException.
+        if (($node instanceof Text && $this instanceof Document) || ($node instanceof DocumentType && !$this instanceof Document)) {
+            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+        }
+
+        # 6. If parent is a document, and any of the statements below, switched on the
+        #    interface node implements, are true, then throw a "HierarchyRequestError".
+        if ($this instanceof Document) {
+            # ↪ DocumentFragment
+            #      If node has more than one element child or has a Text node child.
+            #
+            #      Otherwise, if node has one element child and either parent has an element
+            #      child that is not child or a doctype is following child.
+            if ($node instanceof DocumentFragment) {
+                $nodeChildElementCount = $node->childElementCount;
+                if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
+                    return ($n instanceof Text);
+                }, true)->current() !== null) {
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                } elseif ($nodeChildElementCount === 1) {
+                    $n = $this->firstChild;
+                    $beforeChild = true;
+                    do {
+                        if (!$beforeChild && $n instanceof DocumentType) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        }
+
+                        if ($n instanceof Element && $n !== $child) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        } elseif ($n === $child) {
+                            $beforeChild = false;
+                        }
+                    } while ($n = $n->nextSibling);
+                }
+            }
+
+            # ↪ Element
+            #      parent has an element child that is not child or a doctype is following
+            #      child.
+            elseif ($node instanceof Element) {
+                $n = $this->firstChild;
+                $beforeChild = true;
+                do {
+                    if (!$beforeChild && $n instanceof DocumentType) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    }
+
+                    if ($n instanceof Element && $n !== $child) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    } elseif ($n === $child) {
+                        $beforeChild = false;
+                    }
+                } while ($n = $n->nextSibling);
+            }
+
+            # ↪ DocumentType
+            #      parent has a doctype child that is not child, or an element is preceding
+            #      child.
+            elseif ($node instanceof DocumentType) {
+                $n = $this->firstChild;
+                $beforeChild = true;
+                do {
+                    if ($beforeChild && $n instanceof Element) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    }
+
+                    if ($n instanceof DocumentType && $n !== $child) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    } elseif ($n === $child) {
+                        $beforeChild = false;
+                    }
+                } while ($n = $n->nextSibling);
+            }
+        }
+
+        // PHP's DOM does fine with the rest of the steps.
+        $this->innerNode->replaceChild($this->getInnerNode($node), $this->getInnerNode($child));
+        return $node;
     }
 
 
@@ -280,11 +410,12 @@ abstract class Node {
         # 6. If parent is a document, and any of the statements below, switched on the
         #    interface node implements, are true, then throw a "HierarchyRequestError".
         if ($this instanceof Document) {
-            # DocumentFragment node
-            #    If node has more than one element child or has a Text node child.
-            #    Otherwise, if node has one element child and either parent has an element
-            #    child, child is a doctype, or child is non-null and a doctype is following
-            #    child.
+            # ↪ DocumentFragment
+            #      If node has more than one element child or has a Text node child.
+            #
+            #      Otherwise, if node has one element child and either parent has an element
+            #      child, child is a doctype, or child is non-null and a doctype is following
+            #      child.
             if ($node instanceof DocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
@@ -307,9 +438,9 @@ abstract class Node {
                 }
             }
 
-            # element
-            #    parent has an element child, child is a doctype, or child is non-null and a
-            #    doctype is following child.
+            # ↪ Element
+            #      parent has an element child, child is a doctype, or child is non-null and a
+            #      doctype is following child.
             elseif ($node instanceof Element) {
                 if ($child instanceof DocumentType) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
@@ -332,9 +463,9 @@ abstract class Node {
                 }
             }
 
-            # doctype
-            #    parent has a doctype child, child is non-null and an element is preceding
-            #    child, or child is null and parent has an element child.
+            # ↪ DocumentType
+            #      parent has a doctype child, child is non-null and an element is preceding
+            #      child, or child is null and parent has an element child.
             elseif ($node instanceof DocumentType) {
                 $childNodes = $this->childNodes;
                 foreach ($childNodes as $c) {

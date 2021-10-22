@@ -33,7 +33,7 @@ trait ParentNode {
                     if ($type === 'object') {
                         $type = get_class($result);
                     }
-                    throw new DOMException(DOMException::RETURN_TYPE_ERROR, 'Closure', '?bool', $type);
+                    throw new Exception(Exception::RETURN_TYPE_ERROR, 'Closure', '?bool', $type);
                 }
 
                 if ($result === true) {

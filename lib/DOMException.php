@@ -11,7 +11,7 @@ use MensBeam\Framework\Exception;
 
 
 class DOMException extends Exception {
-    // From PHP's DOMException; keeping error codes consistent
+    public const INDEX_SIZE_ERROR = 1;
     public const HIERARCHY_REQUEST_ERROR = 3;
     public const WRONG_DOCUMENT = 4;
     public const INVALID_CHARACTER = 5;
@@ -22,13 +22,11 @@ class DOMException extends Exception {
     public const INVALID_MODIFICATION_ERROR = 13;
     public const NAMESPACE_ERROR = 14;
     public const INVALID_ACCESS_ERROR = 15;
-    public const VALIDATION_ERROR = 16;
-
-    public const CLIENT_ONLY_NOT_IMPLEMENTED = 301;
 
 
     public function __construct(int $code, ...$args) {
         self::$messages = array_replace(parent::$messages, [
+              1 => 'Invalid index size',
               3 => 'Hierarchy request error',
               4 => 'Supplied node does not belong to this document',
               5 => 'Invalid character',
@@ -38,10 +36,7 @@ class DOMException extends Exception {
              12 => 'Syntax error',
              13 => 'Invalid modification error',
              14 => 'Namespace error',
-             15 => 'Invalid access error',
-             16 => 'Validation error',
-
-             301 => '%s is client side only; not implemented'
+             15 => 'Invalid access error'
         ]);
 
         parent::__construct($code, ...$args);

@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\DOM\InnerNode\{
     Document as InnerDocument,
-    Factory
+    Reflection
 };
 use MensBeam\HTML\Parser;
 
@@ -31,7 +31,7 @@ class Document extends Node {
 
     public function __construct() {
         parent::__construct(new InnerDocument($this));
-        $this->_implementation = Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\DOMImplementation', $this);
+        $this->_implementation = Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\DOMImplementation', $this);
     }
 
 
@@ -41,6 +41,17 @@ class Document extends Node {
 
     public function createElement(string $localName): Element {
         return $this->innerNode->getWrapperNode($this->innerNode->createElement($localName));
+    }
+
+    public function createTextNode(string $data): Text {
+        // Text has a public constructor that creates an inner text node without an
+        // associated document, so some jiggerypokery must be done instead.
+        $reflector = new \ReflectionClass(__NAMESPACE__ . '\\Text');
+        $text = $reflector->newInstanceWithoutConstructor();
+        $property = new \ReflectionProperty($text, 'innerNode');
+        $property->setAccessible(true);
+        $property->setValue($text, $this->innerNode->createTextNode($data));
+        return $text;
     }
 
     public function importNode(\DOMNode|Node $node, bool $deep = false): Node {

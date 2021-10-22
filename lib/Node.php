@@ -8,7 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
-    MensBeam\HTML\DOM\InnerNode\Factory;
+    MensBeam\HTML\DOM\InnerNode\Reflection;
 
 
 abstract class Node {
@@ -37,6 +37,40 @@ abstract class Node {
     protected ?NodeList $_childNodes = null;
     protected \DOMNode $innerNode;
 
+    private static ?int $rand = null;
+
+    protected function __get_baseURI(): string {
+        # The baseURI getter steps are to return this’s node document’s document base
+        # URL, serialized.
+        #
+        # The document base URL of a Document object is the absolute URL obtained by running these steps:
+        $document = ($this instanceof Document) ? $this : $this->ownerDocument;
+        $base = $doc->getElementsByNodeName('base');
+        foreach ($base as $b) {
+            $href = $base->getAttribute('href');
+            # 2. Otherwise, return the frozen base URL of the first base element in the
+            #    Document that has an href attribute, in tree order.
+            // URL of base element is always frozen
+            if ($href !== null) {
+                return $href;
+            }
+        }
+
+        # 1. If there is no base element that has an href attribute in the Document,
+        #    then return the Document's fallback base URL.
+        // This is going to be done last because I have to iterate over the base elements first.
+        # The fallback base URL of a Document object document is the URL record obtained by running these steps:
+        #
+        # 1. If document is an iframe srcdoc document, then return the document base URL
+        #    of document's browsing context's container document.
+        // DEVIATION: There can't be an iframe srcdoc document in this implementation.
+        # 2. If document's URL is about:blank, and document's browsing context's creator
+        #    base URL is non-null, then return that creator base URL.
+        // DEVIATION: Document's URL cannot be about:blank in this implementation.
+        # 3. Return document's URL.
+        return $document->URL;
+    }
+
     protected function __get_childNodes(): NodeList {
         // NodeLists cannot be created from their constructors normally.
         // OPTIMIZATION: Going to optimize here and only create a truly live NodeList if
@@ -44,7 +78,7 @@ abstract class Node {
         // NodeList. There is no sense in generating a live list that will never update.
         if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
             $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-            return Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', function() use($doc) {
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', function() use($doc) {
                 $result = [];
                 $innerChildNodes = $this->innerNode->childNodes;
                 foreach ($innerChildNodes as $i) {
@@ -59,13 +93,20 @@ abstract class Node {
             return $this->_childNodes;
         }
 
-        $this->_childNodes = Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\Nodelist', []);
+        $this->_childNodes = Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\Nodelist', []);
         return $this->_childNodes;
     }
 
     protected function __get_firstChild(): ?Node {
         // PHP's DOM does this correctly already.
         return $this->innerNode->firstChild;
+    }
+
+    protected function __get_isConnected(): bool {
+        # The isConnected getter steps are to return true, if this is connected;
+        # otherwise false.
+        # An element is connected if its shadow-including root is a document.
+        return ($this->getRootNode() instanceof Document);
     }
 
     protected function __get_lastChild(): ?Node {
@@ -196,12 +237,117 @@ abstract class Node {
         return $newInner->ownerDocument->getWrapperNode($newInner);
     }
 
+    public function compareDocumentPosition(Node $other): int {
+        # The compareDocumentPosition(other) method steps are:
+        #
+        # 1. If this is other, then return zero.
+        if ($this === $other) {
+            return 0;
+        }
+
+        # 2. Let node1 be other and node2 be this.
+        $node1 = $other;
+        $node2 = $this;
+
+        # 3. Let attr1 and attr2 be null.
+        $attr1 = $attr2 = null;
+
+        # 4. If node1 is an attribute, then set attr1 to node1 and node1 to attr1’s
+        #   element.
+        if ($node1 instanceof Attr) {
+            $attr1 = $node1;
+            $node1 = $attr1->ownerElement;
+        }
+
+        # 5. If node2 is an attribute, then:
+        if ($node2 instanceof Attr) {
+            # 1. Set attr2 to node2 and node2 to attr2’s element.
+            $attr2 = $node2;
+            $node2 = $attr2->ownerElement;
+
+            # 2. If attr1 and node1 are non-null, and node2 is node1, then:
+            if ($attr1 !== null && $node1 !== null && $node2 === $node1) {
+                # 1. For each attr in node2’s attribute list:
+                foreach ($node2->attributes as $attr) {
+                    # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
+                    if ($attr === $attr1) {
+                        return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
+                    }
+
+                    # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
+                    if ($attr === $attr2) {
+                        return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_FOLLOWING;
+                    }
+                }
+            }
+        }
+
+        # 6. If node1 or node2 is null, or node1’s root is not node2’s root, then return the
+        #    result of adding DOCUMENT_POSITION_DISCONNECTED,
+        #    DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC, and either
+        #    DOCUMENT_POSITION_PRECEDING or DOCUMENT_POSITION_FOLLOWING, with the constraint
+        #    that this is to be consistent, together.
+        #
+        # NOTE: Whether to return DOCUMENT_POSITION_PRECEDING or
+        # DOCUMENT_POSITION_FOLLOWING is typically implemented via pointer comparison.
+        # In JavaScript implementations a cached Math.random() value can be used.
+        if (self::$rand === null) {
+            self::$rand = rand(0, 1);
+        }
+
+        if ($node1 === null || $node2 === null || $node1->getRootNode() !== $node2->getRootNode()) {
+            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
+        }
+
+        # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2
+        #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINS to
+        #    DOCUMENT_POSITION_PRECEDING.
+        if (($node1 === $node2 && $attr2 !== null) || ($attr1 === null && $node2->contains($node1))) {
+            return Node::DOCUMENT_POSITION_CONTAINS + Node::DOCUMENT_POSITION_PRECEDING;
+        }
+
+        # 8. If node1 is a descendant of node2 and attr2 is null, or node1 is node2 and attr1
+        #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINED_BY to
+        #    DOCUMENT_POSITION_FOLLOWING.
+        if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $node2->contains($node1))) {
+            return Node::DOCUMENT_POSITION_CONTAINED_BY + Node::DOCUMENT_POSITION_FOLLOWING;
+        }
+
+        # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
+        if ($node2->walkPreceding(function($n) use($node1) {
+            return ($n === $node1);
+        })->current() !== null) {
+            return Node::DOCUMENT_POSITION_PRECEDING;
+        }
+
+        # 10. Return DOCUMENT_POSITION_FOLLOWING.
+        return Node::DOCUMENT_POSITION_FOLLOWING;
+    }
+
     public function contains(?Node $other): bool {
         # The contains(other) method steps are to return true if other is an inclusive
         # descendant of this; otherwise false (including when other is null).
         return ($other->moonWalk(function($n) use($other) {
             return ($n === $other);
         })->current() !== null);
+    }
+
+    public function getRootNode(array $options): Node {
+        # The getRootNode(options) method steps are to return this’s shadow-including
+        # root if options["composed"] is true; otherwise this’s root.
+        // DEVIATION: This implementation does not have scripting, so there's no Shadow
+        // DOM. Therefore, there isn't a need for the options parameter.
+
+        # The root of an object is itself, if its parent is null, or else it is the root
+        # of its parent. The root of a tree is any object participating in that tree
+        # whose parent is null.
+        if ($this->parentNode === null) {
+            return $this;
+        }
+
+        return $this->moonwalk(function($n) {
+            return ($n->parentNode === null);
+        })->current();
     }
 
     public function hasChildNodes(): bool {
@@ -218,10 +364,154 @@ abstract class Node {
         return $node;
     }
 
+    public function isDefaultNamespace(?string $namespace = null): bool {
+        # The isDefaultNamespace(namespace) method steps are:
+        // PHP DOM's implementation of this is broken for HTML, so let's do this
+        // manually.
+
+        # 1. If namespace is the empty string, then set it to null.
+        if ($namespace === '') {
+            $namespace = null;
+        }
+
+        # 2. Let defaultNamespace be the result of running locate a namespace for this
+        #    using null.
+        # 3. Return true if defaultNamespace is the same as namespace; otherwise false.
+        return ($this->locateNamespace($this, null) === $namespace);
+    }
+
+    public function isEqualNode(?Node $otherNode) {
+        # The isEqualNode(otherNode) method steps are to return true if otherNode is
+        # non-null and this equals otherNode; otherwise false.
+
+        # A node A equals a node B if all of the following conditions are true:
+        #
+        # • A and B implement the same interfaces.
+        if ($this::class !== $otherNode::class) {
+            return false;
+        }
+
+        # • The following are equal, switching on the interface A implements:
+        #
+        # ↪ DocumentType
+        #      Its name, public ID, and system ID.
+        if ($this instanceof DocumentType) {
+            if ($this->name !== $otherNode->name || $this->publicId !== $otherNode->publicId || $this->systemId !== $this->publicId) {
+                return false;
+            }
+        }
+        # ↪ Element
+        #      Its namespace, namespace prefix, local name, and its attribute list’s size.
+        elseif ($this instanceof Element) {
+            if ($this->namespaceURI !== $otherNode->namespaceURI || $this->prefix !== $otherNode->prefix || $this->localName !== $otherNode->localName || $this->attributes->length !== $otherNode->attributes->length) {
+                return false;
+            }
+
+            # • If A is an element, each attribute in its attribute list has an attribute that
+            #   equals an attribute in B’s attribute list.
+            foreach ($this->attributes as $key => $attr) {
+                if (!$attr->isEqualNode($otherNode->attributes[$key])) {
+                    return false;
+                }
+            }
+        }
+        # ↪ Attr
+        #       Its namespace, local name, and value.
+        elseif ($this instanceof Attr) {
+            if ($this->namespaceURI !== $otherNode->namespaceURI || $this->localName !== $otherNode->localName || $this->value !== $otherNode->value) {
+                return false;
+            }
+        }
+        # ↪ Text
+        # ↪ Comment
+        #      Its data.
+        elseif ($this instanceof Text || $this instanceof Comment) {
+            if ($this->data !== $otherNode->data) {
+                return false;
+            }
+        }
+
+        if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
+            # • A and B have the same number of children.
+            if ($this->childNodes->length !== $otherNode->childNodes->length) {
+                return false;
+            }
+
+            # • Each child of A equals the child of B at the identical index.
+            foreach ($this->childNodes as $key => $child) {
+                $other = $otherNode->childNodes[$key];
+                if ($child->name !== $other->name || $child->publicId !== $other->publicId || $child->systemId !== $other->systemId) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     public function isSameNode(?Node $otherNode) {
         # The isSameNode(otherNode) method steps are to return true if otherNode is
         # this; otherwise false.
         return ($otherNode === $this);
+    }
+
+    public function lookupPrefix(?string $namespace = null): ?string {
+        # The lookupPrefix(namespace) method steps are:
+        // PHP DOM's implementation of this is broken for HTML, so let's do this
+        // manually.
+
+        # 1. If namespace is null or the empty string, then return null.
+        if ($namespace === null || $namespace === '') {
+            return null;
+        }
+
+        # 2. Switch on the interface this implements:
+        #
+        # ↪ Element
+        if ($this instanceof Element) {
+            # Return the result of locating a namespace prefix for it using namespace.
+            return $this->locateNamespacePrefix($this, $namespace);
+        }
+
+        # ↪ Document
+        elseif ($this instanceof Document) {
+            # Return the result of locating a namespace prefix for its document element, if
+            # its document element is non-null; otherwise null.
+            return ($this->documentElement !== null) ? $this->locateNamespacePrefix($this->documentElement, $namespace) : null;
+        }
+
+        # ↪ DocumentType
+        # ↪ DocumentFragment
+        elseif ($this instanceof DocumentType || $this instanceof DocumentFragment) {
+            return null;
+        }
+
+        # ↪ Attr
+        elseif ($this instanceof Attr) {
+            # Return the result of locating a namespace prefix for its element, if its
+            # element is non-null; otherwise null.
+            return $this->locateNamespacePrefix($this->ownerElement, $namespace);
+        }
+
+        # ↪ Otherwise
+        #      Return the result of locating a namespace prefix for its parent element,
+        #      if its parent element is non-null; otherwise null.
+        $parentElement = $this->parentElement;
+        return ($parentElement !== null) ? $this->locateNamespacePrefix($this->parentElement, $namespace) : null;
+    }
+
+    public function lookupNamespaceURI(?string $prefix = null): ?string {
+        # The lookupNamespaceURI(prefix) method steps are:
+        // PHP DOM's implementation of this is broken for HTML, so let's do this
+        // manually.
+
+        # 1. If prefix is the empty string, then set it to null.
+        if ($prefix === '') {
+            $prefix = null;
+        }
+
+        # 2. Return the result of running locate a namespace for this using prefix.
+        return $this->locateNamespace($this, $prefix);
     }
 
     public function normalize(): void {
@@ -289,19 +579,22 @@ abstract class Node {
                 }, true)->current() !== null) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 } elseif ($nodeChildElementCount === 1) {
-                    $n = $this->firstChild;
                     $beforeChild = true;
-                    do {
+                    if ($node->firstChild->walkFollowing(function($n) use(&$beforeChild, $child) {
                         if (!$beforeChild && $n instanceof DocumentType) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            return true;
                         }
 
                         if ($n instanceof Element && $n !== $child) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            return true;
                         } elseif ($n === $child) {
                             $beforeChild = false;
                         }
-                    } while ($n = $n->nextSibling);
+
+                        return false;
+                    }, true)->current() !== null) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    }
                 }
             }
 
@@ -309,38 +602,44 @@ abstract class Node {
             #      parent has an element child that is not child or a doctype is following
             #      child.
             elseif ($node instanceof Element) {
-                $n = $this->firstChild;
                 $beforeChild = true;
-                do {
+                if ($node->firstChild->walkFollowing(function($n) use(&$beforeChild, $child) {
                     if (!$beforeChild && $n instanceof DocumentType) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        return true;
                     }
 
                     if ($n instanceof Element && $n !== $child) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        return true;
                     } elseif ($n === $child) {
                         $beforeChild = false;
                     }
-                } while ($n = $n->nextSibling);
+
+                    return false;
+                }, true)->current() !== null) {
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                }
             }
 
             # ↪ DocumentType
             #      parent has a doctype child that is not child, or an element is preceding
             #      child.
             elseif ($node instanceof DocumentType) {
-                $n = $this->firstChild;
                 $beforeChild = true;
-                do {
+                if ($node->firstChild->walkFollowing(function($n) use(&$beforeChild, $child) {
                     if ($beforeChild && $n instanceof Element) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        return true;
                     }
 
                     if ($n instanceof DocumentType && $n !== $child) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        return true;
                     } elseif ($n === $child) {
                         $beforeChild = false;
                     }
-                } while ($n = $n->nextSibling);
+
+                    return false;
+                }, true)->current() !== null) {
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                }
             }
         }
 
@@ -355,7 +654,115 @@ abstract class Node {
             return $this->innerNode;
         }
 
-        return Factory::getProtectedProperty($node, 'innerNode');
+        return Reflection::getProtectedProperty($node, 'innerNode');
+    }
+
+    protected function locateNamespace(Node $node, ?string $prefix = null): ?string {
+        # To locate a namespace for a node using prefix, switch on the interface node
+        # implements:
+        #
+        # ↪ Element
+        if ($node instanceof Element) {
+            # 1. If its namespace is non-null and its namespace prefix is prefix, then return
+            #    namespace.
+            if ($node->namespaceURI !== null && $node->prefix === $prefix) {
+                return $node->namespaceURI;
+            }
+
+            # 2. If it has an attribute whose namespace is the XMLNS namespace, namespace prefix
+            #    is "xmlns", and local name is prefix, or if prefix is null and it has an
+            #    attribute whose namespace is the XMLNS namespace, namespace prefix is null, and
+            #    local name is "xmlns", then return its value if it is not the empty string, and
+            #    null otherwise.
+            $attributes = $node->attributes;
+            foreach ($attributes as $attr) {
+                if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === null && $attr->localName === 'xmlns')) {
+                    return ($attr->value !== '') ? $attr->value : null;
+                }
+            }
+
+            $parentElement = $node->parentElement;
+
+            # 3. If its parent element is null, then return null.
+            if ($parentElement === null) {
+                return null;
+            }
+
+            # 4. Return the result of running locate a namespace on its parent element using
+            #    prefix.
+            return $this->locateNamespace($parentElement, $prefix);
+        }
+
+        # ↪ Document
+        elseif ($node instanceof Document) {
+            # 1. If its document element is null, then return null.
+            if ($node->documentElement === null) {
+                return null;
+            }
+
+            # 2. Return the result of running locate a namespace on its document element
+            #    using prefix.
+            return $this->locateNamespace($node->documentElement, $prefix);
+        }
+
+        # ↪ DocumentType
+        # ↪ DocumentFragment
+        elseif ($node instanceof DocumentType || $node instanceof DocumentFragment) {
+            # Return null.
+            return null;
+        }
+
+        # ↪ Attr
+        elseif ($node instanceof Attr) {
+            # 1. If its element is null, then return null.
+            if ($node->ownerElement === null) {
+                return null;
+            }
+
+            # 2. Return the result of running locate a namespace on its element using
+            #    prefix.
+            return $this->locateNamespace($node->ownerElement, $prefix);
+        }
+
+        # ↪ Otherwise
+        # 1. If its parent element is null, then return null.
+        $parentElement = $node->parentElement;
+        if ($parentElement === null) {
+            return null;
+        }
+
+        # 2. Return the result of running locate a namespace on its parent element using
+        #    prefix.
+        return $this->locateNamespace($parentElement, $prefix);
+    }
+
+    protected function locateNamespacePrefix(Element $element, ?string $namespace = null) {
+        # To locate a namespace prefix for an element using namespace, run these steps:
+        #
+        # 1. If element’s namespace is namespace and its namespace prefix is non-null,
+        #    then return its namespace prefix.
+        if ($element->namespaceURI === $namespace && $element->$prefix !== null) {
+            return $element->prefix;
+        }
+
+        # 2. If element has an attribute whose namespace prefix is "xmlns" and value is
+        #    namespace, then return element’s first such attribute’s local name.
+        $attributes = $element->attributes;
+        foreach ($attributes as $attr) {
+            if ($attr->prefix === 'xmlns' && $attr->value === $namespace) {
+                return $attr->localName;
+            }
+        }
+
+        # 3. If element’s parent element is not null, then return the result of running
+        #    locate a namespace prefix on that element using namespace.
+        $parentElement = $element->parentElement;
+        if ($parentElement !== null) {
+            return $this->locateNamespacePrefix($parentElement, $namespace);
+        }
+
+        # Return null.
+        return null;
     }
 
     protected function preInsertionValidity(Node $node, ?Node $child = null) {
@@ -379,7 +786,7 @@ abstract class Node {
             } else {
                 $parentRoot = $this->getRootNode();
                 if ($parentRoot instanceof DocumentFragment) {
-                    $parentRootHost = Factory::getProtectedProperty($parentRoot, 'host')->get();
+                    $parentRootHost = Reflection::getProtectedProperty($parentRoot, 'host')->get();
                     if ($parentRootHost !== null && ($parentRootHost === $node || $node->contains($parentRootHost))) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }

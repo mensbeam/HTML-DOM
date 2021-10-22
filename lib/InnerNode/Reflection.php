@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM\InnerNode;
 
 
-class Factory {
+class Reflection {
     public static function createFromProtectedConstructor(string $className, ...$arguments): mixed {
         $reflector = new \ReflectionClass($className);
         $result = $reflector->newInstanceWithoutConstructor();
@@ -26,10 +26,10 @@ class Factory {
         return $property->getValue($instance);
     }
 
-    public static function setProtectedProperty(mixed $instance, string $propertyName, mixed $value): mixed {
+    public static function setProtectedProperty(mixed $instance, string $propertyName, mixed $value): void {
         $reflector = new \ReflectionClass($instance::class);
         $property = new \ReflectionProperty($instance, $propertyName);
         $property->setAccessible(true);
-        return $property->setValue($instance, $value);
+        $property->setValue($instance, $value);
     }
 }

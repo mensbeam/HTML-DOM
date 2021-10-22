@@ -8,7 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
-    MensBeam\HTML\DOM\InnerNode\Factory;
+    MensBeam\HTML\DOM\InnerNode\Reflection;
 
 
 trait ChildNode {
@@ -41,7 +41,7 @@ trait ChildNode {
                 }
 
                 if ($node instanceof DocumentFragment) {
-                    $host = Factory::getProtectedProperty($node, 'host');
+                    $host = Reflection::getProtectedProperty($node, 'host');
                     if ($host !== null) {
                         $next = $host->get();
                     }

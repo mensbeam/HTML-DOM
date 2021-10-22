@@ -7,7 +7,6 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\DocumentFragment as InnerDocumentFragment;
 
 
 class DocumentFragment extends Node {
@@ -16,7 +15,7 @@ class DocumentFragment extends Node {
     protected ?\WeakReference $host = null;
 
 
-    protected function __construct(InnerDocumentFragment $fragment) {
+    protected function __construct(\DOMDocumentFragment $fragment) {
         parent::__construct($fragment);
     }
 }

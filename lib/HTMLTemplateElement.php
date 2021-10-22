@@ -8,7 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\DOM\InnerNode\Element as InnerElement,
-    MensBeam\HTML\DOM\InnerNode\Factory;
+    MensBeam\HTML\DOM\InnerNode\Reflection;
 
 
 class HTMLTemplateElement extends Element {
@@ -25,6 +25,6 @@ class HTMLTemplateElement extends Element {
         parent::__construct($element);
 
         $this->_content = $this->ownerDocument->createDocumentFragment();
-        Factory::setProtectedProperty($this->_content, 'host', \WeakReference::create($this));
+        Reflection::setProtectedProperty($this->_content, 'host', \WeakReference::create($this));
     }
 }

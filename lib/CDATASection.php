@@ -6,7 +6,7 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\InnerNode;
+namespace MensBeam\HTML\DOM;
 
 
-class CDATASection extends \DOMCDATASection {}
+class CDATASection extends Text {}

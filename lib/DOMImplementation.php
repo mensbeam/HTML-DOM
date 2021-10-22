@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Factory,
+use MensBeam\HTML\DOM\InnerNode\Reflection,
     MensBeam\HTML\DOM\Parser;
 
 
@@ -24,7 +24,7 @@ class DOMImplementation {
         # The createDocument(namespace, qualifiedName, doctype) method steps are:
         #
         # 1. Let document be a new XMLDocument.
-        $document = Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\XMLDocument');
+        $document = Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\XMLDocument');
 
         # 2. Let element be null.
         $element = null;
@@ -67,7 +67,7 @@ class DOMImplementation {
                 $contentType = 'application/xml';
         }
 
-        Factory::setProtectedProperty($document, '_contentType', $contentType);
+        Reflection::setProtectedProperty($document, '_contentType', $contentType);
 
         # 8. Return document.
         return $document;
@@ -86,14 +86,14 @@ class DOMImplementation {
         # 2. Return a new doctype, with qualifiedName as its name, publicId as its
         #    public ID, and systemId as its system ID, and with its node document set to
         #    the associated document of this.
-        $innerDocument = Factory::getProtectedProperty($this->document->get(), 'innerNode');
+        $innerDocument = Reflection::getProtectedProperty($this->document->get(), 'innerNode');
         // PHP's DOM won't accept an empty string as the qualifiedName, so use a space
         // instead; this will be worked around in DocumentType.
         return $innerDocument->getWrapperNode($innerDocument->implementation->createDocumentType(($qualifiedName !== '') ? $qualifiedName : ' ', $publicId, $systemId));
     }
 
     public function createHTMLDocument(string $title = ''): Document {
-        $document = Factory::createFromProtectedConstructor(__NAMESPACE__ . '\\Document');
+        $document = Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\Document');
         if ($title !== '') {
             $document->title = $title;
         }

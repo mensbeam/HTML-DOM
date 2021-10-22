@@ -30,15 +30,7 @@ class Document extends \DOMDocument {
 
     public function __construct(WrapperDocument $wrapperNode) {
         parent::__construct();
-
-        parent::registerNodeClass('DOMAttr', Attr::class);
-        parent::registerNodeClass('DOMComment', Comment::class);
-        parent::registerNodeClass('DOMCDATASection', CDATASection::class);
         parent::registerNodeClass('DOMDocument', self::class);
-        parent::registerNodeClass('DOMDocumentFragment', DocumentFragment::class);
-        parent::registerNodeClass('DOMElement', Element::class);
-        parent::registerNodeClass('DOMProcessingInstruction', ProcessingInstruction::class);
-        parent::registerNodeClass('DOMText', Text::class);
 
         $this->nodeMap = new NodeMap();
         // Use a weak reference here to prevent a circular reference
@@ -64,36 +56,42 @@ class Document extends \DOMDocument {
 
         // If the node didn't exist we must construct the wrapper node's class name
         // based upon the node's class name
-        $className = $node::class;
-        switch ($className) {
-            case __NAMESPACE__ . '\\Attr': $className = self::$parentNamespace . "\\Attr";
-            break;
-            case __NAMESPACE__ . '\\CDATASection': $className = self::$parentNamespace . "\\CDATASection";
-            break;
-            case __NAMESPACE__ . '\\Comment': $className = self::$parentNamespace . "\\Comment";
-            break;
-            case __NAMESPACE__ . '\\Document': $className = self::$parentNamespace . "\\Document";
-            break;
-            case __NAMESPACE__ . '\\DocumentFragment': $className = self::$parentNamespace . "\\DocumentFragment";
-            break;
-            case 'DOMDocumentType': $className = self::$parentNamespace . "\\DocumentType";
-            break;
-            case __NAMESPACE__ . '\\Element':
-                if (($node->namespaceURI === null || $node->namespaceURI === Parser::HTML_NAMESPACE) && $node->nodeName === 'template') {
-                    $className = self::$parentNamespace . "\\HTMLTemplateElement";
+        if ($node instanceof \DOMAttr) {
+            $className = 'Attr';
+        } elseif ($node instanceof \DOMCDATASection) {
+            $className = 'CDATASection';
+        } elseif ($node instanceof \DOMComment) {
+            $className = 'Comment';
+        } elseif ($node instanceof \DOMDocument) {
+            $className = 'Document';
+        } elseif ($node instanceof \DOMDocumentFragment) {
+            $className = 'DocumentFragment';
+        } elseif ($node instanceof \DOMDocumentType) {
+            $className = 'DOMDocumentType';
+        } elseif ($node instanceof \DOMElement) {
+            $namespace = $node->namespaceURI;
+            if ($namespace === null) {
+                if ($node->nodeName === 'template') {
+                    $className = 'HTMLTemplateElement';
                 } else {
-                    $className = self::$parentNamespace . "\\Element";
+                    $className = 'HTMLElement';
                 }
-            break;
-            case __NAMESPACE__ . '\\ProcessingInstruction': $className = self::$parentNamespace . "\\ProcessingInstruction";
-            break;
-            case __NAMESPACE__ . '\\Text': $className = self::$parentNamespace . "\\Text";
-            break;
-            case __NAMESPACE__ . '\\XMLDocument': $className = self::$parentNamespace . "\\XMLDocument";
-            break;
+            } elseif ($namespace === Parser::SVG_NAMESPACE) {
+                $className = 'SVGElement';
+            } elseif ($namespace === Parser::MATHML_NAMESPACE) {
+                $className = 'MathMLElement';
+            } else {
+                $className = 'Element';
+            }
+        } elseif ($node instanceof \DOMProcessingInstruction) {
+            $className = 'ProcessingInstruction';
+        } elseif ($node instanceof \DOMText) {
+            $className = 'Text';
+        } elseif ($node instanceof XMLDocument) {
+            $className = 'XMLDocument';
         }
 
         // Nodes cannot be created from their constructors normally
-        return Factory::createFromProtectedConstructor($className, $node);
+        return Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);
     }
 }

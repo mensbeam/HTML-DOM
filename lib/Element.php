@@ -7,8 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Element as InnerElement,
-    MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser;
 
 
 class Element extends Node {
@@ -24,7 +23,7 @@ class Element extends Node {
     }
 
 
-    protected function __construct(InnerElement $element) {
+    protected function __construct(\DOMElement $element) {
         parent::__construct($element);
     }
 

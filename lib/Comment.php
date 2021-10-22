@@ -6,7 +6,7 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\InnerNode;
+namespace MensBeam\HTML\DOM;
 
 
-class Text extends \DOMText {}
+class Comment extends CharacterData {}

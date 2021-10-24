@@ -20,8 +20,26 @@ class Document extends Node {
     protected string $_contentType = 'text/html';
     protected DOMImplementation $_implementation;
 
+    protected function __get_body(): Element {
+        if ($this->documentElement === null || !$this->documentElement->hasChildNodes()) {
+            return null;
+        }
+
+        # The body element of a document is the first of the html element's children
+        # that is either a body element or a frameset element, or null if there is no
+        # such element.
+        return $this->documentElement->firstChild->walkFollowing(function($n) {
+            $name = strtolower($n->nodeName);
+            return ($n instanceof Element && $n->namespaceURI === Parser::HTML_NAMESPACE && ($name === 'body' || $name === 'frameset'));
+        }, true)->current();
+    }
+
     protected function __get_contentType(): string {
         return $this->_contentType;
+    }
+
+    protected function __get_documentElement(): ?Element {
+        return $this->innerNode->getWrapperNode($this->innerNode->documentElement);
     }
 
     protected function __get_implementation(): DOMImplementation {

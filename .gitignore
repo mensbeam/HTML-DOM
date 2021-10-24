@@ -3,7 +3,8 @@ manual
 node_modules
 /test*.html
 /test*.php
-lib/old
+old
+tests/cases/old
 
 # General
 *.DS_Store

@@ -16,20 +16,7 @@
   </coverage>
   <testsuites>
     <testsuite name="DOM">
-      <file>cases/TestChildNode.php</file>
-      <file>cases/TestDocument.php</file>
-      <file>cases/TestDocumentFragment.php</file>
-      <file>cases/TestDocumentOrElement.php</file>
-      <file>cases/TestElement.php</file>
-      <file>cases/TestElementMap.php</file>
-      <file>cases/TestLeafNode.php</file>
-      <file>cases/TestNodeList.php</file>
-      <file>cases/TestNodeTrait.php</file>
-      <file>cases/TestParentNode.php</file>
-      <file>cases/TestTokenList.php</file>
-    </testsuite>
-    <testsuite name="Serializer">
-      <file>cases/Serializer/TestSerializer.php</file>
+      <file>cases/TestNode.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

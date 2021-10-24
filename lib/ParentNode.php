@@ -7,7 +7,10 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties;
+use MensBeam\HTML\DOM\InnerNode\{
+    Document as InnerDocument,
+    Reflection
+};
 
 
 trait ParentNode {
@@ -21,35 +24,29 @@ trait ParentNode {
      *                                   the iteration.
      */
     public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = ($includeReferenceNode && !$this instanceof DocumentFragment) ? $this : $this->firstChild;
+        $node = null;
+        if ($includeReferenceNode && !$this instanceof DocumentFragment) {
+            $node = $this->innerNode;
+        } elseif ($this->firstChild !== null) {
+            $node = Reflection::getProtectedProperty($this->firstChild, 'innerNode');
+        }
 
         if ($node !== null) {
+            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
+
             do {
                 $next = $node->nextSibling;
-                $result = ($filter === null) ? true : $filter($node);
-                // Have to do type checking here because PHP is lacking in advanced typing
-                if ($result !== true && $result !== false && $result !== null) {
-                    $type = gettype($result);
-                    if ($type === 'object') {
-                        $type = get_class($result);
-                    }
-                    throw new Exception(Exception::RETURN_TYPE_ERROR, 'Closure', '?bool', $type);
-                }
+                $wrapperNode = $doc->getWrapperNode($node);
+                $result = ($filter === null) ? true : $filter($wrapperNode);
 
                 if ($result === true) {
-                    yield $node;
+                    yield $wrapperNode;
                 }
 
                 // If the filter returns true (accept) or false (skip) and the node wasn't
                 // removed in the filter iterate through the children
-                if ($result !== null && $node->parentNode !== null) {
-                    if ($node instanceof HTMLTemplateElement) {
-                        $node = $node->content;
-                    }
-
-                    if ($node->hasChildNodes()) {
-                        yield from $node->walk($filter);
-                    }
+                if ($result !== null && $node->parentNode !== null && $node->hasChildNodes()) {
+                    yield from $node->walk($filter);
                 }
             } while ($node = $next);
         }

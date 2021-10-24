@@ -10,7 +10,7 @@ namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\Exception as FrameworkException;
 
 
-class DOMException extends FrameworkException {
+class Exception extends FrameworkException {
     public const CLIENT_ONLY_NOT_IMPLEMENTED = 301;
 
 

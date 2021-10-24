@@ -99,7 +99,8 @@ abstract class Node {
 
     protected function __get_firstChild(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->firstChild;
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return $doc->getWrapperNode($this->innerNode->firstChild);
     }
 
     protected function __get_isConnected(): bool {
@@ -111,17 +112,17 @@ abstract class Node {
 
     protected function __get_lastChild(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->lastChild;
+        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->lastChild);
     }
 
     protected function __get_previousSibling(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->previousSibling;
+        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->previousSibling);
     }
 
     protected function __get_nextSibling(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->nextSibling;
+        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->nextSibling);
     }
 
     protected function __get_nodeName(): string {
@@ -183,7 +184,7 @@ abstract class Node {
             return null;
         }
 
-        return $this->innerNode->ownerDocument->getWrapperNode();
+        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerDocument);
     }
 
     protected function __get_parentElement(): ?Element {
@@ -862,11 +863,10 @@ abstract class Node {
                     }
                 }
 
-                $childNodes = $this->childNodes;
-                foreach ($childNodes as $c) {
-                    if ($c instanceof Element) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
+                if ($this->firstChild !== null && $this->firstChild->walkFollowing(function($n) {
+                    return ($n instanceof Element);
+                }, true)->current() !== null) {
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 }
             }
 
@@ -874,11 +874,10 @@ abstract class Node {
             #      parent has a doctype child, child is non-null and an element is preceding
             #      child, or child is null and parent has an element child.
             elseif ($node instanceof DocumentType) {
-                $childNodes = $this->childNodes;
-                foreach ($childNodes as $c) {
-                    if ($c instanceof DocumentType) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
+                if ($this->firstChild !== null && $this->firstChild->walkFollowing(function($n) {
+                    return ($n instanceof DocumentType);
+                }, true)->current() !== null) {
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 }
 
                 if ($child !== null) {
@@ -889,11 +888,10 @@ abstract class Node {
                         }
                     }
                 } else {
-                    $childNodes = $this->childNodes;
-                    foreach ($childNodes as $c) {
-                        if ($c instanceof Element) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                        }
+                    if ($this->firstChild !== null && $this->firstChild->walkFollowing(function($n) {
+                        return ($n instanceof Element);
+                    }, true)->current() !== null) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }
             }

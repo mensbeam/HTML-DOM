@@ -42,10 +42,13 @@ class Document extends \DOMDocument {
     }
 
 
-    public function getWrapperNode(?\DOMNode $node = null): WrapperNode {
+    public function getWrapperNode(?\DOMNode $node = null): ?WrapperNode {
+        if ($node === null) {
+            return null;
+        }
         // If the node is a Document then the wrapperNode is this's wrapperNode
         // property.
-        if ($node instanceof Document || $node === null) {
+        if ($node instanceof Document) {
             return $this->wrapperNode;
         }
 
@@ -91,7 +94,21 @@ class Document extends \DOMDocument {
             $className = 'XMLDocument';
         }
 
-        // Nodes cannot be created from their constructors normally
-        return Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);
+        // If the class is to be a CDATASection, DocumentFragment, or Text then the
+        // object needs to be created differently because they have public constructors,
+        // unlike other nodes.
+        if ($className === 'CDATASection' || $className === 'DocumentFragment' || $className === 'Text') {
+            $reflector = new \ReflectionClass(self::$parentNamespace . "\\$className");
+            $wrapperNode = $reflector->newInstanceWithoutConstructor();
+            $property = new \ReflectionProperty($wrapperNode, 'innerNode');
+            $property->setAccessible(true);
+            $property->setValue($wrapperNode, $node);
+            return $wrapperNode;
+        } else {
+            $wrapperNode = Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);
+        }
+
+        $this->nodeMap->set($wrapperNode, $this);
+        return $wrapperNode;
     }
 }

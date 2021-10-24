@@ -7,8 +7,10 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties,
-    MensBeam\HTML\DOM\InnerNode\Reflection;
+use MensBeam\HTML\DOM\InnerNode\{
+    Document as InnerDocument,
+    Reflection
+};
 
 
 trait ChildNode {
@@ -23,28 +25,18 @@ trait ChildNode {
      */
     public function moonwalk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
         $node = $this->parentNode;
+
         if ($node !== null) {
+            $node = Reflection::getProtectedProperty($node, 'innerNode');
+            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
+
             do {
                 $next = $node->parentNode;
-                $result = ($filter === null) ? true : $filter($node);
-                // Have to do type checking here because PHP is lacking in advanced typing
-                if ($result !== true && $result !== false && $result !== null) {
-                    $type = gettype($result);
-                    if ($type === 'object') {
-                        $type = get_class($result);
-                    }
-                    throw new Exception(Exception::RETURN_TYPE_ERROR, 'Closure', '?bool', $type);
-                }
+                $wrapperNode = $doc->getWrapperNode($node);
+                $result = ($filter === null) ? true : $filter($wrapperNode);
 
                 if ($result === true) {
-                    yield $node;
-                }
-
-                if ($node instanceof DocumentFragment) {
-                    $host = Reflection::getProtectedProperty($node, 'host');
-                    if ($host !== null) {
-                        $next = $host->get();
-                    }
+                    yield $wrapperNode;
                 }
             } while ($node = $next);
         }
@@ -59,22 +51,23 @@ trait ChildNode {
      *                                   the iteration.
      */
     public function walkFollowing(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = ($includeReferenceNode) ? $this : $this->nextSibling;
+        $node = null;
+        if ($includeReferenceNode) {
+            $node = $this->innerNode;
+        } elseif ($this->nextSibling !== null) {
+            $node = Reflection::getProtectedProperty($this->nextSibling, 'innerNode');
+        }
+
         if ($node !== null) {
+            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
+
             do {
                 $next = $node->nextSibling;
-                $result = ($filter === null) ? true : $filter($node);
-                // Have to do type checking here because PHP is lacking in advanced typing
-                if ($result !== true && $result !== false && $result !== null) {
-                    $type = gettype($result);
-                    if ($type === 'object') {
-                        $type = get_class($result);
-                    }
-                    throw new Exception(Exception::RETURN_TYPE_ERROR, 'Closure', '?bool', $type);
-                }
+                $wrapperNode = $doc->getWrapperNode($node);
+                $result = ($filter === null) ? true : $filter($wrapperNode);
 
                 if ($result === true) {
-                    yield $node;
+                    yield $wrapperNode;
                 }
             } while ($node = $next);
         }
@@ -89,22 +82,23 @@ trait ChildNode {
      *                                   the iteration.
      */
     public function walkPreceding(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = ($includeReferenceNode) ? $this : $this->previousSibling;
+        $node = null;
+        if ($includeReferenceNode) {
+            $node = $this->innerNode;
+        } elseif ($this->nextSibling !== null) {
+            $node = Reflection::getProtectedProperty($this->previousSibling, 'innerNode');
+        }
+
         if ($node !== null) {
+            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
+
             do {
                 $next = $node->previousSibling;
-                $result = ($filter === null) ? true : $filter($node);
-                // Have to do type checking here because PHP is lacking in advanced typing
-                if ($result !== true && $result !== false && $result !== null) {
-                    $type = gettype($result);
-                    if ($type === 'object') {
-                        $type = get_class($result);
-                    }
-                    throw new Exception(Exception::RETURN_TYPE_ERROR, 'Closure', '?bool', $type);
-                }
+                $wrapperNode = $doc->getWrapperNode($node);
+                $result = ($filter === null) ? true : $filter($wrapperNode);
 
                 if ($result === true) {
-                    yield $node;
+                    yield $wrapperNode;
                 }
             } while ($node = $next);
         }

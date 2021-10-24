@@ -11,7 +11,7 @@ use MensBeam\HTML\Parser;
 
 
 class Element extends Node {
-    use ParentNode;
+    use ChildNode, ParentNode;
 
     protected function __get_namespaceURI(): string {
         // PHP's DOM uses null incorrectly for the HTML namespace, and if you attempt to

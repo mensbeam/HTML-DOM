@@ -9,4 +9,8 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
-class Comment extends CharacterData {}
+class Comment extends CharacterData {
+    public function __construct(string $data = '') {
+        $this->innerNode = new \DOMComment($data);
+    }
+}

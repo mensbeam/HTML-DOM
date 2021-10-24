@@ -19,7 +19,8 @@ class Element extends Node {
         // around because of the wrapper classes; So, use the null namespace internally
         // but print out the HTML namespace instead.
         $namespace = $this->innerNode->namespaceURI;
-        return ($namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
+        $doc = $this->ownerDocument;
+        return (($doc instanceof Document && !$doc instanceof XMLDocument) && $namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
     }
 
 

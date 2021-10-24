@@ -9,4 +9,8 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
-class ProcessingInstruction extends CharacterData {}
+class ProcessingInstruction extends CharacterData {
+    protected function __get_target(): string {
+        return $this->innerNode->target;
+    }
+}

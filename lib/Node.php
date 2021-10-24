@@ -332,7 +332,7 @@ abstract class Node {
         })->current() !== null);
     }
 
-    public function getRootNode(array $options): Node {
+    public function getRootNode(array $options = []): Node {
         # The getRootNode(options) method steps are to return this’s shadow-including
         # root if options["composed"] is true; otherwise this’s root.
         // DEVIATION: This implementation does not have scripting, so there's no Shadow

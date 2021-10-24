@@ -36,7 +36,14 @@ class Document extends Node {
 
 
     public function createDocumentFragment(): DocumentFragment {
-        return $this->innerNode->getWrapperNode($this->innerNode->createDocumentFragment());
+        // DocumentFragment has a public constructor that creates an inner fragment
+        // without an associated document, so some jiggerypokery must be done instead.
+        $reflector = new \ReflectionClass(__NAMESPACE__ . '\\DocumentFragment');
+        $fragment = $reflector->newInstanceWithoutConstructor();
+        $property = new \ReflectionProperty($text, 'innerNode');
+        $property->setAccessible(true);
+        $property->setValue($fragment, $this->innerNode->createDocumentFragment());
+        return $fragment;
     }
 
     public function createElement(string $localName): Element {

@@ -18,6 +18,9 @@ use MensBeam\HTML\Parser;
 class Document extends \DOMDocument {
     use MagicProperties;
 
+    public const NAME_PRODUCTION_REGEX = '/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
+    public const QNAME_PRODUCTION_REGEX = '/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
+
     protected NodeMap $nodeMap;
     protected \WeakReference $_wrapperNode;
 
@@ -70,7 +73,7 @@ class Document extends \DOMDocument {
         } elseif ($node instanceof \DOMDocumentFragment) {
             $className = 'DocumentFragment';
         } elseif ($node instanceof \DOMDocumentType) {
-            $className = 'DOMDocumentType';
+            $className = 'DocumentType';
         } elseif ($node instanceof \DOMElement) {
             $namespace = $node->namespaceURI;
             if ($namespace === null) {
@@ -94,21 +97,8 @@ class Document extends \DOMDocument {
             $className = 'XMLDocument';
         }
 
-        // If the class is to be a CDATASection, DocumentFragment, or Text then the
-        // object needs to be created differently because they have public constructors,
-        // unlike other nodes.
-        if ($className === 'CDATASection' || $className === 'DocumentFragment' || $className === 'Text') {
-            $reflector = new \ReflectionClass(self::$parentNamespace . "\\$className");
-            $wrapperNode = $reflector->newInstanceWithoutConstructor();
-            $property = new \ReflectionProperty($wrapperNode, 'innerNode');
-            $property->setAccessible(true);
-            $property->setValue($wrapperNode, $node);
-            return $wrapperNode;
-        } else {
-            $wrapperNode = Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);
-        }
-
-        $this->nodeMap->set($wrapperNode, $this);
+        $wrapperNode = Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);
+        $this->nodeMap->set($wrapperNode, $node);
         return $wrapperNode;
     }
 }

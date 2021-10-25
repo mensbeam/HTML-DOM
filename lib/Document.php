@@ -53,30 +53,59 @@ class Document extends Node {
     }
 
 
+    public function createCDATASection(): CDATASection {
+        return $this->innerNode->getWrapperNode($this->innerNode->createCDATASection($data));
+    }
+
+    public function createComment(): Comment {
+        return $this->innerNode->getWrapperNode($this->innerNode->createComment($data));
+    }
+
     public function createDocumentFragment(): DocumentFragment {
-        // DocumentFragment has a public constructor that creates an inner fragment
-        // without an associated document, so some jiggerypokery must be done instead.
-        $reflector = new \ReflectionClass(__NAMESPACE__ . '\\DocumentFragment');
-        $fragment = $reflector->newInstanceWithoutConstructor();
-        $property = new \ReflectionProperty($text, 'innerNode');
-        $property->setAccessible(true);
-        $property->setValue($fragment, $this->innerNode->createDocumentFragment());
-        return $fragment;
+        return $this->innerNode->getWrapperNode($this->innerNode->createDocumentFragment());
     }
 
     public function createElement(string $localName): Element {
-        return $this->innerNode->getWrapperNode($this->innerNode->createElement($localName));
+        # 1. If localName does not match the Name production, then throw an
+        #    "InvalidCharacterError" DOMException.
+        if (!preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $localName)) {
+            throw new DOMException(DOMException::INVALID_CHARACTER);
+        }
+
+        # 2. If this is an HTML document, then set localName to localName in ASCII
+        #    lowercase.
+        if ($this instanceof Document && !$this instanceof XMLElement) {
+            $localName = strtolower($localName);
+        }
+
+        # 3. Let is be null.
+        # 4. If options is a dictionary and options["is"] exists, then set is to it.
+        // DEVIATION: There's no scripting in this implementation
+        # 5. Let namespace be the HTML namespace, if this is an HTML document or this’s
+        #    content type is "application/xhtml+xml"; otherwise null.
+        // PHP's DOM has numerous bugs when setting the HTML namespace. Externally,
+        // everything will show as HTML namespace, but internally will be null.
+        # 6. Return the result of creating an element given this, localName, namespace,
+        #    null, is, and with the synchronous custom elements flag set.
+
+        try {
+            $element = $this->innerNode->createElementNS(null, $localName);
+        } catch (\DOMException $e) {
+            // The element name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            // uppercase hexadecimal digits of the character's code point
+            $element = $this->innerNode->createElementNS(null, $this->coerceName($localName));
+        }
+
+        return $this->innerNode->getWrapperNode($element);
+    }
+
+    public function createProcessingInstruction(string $target, string $data): ProcessingInstruction {
+        return $this->innerNode->getWrapperNode($this->innerNode->createProcessingInstruction($target, $data));
     }
 
     public function createTextNode(string $data): Text {
-        // Text has a public constructor that creates an inner text node without an
-        // associated document, so some jiggerypokery must be done instead.
-        $reflector = new \ReflectionClass(__NAMESPACE__ . '\\Text');
-        $text = $reflector->newInstanceWithoutConstructor();
-        $property = new \ReflectionProperty($text, 'innerNode');
-        $property->setAccessible(true);
-        $property->setValue($text, $this->innerNode->createTextNode($data));
-        return $text;
+        return $this->innerNode->getWrapperNode($this->innerNode->createTextNode($data));
     }
 
     public function importNode(\DOMNode|Node $node, bool $deep = false): Node {

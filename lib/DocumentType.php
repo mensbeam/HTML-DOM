@@ -10,6 +10,8 @@ namespace MensBeam\HTML\DOM;
 
 
 class DocumentType extends Node {
+    use ChildNode;
+
     protected function __get_name(): string {
         // Return an empty string if a space because this implementation gets around a
         // PHP DOM limitation by substituting an empty string for a space.

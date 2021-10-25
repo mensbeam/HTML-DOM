@@ -16,11 +16,6 @@ class Text extends CharacterData {
     }
 
 
-    public function __construct(string $data = '') {
-        $this->innerNode = new \DOMText($data);
-    }
-
-
     public function splitText(int $offset): Text {
         // PHP DOM mostly handles this correctly with the exception of not throwing an
         // exception when the offset is greater than the length, so let's fix that.

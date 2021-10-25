@@ -8,11 +8,12 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
-    MensBeam\HTML\DOM\InnerNode\Reflection;
+    MensBeam\HTML\DOM\InnerNode\Reflection,
+    MensBeam\HTML\Parser\NameCoercion;
 
 
 abstract class Node {
-    use MagicProperties;
+    use MagicProperties, NameCoercion;
 
     public const ELEMENT_NODE = 1;
     public const ATTRIBUTE_NODE = 2;
@@ -99,8 +100,12 @@ abstract class Node {
 
     protected function __get_firstChild(): ?Node {
         // PHP's DOM does this correctly already.
+        if (!$value = $this->innerNode->firstChild) {
+            return null;
+        }
+
         $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($this->innerNode->firstChild);
+        return $doc->getWrapperNode($value);
     }
 
     protected function __get_isConnected(): bool {
@@ -112,17 +117,32 @@ abstract class Node {
 
     protected function __get_lastChild(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->lastChild);
+        if (!$value = $this->innerNode->lastChild) {
+            return null;
+        }
+
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return $doc->getWrapperNode($value);
     }
 
     protected function __get_previousSibling(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->previousSibling);
+        if (!$value = $this->innerNode->previousSibling) {
+            return null;
+        }
+
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return $doc->getWrapperNode($value);
     }
 
     protected function __get_nextSibling(): ?Node {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->nextSibling);
+        if (!$value = $this->innerNode->nextSibling) {
+            return null;
+        }
+
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return $doc->getWrapperNode($value);
     }
 
     protected function __get_nodeName(): string {
@@ -132,7 +152,9 @@ abstract class Node {
         # ↪ Element
         #     Its HTML-uppercased qualified name.
         if ($this instanceof Element) {
-            return strtoupper($this->innerNode->nodeName);
+            $nodeName = $this->innerNode->nodeName;
+            // Uncoerce names if necessary
+            return strtoupper(!str_contains(needle: 'U', haystack: $nodeName) ? $nodeName : $this->uncoerceName($nodeName));
         }
 
         // PHP's DOM mostly does this correctly with the exception of Element, so let's
@@ -209,7 +231,8 @@ abstract class Node {
             return null;
         }
 
-        return $parent->ownerDocument->getWrapperNode($parent);
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return $doc->getWrapperNode($parent);
     }
 
     protected function __get_textContent(): string {
@@ -333,7 +356,7 @@ abstract class Node {
         })->current() !== null);
     }
 
-    public function getRootNode(array $options = []): Node {
+    public function getRootNode(array $options = []): ?Node {
         # The getRootNode(options) method steps are to return this’s shadow-including
         # root if options["composed"] is true; otherwise this’s root.
         // DEVIATION: This implementation does not have scripting, so there's no Shadow

@@ -7,8 +7,11 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Reflection,
-    MensBeam\HTML\DOM\Parser;
+use MensBeam\HTML\DOM\InnerNode\{
+    Document as InnerDocument,
+    Reflection
+};
+use MensBeam\HTML\DOM\Parser;
 
 
 class DOMImplementation {
@@ -79,7 +82,7 @@ class DOMImplementation {
         # 1. Validate qualifiedName.
         #    To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
         #    qualifiedName does not match the QName production.
-        if (!preg_match('/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su', $qualifiedName)) {
+        if (!preg_match(InnerDocument::QNAME_PRODUCTION_REGEX, $qualifiedName)) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 

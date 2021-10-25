@@ -11,7 +11,7 @@ use MensBeam\HTML\DOM\InnerNode\Element as InnerElement,
     MensBeam\HTML\DOM\InnerNode\Reflection;
 
 
-class HTMLTemplateElement extends Element {
+class HTMLTemplateElement extends HTMLElement {
     protected DocumentFragment $_content;
 
     // Templates can contain content in both light and shadow, so its content

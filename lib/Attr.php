@@ -12,12 +12,16 @@ namespace MensBeam\HTML\DOM;
 class Attr extends Node {
     protected function __get_localName(): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->localName;
+        // Need to uncoerce string if necessary.
+        $localName = $this->innerNode->localName;
+        return (!str_contains(needle: 'U', haystack: $localName)) ? $localName : $this->uncoerceName($localName);
     }
 
     protected function __get_name(): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->name;
+        // Need to uncoerce string if necessary.
+        $name = $this->innerNode->name;
+        return (!str_contains(needle: 'U', haystack: $name)) ? $name : $this->uncoerceName($name);
     }
 
     protected function __get_namespaceURI(): string {
@@ -33,7 +37,9 @@ class Attr extends Node {
 
     protected function __get_prefix(): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->prefix;
+        // Need to uncoerce string if necessary.
+        $prefix = $this->innerNode->prefix;
+        return (!str_contains(needle: 'U', haystack: $prefix)) ? $prefix : $this->uncoerceName($prefix);
     }
 
     protected function __get_specified(): bool {

@@ -13,9 +13,4 @@ class DocumentFragment extends Node {
     use ParentNode;
 
     protected ?\WeakReference $host = null;
-
-
-    public function __construct() {
-        $this->innerNode = new \DOMDocumentFragment();
-    }
 }

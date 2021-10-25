@@ -29,7 +29,7 @@ class NodeMap {
         return true;
     }
 
-    public function get(\DOMNode|WrapperNode $node): ?\DOMNode {
+    public function get(\DOMNode|WrapperNode $node): \DOMNode|WrapperNode|null {
         $key = $this->key($node);
         if ($key === false) {
             return null;

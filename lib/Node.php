@@ -256,6 +256,16 @@ abstract class Node {
         return $this->innerNode->textContent;
     }
 
+    protected function __set_textContent(string $value): void {
+        if ($this instanceof Document || $this instanceof DocumentType) {
+            return;
+        }
+
+        // PHP's DOM does this correctly already with the exception of Document and
+        // DocumentType.
+        $this->innerNode->textContent = $value;
+    }
+
 
     protected function __construct(\DOMNode $innerNode) {
         $this->innerNode = $innerNode;

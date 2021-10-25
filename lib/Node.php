@@ -23,7 +23,7 @@ abstract class Node {
     public const ENTITY_NODE = 6; // legacy
     public const PROCESSING_INSTRUCTION_NODE = 7;
     public const COMMENT_NODE = 8;
-    public const DOCUMENT_MODE = 9;
+    public const DOCUMENT_NODE = 9;
     public const DOCUMENT_TYPE_NODE = 10;
     public const DOCUMENT_FRAGMENT_NODE = 11;
     public const NOTATION_NODE = 12; // legacy
@@ -148,18 +148,29 @@ abstract class Node {
     protected function __get_nodeName(): string {
         # The nodeName getter steps are to return the first matching statement,
         # switching on the interface this implements:
+        $nodeName = $this->innerNode->nodeName;
 
         # ↪ Element
         #     Its HTML-uppercased qualified name.
         if ($this instanceof Element) {
-            $nodeName = $this->innerNode->nodeName;
             // Uncoerce names if necessary
             return strtoupper(!str_contains(needle: 'U', haystack: $nodeName) ? $nodeName : $this->uncoerceName($nodeName));
         }
+        // Attribute nodes and processing instructions need the node name uncoerced if
+        // necessary
+        elseif ($this instanceof Attr || $this instanceof ProcessingInstruction) {
+            return (!str_contains(needle: 'U', haystack: $nodeName)) ? $nodeName : $this->uncoerceName($nodeName);
+        }
+        // While the DOM itself cannot create a doctype with an empty string as the
+        // name, the HTML parser can. PHP's DOM cannot handle an empty string as the
+        // name, so a single space (an invalid value) is used instead and coerced to an
+        // empty string.
+        elseif ($this instanceof DocumentType) {
+            return $this->name;
+        }
 
-        // PHP's DOM mostly does this correctly with the exception of Element, so let's
-        // fall back to PHP's DOM on everything else.
-        return $this->innerNode->nodeName;
+        // PHP's DOM handles everything correctly on everything else.
+        return $nodeName;
     }
 
     protected function __get_nodeType(): int {
@@ -198,15 +209,15 @@ abstract class Node {
         $this->innerNode->nodeValue = $value;
     }
 
-    protected function __get_ownerDocument(): Document {
+    protected function __get_ownerDocument(): ?Document {
         # The ownerDocument getter steps are to return null, if this is a document;
         # otherwise this’s node document.
         // PHP's DOM does this correctly already.
-        if ($this instanceof Document) {
+        if ($this instanceof Document || !$ownerDocument = $this->innerNode->ownerDocument) {
             return null;
         }
 
-        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerDocument);
+        return $this->innerNode->ownerDocument->getWrapperNode($ownerDocument);
     }
 
     protected function __get_parentElement(): ?Element {
@@ -247,8 +258,6 @@ abstract class Node {
 
 
     public function appendChild(Node $node): Node {
-        # The appendChild(node) method steps are to return the result of appending node to
-        # this.
         // Aside from pre-insertion validity PHP's DOM does this correctly already.
         $this->preInsertionValidity($node);
         $this->innerNode->appendChild($this->getInnerNode($node));

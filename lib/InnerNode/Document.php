@@ -98,6 +98,13 @@ class Document extends \DOMDocument {
         }
 
         $wrapperNode = Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);
+
+        // We need to work around a PHP DOM bug where doctype nodes aren't associated
+        // with a document until they're appended.
+        if ($className === 'DocumentType') {
+            Reflection::setProtectedProperty($wrapperNode, '_ownerDocument', $this->_wrapperNode);
+        }
+
         $this->nodeMap->set($wrapperNode, $node);
         return $wrapperNode;
     }

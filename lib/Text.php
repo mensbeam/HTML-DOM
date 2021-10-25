@@ -25,4 +25,9 @@ class Text extends CharacterData {
 
         return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->splitText($offset));
     }
+
+
+    protected function __construct(\DOMText $text) {
+        parent::__construct($text);
+    }
 }

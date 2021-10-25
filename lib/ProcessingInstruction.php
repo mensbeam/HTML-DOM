@@ -11,6 +11,13 @@ namespace MensBeam\HTML\DOM;
 
 class ProcessingInstruction extends CharacterData {
     protected function __get_target(): string {
-        return $this->innerNode->target;
+        // Need to uncoerce string if necessary.
+        $target = $this->innerNode->target;
+        return (!str_contains(needle: 'U', haystack: $target)) ? $target : $this->uncoerceName($target);
+    }
+
+
+    protected function __construct(\DOMProcessingInstruction $pi) {
+        parent::__construct($pi);
     }
 }

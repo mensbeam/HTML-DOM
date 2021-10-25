@@ -32,7 +32,7 @@ class DOMException extends Exception {
               5 => 'Invalid character',
               7 => 'Modification not allowed here',
               8 => 'Not found error',
-              9 => 'Feature is not supported because %s',
+              9 => 'Feature is not supported',
              12 => 'Syntax error',
              13 => 'Invalid modification error',
              14 => 'Namespace error',

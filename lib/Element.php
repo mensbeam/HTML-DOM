@@ -11,7 +11,7 @@ use MensBeam\HTML\Parser;
 
 
 class Element extends Node {
-    use ChildNode, ParentNode;
+    use ChildNode, DocumentOrElement, ParentNode;
 
     protected function __get_namespaceURI(): string {
         // PHP's DOM uses null incorrectly for the HTML namespace, and if you attempt to
@@ -52,5 +52,16 @@ class Element extends Node {
         }
 
         return $value;
+    }
+
+    public function setAttributeNode(Attr $attr): ?Attr {
+        # The setAttributeNode(attr) and setAttributeNodeNS(attr) methods steps are to
+        # return the result of setting an attribute given attr and this.
+        $this->innerNode->setAttributeNode($this->getInnerNode($attr));
+        return $attr;
+    }
+
+    public function setAttributeNodeNS(Attr $attr): ?Attr {
+        return $this->setAttributeNode($attr);
     }
 }

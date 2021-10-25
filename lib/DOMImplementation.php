@@ -91,8 +91,9 @@ class DOMImplementation {
         #    the associated document of this.
         $innerDocument = Reflection::getProtectedProperty($this->document->get(), 'innerNode');
         // PHP's DOM won't accept an empty string as the qualifiedName, so use a space
-        // instead; this will be worked around in DocumentType.
-        return $innerDocument->getWrapperNode($innerDocument->implementation->createDocumentType(($qualifiedName !== '') ? $qualifiedName : ' ', $publicId, $systemId));
+        // instead which won't be encountered elsewhere because it violates the QName
+        // production; this will be worked around in DocumentType.
+        return $innerDocument->getWrapperNode($innerDocument->implementation->createDocumentType($qualifiedName, $publicId, $systemId));
     }
 
     public function createHTMLDocument(string $title = ''): Document {

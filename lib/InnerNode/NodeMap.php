@@ -15,18 +15,16 @@ class NodeMap {
     protected $innerArray = [];
 
 
-    public function delete(\DOMNode|WrapperNode $node): bool {
+    public function delete(\DOMNode|WrapperNode $node): void {
         $key = $this->key($node);
         if ($key === false) {
-            return false;
+            return;
         }
 
         unset($this->wrapperArray[$key]);
         unset($this->innerArray[$key]);
         $this->wrapperArray = array_values($this->wrapperArray);
         $this->innerArray = array_values($this->innerArray);
-
-        return true;
     }
 
     public function get(\DOMNode|WrapperNode $node): \DOMNode|WrapperNode|null {
@@ -42,14 +40,11 @@ class NodeMap {
         return ($this->key($node) !== false);
     }
 
-    public function set(WrapperNode $wrapper, \DOMNode $inner): bool {
+    public function set(WrapperNode $wrapper, \DOMNode $inner): void {
         if (!$this->has($wrapper)) {
             $this->wrapperArray[] = $wrapper;
             $this->innerArray[] = $inner;
-            return true;
         }
-
-        return false;
     }
 
 

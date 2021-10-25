@@ -12,7 +12,7 @@
             "source": {
                 "type": "git",
                 "url": "mensbeam-gitea:MensBeam/Framework.git",
-                "reference": "07af6f6a0c8a911d9e08870bdd54946757c0e958"
+                "reference": "bf7515f4c5d02ce9919a92a27812af7587a4700e"
             },
             "require": {
                 "php": ">=7.4"
@@ -55,20 +55,20 @@
                 }
             ],
             "description": "Common classes and traits used in many Mensbeam projects",
-            "time": "2021-10-21T04:01:22+00:00"
+            "time": "2021-10-21T14:20:02+00:00"
         },
         {
             "name": "mensbeam/html-parser",
-            "version": "1.0",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://code.mensbeam.com/MensBeam/HTML-Parser",
-                "reference": "c06caaabab7350823b10246e49594a41cf50401d"
+                "reference": "3fc966226b7d45ab51a6c20cb8cafeedcf54ccec"
             },
             "require": {
                 "ext-dom": "*",
-                "mensbeam/intl": ">=0.9.0",
-                "mensbeam/mimesniff": "^0.2.0",
+                "mensbeam/intl": ">=0.9.1",
+                "mensbeam/mimesniff": ">=0.2.0",
                 "php": ">=7.1"
             },
             "require-dev": {
@@ -107,7 +107,7 @@
                     "homepage": "https://jkingweb.ca/"
                 }
             ],
-            "description": "Parses modern HTML text into a PHP DOMDocument",
+            "description": "Parser and serializer for modern HTML documents",
             "keywords": [
                 "HTML5",
                 "WHATWG",
@@ -116,20 +116,20 @@
                 "parser",
                 "parsing"
             ],
-            "time": "2021-10-12T00:23:16+00:00"
+            "time": "2021-10-24T17:24:48+00:00"
         },
         {
             "name": "mensbeam/intl",
-            "version": "0.9.0",
+            "version": "0.9.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mensbeam/intl.git",
-                "reference": "de037b182ce99aaa90ebc09b0ee0457ddf1d07bc"
+                "reference": "07d26e3f45c3a3167eb6389572419d3bda7ff5e1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mensbeam/intl/zipball/de037b182ce99aaa90ebc09b0ee0457ddf1d07bc",
-                "reference": "de037b182ce99aaa90ebc09b0ee0457ddf1d07bc",
+                "url": "https://api.github.com/repos/mensbeam/intl/zipball/07d26e3f45c3a3167eb6389572419d3bda7ff5e1",
+                "reference": "07d26e3f45c3a3167eb6389572419d3bda7ff5e1",
                 "shasum": ""
             },
             "require": {
@@ -169,9 +169,9 @@
             ],
             "support": {
                 "issues": "https://github.com/mensbeam/intl/issues",
-                "source": "https://github.com/mensbeam/intl/tree/0.9.0"
+                "source": "https://github.com/mensbeam/intl/tree/0.9.1"
             },
-            "time": "2021-03-25T19:08:04+00:00"
+            "time": "2021-10-24T14:37:46+00:00"
         },
         {
             "name": "mensbeam/mimesniff",
@@ -678,16 +678,16 @@
         },
         {
             "name": "guzzlehttp/promises",
-            "version": "1.5.0",
+            "version": "1.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/promises.git",
-                "reference": "136a635e2b4a49b9d79e9c8fee267ffb257fdba0"
+                "reference": "fe752aedc9fd8fcca3fe7ad05d419d32998a06da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/promises/zipball/136a635e2b4a49b9d79e9c8fee267ffb257fdba0",
-                "reference": "136a635e2b4a49b9d79e9c8fee267ffb257fdba0",
+                "url": "https://api.github.com/repos/guzzle/promises/zipball/fe752aedc9fd8fcca3fe7ad05d419d32998a06da",
+                "reference": "fe752aedc9fd8fcca3fe7ad05d419d32998a06da",
                 "shasum": ""
             },
             "require": {
@@ -742,7 +742,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/promises/issues",
-                "source": "https://github.com/guzzle/promises/tree/1.5.0"
+                "source": "https://github.com/guzzle/promises/tree/1.5.1"
             },
             "funding": [
                 {
@@ -758,7 +758,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-10-07T13:05:22+00:00"
+            "time": "2021-10-22T20:56:57+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
@@ -1292,21 +1292,20 @@
         },
         {
             "name": "scrivo/highlight.php",
-            "version": "v9.18.1.7",
+            "version": "v9.18.1.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/scrivo/highlight.php.git",
-                "reference": "05996fcc61e97978d76ca7d1ac14b65e7cd26f91"
+                "reference": "6d5049cd2578e19a06adbb6ac77879089be1e3f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/scrivo/highlight.php/zipball/05996fcc61e97978d76ca7d1ac14b65e7cd26f91",
-                "reference": "05996fcc61e97978d76ca7d1ac14b65e7cd26f91",
+                "url": "https://api.github.com/repos/scrivo/highlight.php/zipball/6d5049cd2578e19a06adbb6ac77879089be1e3f9",
+                "reference": "6d5049cd2578e19a06adbb6ac77879089be1e3f9",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "ext-mbstring": "*",
                 "php": ">=5.4"
             },
             "require-dev": {
@@ -1314,6 +1313,9 @@
                 "sabberworm/php-css-parser": "^8.3",
                 "symfony/finder": "^2.8|^3.4",
                 "symfony/var-dumper": "^2.8|^3.4"
+            },
+            "suggest": {
+                "ext-mbstring": "Allows highlighting code with unicode characters and supports language with unicode keywords"
             },
             "type": "library",
             "autoload": {
@@ -1364,7 +1366,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-07-09T00:30:39+00:00"
+            "time": "2021-10-24T00:28:14+00:00"
         },
         {
             "name": "symfony/console",

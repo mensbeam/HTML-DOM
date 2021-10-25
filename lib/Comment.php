@@ -10,7 +10,7 @@ namespace MensBeam\HTML\DOM;
 
 
 class Comment extends CharacterData {
-    public function __construct(string $data = '') {
-        $this->innerNode = new \DOMComment($data);
+    protected function __construct(\DOMComment $comment) {
+        parent::__construct($comment);
     }
 }

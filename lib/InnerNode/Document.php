@@ -10,7 +10,8 @@ namespace MensBeam\HTML\DOM\InnerNode;
 use MensBeam\Framework\MagicProperties;
 use MensBeam\HTML\DOM\{
     Document as WrapperDocument,
-    Node as WrapperNode
+    Node as WrapperNode,
+    XMLDocument as WrapperXMLDocument
 };
 use MensBeam\HTML\Parser;
 
@@ -69,7 +70,7 @@ class Document extends \DOMDocument {
         } elseif ($node instanceof \DOMComment) {
             $className = 'Comment';
         } elseif ($node instanceof \DOMDocument) {
-            $className = 'Document';
+            $className = ($this->wrapperNode instanceof WrapperXMLDocument) ? 'XMLDocument' : 'Document';
         } elseif ($node instanceof \DOMDocumentFragment) {
             $className = 'DocumentFragment';
         } elseif ($node instanceof \DOMDocumentType) {
@@ -93,8 +94,6 @@ class Document extends \DOMDocument {
             $className = 'ProcessingInstruction';
         } elseif ($node instanceof \DOMText) {
             $className = 'Text';
-        } elseif ($node instanceof XMLDocument) {
-            $className = 'XMLDocument';
         }
 
         $wrapperNode = Reflection::createFromProtectedConstructor(self::$parentNamespace . "\\$className", $node);

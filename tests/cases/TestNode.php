@@ -631,4 +631,79 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         // Node::parentElement on text node
         $this->assertSame($body, $text->parentElement);
     }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::__get_textContent
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__construct
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     */
+    public function testProperty_textContent() {
+        $d = new Document();
+        $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->appendChild($d->createElement('body'));
+        $body = $d->body;
+        $attr = $d->createAttribute('href');
+        $attr->value = 'https://poop💩.poop';
+        $body->setAttributeNode($attr);
+        $comment = $body->appendChild($d->createComment('ook'));
+        $pi = $body->appendChild($d->createProcessingInstruction('ook', 'eek'));
+        $text = $body->appendChild($d->createTextNode('ook'));
+        $frag = $d->createDocumentFragment();
+        $frag->appendChild($d->createTextNode('ook'));
+
+        $d2 = new XMLDocument();
+        $cdata = $d2->createCDATASection('ook');
+
+        // Node::textContent on attribute node
+        $this->assertSame('https://poop💩.poop', $attr->textContent);
+        // Node::textContent on CDATA section
+        $this->assertSame('ook', $cdata->textContent);
+        // Node::textContent on comment
+        $this->assertSame('ook', $comment->textContent);
+        // Node::textContent on document
+        $this->assertNull($d->textContent);
+        // Node::textContent on doctype
+        $this->assertNull($doctype->textContent);
+        // Node::textContent on document fragment
+        $this->assertSame('ook', $frag->textContent);
+        // Node::parentElement on element
+        $this->assertSame('ook', $body->textContent);
+        // Node::parentElement on processing instruction
+        $this->assertSame('eek', $pi->textContent);
+        // Node::parentElement on text node
+        $this->assertSame('ook', $text->textContent);
+    }
 }

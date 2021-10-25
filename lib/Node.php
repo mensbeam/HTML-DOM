@@ -246,8 +246,13 @@ abstract class Node {
         return $doc->getWrapperNode($parent);
     }
 
-    protected function __get_textContent(): string {
-        // PHP's DOM does this correctly already.
+    protected function __get_textContent(): ?string {
+        if ($this instanceof Document || $this instanceof DocumentType) {
+            return null;
+        }
+
+        // PHP's DOM does this correctly already with the exception of Document and
+        // DocumentType.
         return $this->innerNode->textContent;
     }
 

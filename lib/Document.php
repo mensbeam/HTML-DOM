@@ -17,6 +17,7 @@ use MensBeam\HTML\Parser;
 class Document extends Node {
     use DocumentOrElement, ParentNode;
 
+    protected string $_characterSet = 'UTF-8';
     protected string $_compatMode = 'CSS1Compat';
     protected string $_contentType = 'text/html';
     protected DOMImplementation $_implementation;
@@ -34,6 +35,14 @@ class Document extends Node {
             $name = strtolower($n->nodeName);
             return ($n instanceof Element && $n->namespaceURI === Parser::HTML_NAMESPACE && ($name === 'body' || $name === 'frameset'));
         }, true)->current();
+    }
+
+    protected function __get_charset(): string {
+        return $this->_characterSet;
+    }
+
+    protected function __get_characterSet(): string {
+        return $this->_characterSet;
     }
 
     protected function __get_compatMode(): string {
@@ -56,6 +65,10 @@ class Document extends Node {
         return $this->_implementation;
     }
 
+    protected function __get_inputEncoding(): string {
+        return $this->_characterSet;
+    }
+
     protected function __get_URL(): string {
         return $this->_URL;
     }
@@ -63,7 +76,7 @@ class Document extends Node {
 
     public function __construct() {
         parent::__construct(new InnerDocument($this));
-        $this->_implementation = Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\DOMImplementation', $this);
+        $this->_implementation = new DOMImplementation($this);
     }
 
 

@@ -18,8 +18,8 @@ class DOMImplementation {
     protected \WeakReference $document;
 
 
-    protected function __construct(Document $document) {
-        $this->document = \WeakReference::create($document);
+    public function __construct(?Document $document = null) {
+        $this->document = \WeakReference::create($document ?? new Document());
     }
 
 
@@ -70,7 +70,7 @@ class DOMImplementation {
                 $contentType = 'application/xml';
         }
 
-        Reflection::setProtectedProperty($document, '_contentType', $contentType);
+        Reflection::setProtectedProperties($document, ['_contentType' => $contentType ]);
 
         # 8. Return document.
         return $document;
@@ -85,7 +85,7 @@ class DOMImplementation {
         if (!preg_match(InnerDocument::QNAME_PRODUCTION_REGEX, $qualifiedName)) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
-
+        
         # 2. Return a new doctype, with qualifiedName as its name, publicId as its
         #    public ID, and systemId as its system ID, and with its node document set to
         #    the associated document of this.

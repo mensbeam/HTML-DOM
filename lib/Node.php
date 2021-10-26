@@ -324,7 +324,22 @@ abstract class Node {
     public function cloneNode(?bool $deep = false): Node {
         // PHP's DOM does this correctly already.
         $newInner = $this->innerNode->cloneNode($deep);
-        return $newInner->ownerDocument->getWrapperNode($newInner);
+
+        // Documents have some userland properties to transfer
+        if ($this instanceof Document) {
+            $newDoc = $this->innerNode->getWrapperNode($newInner);
+            if ($this->characterSet !== 'UTF-8' || $this->compatMode !== 'CSS1Compat' || $this->contentType !== 'text/html' || $this->URL !== '') {
+                Reflection::setProtectedProperties($newDoc, [
+                    '_characterSet' => $this->characterSet,
+                    '_compatMode' => $this->compatMode,
+                    '_contentType' => $this->contentType,
+                    '_URL' => $this->URL
+                ]);
+            }
+            return $newDoc;
+        }
+
+        return $this->innerNode->ownerDocument->getWrapperNode($newInner);
     }
 
     public function compareDocumentPosition(Node $other): int {

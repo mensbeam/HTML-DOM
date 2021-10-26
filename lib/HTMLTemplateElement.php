@@ -25,6 +25,6 @@ class HTMLTemplateElement extends HTMLElement {
         parent::__construct($element);
 
         $this->_content = $this->ownerDocument->createDocumentFragment();
-        Reflection::setProtectedProperty($this->_content, 'host', \WeakReference::create($this));
+        Reflection::setProtectedProperties($this->_content, [ 'host' => \WeakReference::create($this) ]);
     }
 }

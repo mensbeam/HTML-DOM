@@ -19,6 +19,51 @@ use MensBeam\HTML\Parser;
 /** @covers \MensBeam\HTML\DOM\Document */
 class TestNode extends \PHPUnit\Framework\TestCase {
     /**
+     * @covers \MensBeam\HTML\DOM\Node::cloneNode
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__construct
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     */
+    public function testMethod_cloneNode() {
+        $d = new Document();
+
+        // Node::cloneNode on Document
+        $d2 = $d->cloneNode(true);
+        $this->assertSame(Document::class, $d2::class);
+    }
+
+
+    /**
      * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
@@ -194,7 +239,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -238,7 +283,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -293,7 +338,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -375,7 +420,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -436,7 +481,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -525,7 +570,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -587,7 +632,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -664,7 +709,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
@@ -718,11 +763,13 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertSame('ook', $frag->textContent);
         $frag->textContent = 'eek';
         $this->assertSame('eek', $frag->textContent);
+        $this->assertEquals(1, $frag->childNodes->length);
 
         // Node::textContent on element
         $this->assertSame('ook', $body->textContent);
         $body->textContent = 'eek';
         $this->assertSame('eek', $body->textContent);
+        $this->assertEquals(1, $body->childNodes->length);
 
         // Node::textContent on processing instruction
         $this->assertSame('eek', $pi->textContent);

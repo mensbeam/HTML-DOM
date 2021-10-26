@@ -26,10 +26,13 @@ class Reflection {
         return $property->getValue($instance);
     }
 
-    public static function setProtectedProperty(mixed $instance, string $propertyName, mixed $value): void {
+    public static function setProtectedProperties(mixed $instance, array $properties): void {
         $reflector = new \ReflectionClass($instance::class);
-        $property = new \ReflectionProperty($instance, $propertyName);
-        $property->setAccessible(true);
-        $property->setValue($instance, $value);
+
+        foreach ($properties as $propertyName => $value) {
+            $property = new \ReflectionProperty($instance, $propertyName);
+            $property->setAccessible(true);
+            $property->setValue($instance, $value);
+        }
     }
 }

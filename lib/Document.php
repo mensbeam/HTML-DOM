@@ -23,7 +23,7 @@ class Document extends Node {
     protected DOMImplementation $_implementation;
     protected string $_URL = '';
 
-    protected function __get_body(): Element {
+    protected function __get_body(): ?Element {
         if ($this->documentElement === null || !$this->documentElement->hasChildNodes()) {
             return null;
         }
@@ -126,7 +126,7 @@ class Document extends Node {
         return $this->innerNode->getWrapperNode($attr);
     }
 
-    public function createAttributeNS(string $namespace, string $qualifiedName): Attr {
+    public function createAttributeNS(?string $namespace, string $qualifiedName): Attr {
         # The createAttributeNS(namespace, qualifiedName) method steps are:
         #
         # 1. Let namespace, prefix, and localName be the result of passing namespace and

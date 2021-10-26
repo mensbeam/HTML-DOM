@@ -13,6 +13,10 @@ use MensBeam\HTML\Parser;
 class Element extends Node {
     use ChildNode, DocumentOrElement, ParentNode;
 
+    protected function __get_localName(): ?string {
+        return $this->innerNode->localName;
+    }
+
     protected function __get_namespaceURI(): string {
         // PHP's DOM uses null incorrectly for the HTML namespace, and if you attempt to
         // use the HTML namespace anyway it has additional bugs we don't have to work
@@ -21,6 +25,10 @@ class Element extends Node {
         $namespace = $this->innerNode->namespaceURI;
         $doc = $this->ownerDocument;
         return (($doc instanceof Document && !$doc instanceof XMLDocument) && $namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
+    }
+
+    protected function __get_prefix(): ?string {
+        return $this->innerNode->prefix;
     }
 
 

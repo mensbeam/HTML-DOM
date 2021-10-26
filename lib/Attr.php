@@ -24,7 +24,7 @@ class Attr extends Node {
         return (!str_contains(needle: 'U', haystack: $name)) ? $name : $this->uncoerceName($name);
     }
 
-    protected function __get_namespaceURI(): string {
+    protected function __get_namespaceURI(): ?string {
         // PHP's DOM does this correctly already.
         return $this->innerNode->namespaceURI;
     }

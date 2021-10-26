@@ -322,24 +322,110 @@ abstract class Node {
     }
 
     public function cloneNode(?bool $deep = false): Node {
-        // PHP's DOM does this correctly already.
-        $newInner = $this->innerNode->cloneNode($deep);
+        # The cloneNode(deep) method steps are:
+        # 1. If this is a shadow root, then throw a "NotSupportedError" DOMException.
+        // DEVIATION: There is no scripting in this implementation
 
-        // Documents have some userland properties to transfer
-        if ($this instanceof Document) {
-            $newDoc = $this->innerNode->getWrapperNode($newInner);
+        # 2. Return a clone of this, with the clone children flag set if deep is true.
+        #
+        # To clone a node, with an optional document and clone children flag, run these steps:
+        // node is $this
+
+        # 1. If document is not given, let document be node’s node document.
+        // No need for this step. There will always be a provided document
+
+        # 2. If node is an element, then:
+        if ($this instanceof Element) {
+            # 1. Let copy be the result of creating an element, given document, node’s local
+            #    name, node’s namespace, node’s namespace prefix, and node’s is value, with the
+            #    synchronous custom elements flag unset.
+            # 2. For each attribute in node’s attribute list:
+            #        1. Let copyAttribute be a clone of attribute.
+            #        2. Append copyAttribute to copy.
+            // PHP's DOM can do this part correctly by shallow cloning.
+            $copy = $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->cloneNode());
+        }
+
+        # 3. Otherwise, let copy be a node that implements the same interfaces as node, and
+        #    fulfills these additional requirements, switching on the interface node
+        #    implements:
+        #
+        # ↪ Document
+        #      Set copy’s encoding, content type, URL, origin, type, and mode to those of node.
+        elseif ($this instanceof Document) {
+            $copy = $this->innerNode->getWrapperNode($this->innerNode->cloneNode());
+
             if ($this->characterSet !== 'UTF-8' || $this->compatMode !== 'CSS1Compat' || $this->contentType !== 'text/html' || $this->URL !== '') {
-                Reflection::setProtectedProperties($newDoc, [
+                Reflection::setProtectedProperties($copy, [
                     '_characterSet' => $this->characterSet,
                     '_compatMode' => $this->compatMode,
                     '_contentType' => $this->contentType,
                     '_URL' => $this->URL
                 ]);
             }
-            return $newDoc;
         }
 
-        return $this->innerNode->ownerDocument->getWrapperNode($newInner);
+        # ↪ DocumentType
+        #      Set copy’s name, public ID, and system ID to those of node.
+        elseif ($this instanceof DocumentType) {
+            // OPTIMIZATION: No need for the other steps as the DocumentType node is created
+            // using this document's implementation
+            return $this->ownerDocument->implementation->createDocumentType($this->name, $this->publicId, $this->systemId);
+        }
+
+        # ↪ Attr
+        #      Set copy’s namespace, namespace prefix, local name, and value to those of node.
+        # ↪ Text
+        # ↪ Comment
+        #      Set copy’s data to that of node.
+        # ↪ ProcessingInstruction
+        #      Set copy’s target and data to those of node.
+        elseif ($this instanceof Attr || $this instanceof Text || $this instanceof Comment || $this instanceof ProcessingInstruction) {
+            // OPTIMIZATION: No need for the other steps as PHP's DOM handles this fine
+            return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->cloneNode());
+        }
+
+        # ↪ Otherwise
+        #      Do nothing.
+        else {
+            $copy = $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->cloneNode());
+        }
+
+        # 4. Set copy’s node document and document to copy, if copy is a document, and
+        # set copy’s node document to document otherwise.
+        // PHP's DOM does this already
+
+        if ($deep) {
+            # 5. Run any cloning steps defined for node in other applicable specifications
+            #    and pass copy, node, document and the clone children flag if set, as
+            #    parameters.
+            if ($this instanceof HTMLTemplateElement) {
+                # The cloning steps for a template element node being cloned to a copy copy must
+                # run the following steps:
+                #
+                # 1. If the clone children flag is not set in the calling clone algorithm, return.
+                // This is done with the if statements above.
+
+                # 2. Let copied contents be the result of cloning all the children of node's template
+                #    contents, with document set to copy's template contents's node document, and
+                #    with the clone children flag set.
+                # 3. Append copied contents to copy's template contents.
+                $copy->content = $this->content->cloneNode(true);
+            }
+
+            # 6. If the clone children flag is set, clone all the children of node and append
+            #    them to copy, with document as specified and the clone children flag being
+            #    set.
+            if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
+                $childNodes = $this->childNodes;
+                foreach ($childNodes as $child) {
+                    $copy->appendChild($child->cloneNode(true));
+                }
+            }
+        }
+
+        # 7. Return copy.
+        return $copy;
     }
 
     public function compareDocumentPosition(Node $other): int {

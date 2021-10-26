@@ -41,6 +41,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::isEqualNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
@@ -56,10 +57,80 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      */
     public function testMethod_cloneNode() {
         $d = new Document();
+        $d2 = new XMLDocument();
+        $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+        $attr = $d->createAttribute('href');
+        $attr->value = 'https://poop💩.poop';
+        $cdata = $d2->createCDATASection('ook');
+        $comment = $d->createComment('comment');
+        $element = $d->createElement('html');
+        $element->appendChild($d->createElement('body'));
+        $pi = $d->createProcessingInstruction('ook', 'eek');
+        $text = $d->createTextNode('ook');
+        $frag = $d->createDocumentFragment();
+        $frag->appendChild($d->createTextNode('ook'));
 
-        // Node::cloneNode on Document
-        $d2 = $d->cloneNode(true);
-        $this->assertSame(Document::class, $d2::class);
+        // Node::cloneNode on attribute node
+        $attrClone = $attr->cloneNode();
+        $this->assertNotSame($attrClone, $attr);
+        $this->assertTrue($attrClone->isEqualNode($attr));
+
+        // Node::cloneNode on CDATA section
+        $cdataClone = $cdata->cloneNode();
+        $this->assertNotSame($cdataClone, $cdata);
+        $this->assertTrue($cdataClone->isEqualNode($cdata));
+
+        // Node::cloneNode on comment
+        $commentClone = $comment->cloneNode();
+        $this->assertNotSame($commentClone, $comment);
+        $this->assertTrue($commentClone->isEqualNode($comment));
+
+        // Node::cloneNode on document
+        $dClone = $d->cloneNode(true);
+        $this->assertNotSame($dClone, $d);
+        // Children on documents aren't cloned
+        $this->assertFalse($dClone->isEqualNode($d));
+
+        // Node::cloneNode on doctype
+        $doctypeClone = $doctype->cloneNode();
+        $this->assertNotSame($doctypeClone, $doctype);
+        $this->assertTrue($doctypeClone->isEqualNode($doctype));
+
+        // Node::cloneNode on document fragment
+        $fragClone = $frag->cloneNode(true);
+        $this->assertNotSame($fragClone, $frag);
+        // Children on document fragments aren't cloned
+        $this->assertFalse($fragClone->isEqualNode($frag));
+
+        // Node::cloneNode on element
+        $elementClone = $element->cloneNode(true);
+        $this->assertNotSame($elementClone, $element);
+        // Children on documents aren't cloned
+        $this->assertTrue($elementClone->isEqualNode($element));
+
+        /*
+
+        // Node::nodeType on comment
+        $this->assertSame($d, $d->createComment('comment')->ownerDocument);
+
+        // Node::nodeType on document
+        $this->assertNull($d->ownerDocument);
+
+        // Node::nodeType on doctype
+        $this->assertSame($d, $d->implementation->createDocumentType('html', '', '')->ownerDocument);
+
+        // Node::nodeType on document fragment
+        $this->assertSame($d, $d->createDocumentFragment()->ownerDocument);
+
+        // Node::nodeType on element
+        $this->assertSame($d, $d->createElement('html')->ownerDocument);
+
+        // Node::nodeType on processing instruction
+        $this->assertSame($d, $d->createProcessingInstruction('ook', 'eek')->ownerDocument);
+
+        // Node::nodeType on text node
+        $this->assertSame($d, $d->createTextNode('ook')->ownerDocument);
+        */
     }
 
 

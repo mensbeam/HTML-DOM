@@ -257,13 +257,31 @@ abstract class Node {
     }
 
     protected function __set_textContent(string $value): void {
-        if ($this instanceof Document || $this instanceof DocumentType) {
-            return;
-        }
+        # The textContent setter steps are to, if the given value is null, act as if it
+        # was the empty string instead, and then do as described below, switching on the
+        # interface this implements:
+        // PHP's DOM has issues here, so let's go...
 
-        // PHP's DOM does this correctly already with the exception of Document and
-        // DocumentType.
-        $this->innerNode->textContent = $value;
+        # ↪ DocumentFragment
+        # ↪ Element
+        #      The descendant text content of this.
+        if ($this instanceof DocumentFragment || $this instanceof Element) {
+            // This seems to be okay in PHP's DOM.
+            $this->innerNode->textContent = $value;
+        }
+        # ↪ Attr
+        #      This's value
+        elseif ($this instanceof Attr) {
+            $this->innerNode->value = $value;
+        }
+        # ↪ CharacterData
+        #      Replace data with node this, offset 0, count this’s length, and data the given
+        #      value.
+        elseif ($this instanceof CharacterData) {
+            $this->innerNode->data = $value;
+        }
+        # ↪ Otherwise
+        #      Do nothing.
     }
 
 

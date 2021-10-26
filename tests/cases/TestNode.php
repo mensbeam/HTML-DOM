@@ -635,6 +635,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_textContent
+     * @covers \MensBeam\HTML\DOM\Node::__set_textContent
      *
      * @covers \MensBeam\HTML\DOM\Attr::__construct
      * @covers \MensBeam\HTML\DOM\Comment::__construct
@@ -679,31 +680,57 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $attr->value = 'https://poop💩.poop';
         $body->setAttributeNode($attr);
         $comment = $body->appendChild($d->createComment('ook'));
-        $pi = $body->appendChild($d->createProcessingInstruction('ook', 'eek'));
-        $text = $body->appendChild($d->createTextNode('ook'));
+        $pi = $d->createProcessingInstruction('ook', 'eek');
+        $body->appendChild($d->createTextNode('ook'));
+        $text = $d->createTextNode('ook');
         $frag = $d->createDocumentFragment();
         $frag->appendChild($d->createTextNode('ook'));
+        //$frag->appendChild($d->createElement('br'));
 
         $d2 = new XMLDocument();
         $cdata = $d2->createCDATASection('ook');
 
         // Node::textContent on attribute node
         $this->assertSame('https://poop💩.poop', $attr->textContent);
+        $attr->textContent = 'https://ook🐒ook';
+        $this->assertSame('https://ook🐒ook', $attr->textContent);
+
         // Node::textContent on CDATA section
         $this->assertSame('ook', $cdata->textContent);
+        $cdata->textContent = 'eek';
+        $this->assertSame('eek', $cdata->textContent);
+
         // Node::textContent on comment
         $this->assertSame('ook', $comment->textContent);
+        $comment->textContent = 'eek';
+        $this->assertSame('eek', $comment->textContent);
+
         // Node::textContent on document
         $this->assertNull($d->textContent);
+        $d->textContent = '';
+        $this->assertNull($d->textContent);
+
         // Node::textContent on doctype
         $this->assertNull($doctype->textContent);
+        $doctype->textContent = '';
+        $this->assertNull($doctype->textContent);
+
         // Node::textContent on document fragment
         $this->assertSame('ook', $frag->textContent);
-        // Node::parentElement on element
+
+        // Node::textContent on element
         $this->assertSame('ook', $body->textContent);
-        // Node::parentElement on processing instruction
+        $body->textContent = 'eek';
+        $this->assertSame('eek', $body->textContent);
+
+        // Node::textContent on processing instruction
         $this->assertSame('eek', $pi->textContent);
-        // Node::parentElement on text node
+        $pi->textContent = 'ook';
+        $this->assertSame('ook', $pi->textContent);
+
+        // Node::textContent on text node
         $this->assertSame('ook', $text->textContent);
+        $text->textContent = 'eek';
+        $this->assertSame('eek', $text->textContent);
     }
 }

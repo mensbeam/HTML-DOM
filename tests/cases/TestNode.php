@@ -680,12 +680,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $attr->value = 'https://poop💩.poop';
         $body->setAttributeNode($attr);
         $comment = $body->appendChild($d->createComment('ook'));
-        $pi = $d->createProcessingInstruction('ook', 'eek');
-        $body->appendChild($d->createTextNode('ook'));
-        $text = $d->createTextNode('ook');
+        $pi = $body->appendChild($d->createProcessingInstruction('ook', 'eek'));
+        $text = $body->appendChild($d->createTextNode('ook'));
         $frag = $d->createDocumentFragment();
         $frag->appendChild($d->createTextNode('ook'));
-        //$frag->appendChild($d->createElement('br'));
+        $frag->appendChild($d->createElement('br'));
 
         $d2 = new XMLDocument();
         $cdata = $d2->createCDATASection('ook');
@@ -717,6 +716,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
         // Node::textContent on document fragment
         $this->assertSame('ook', $frag->textContent);
+        $frag->textContent = 'eek';
+        $this->assertSame('eek', $frag->textContent);
 
         // Node::textContent on element
         $this->assertSame('ook', $body->textContent);

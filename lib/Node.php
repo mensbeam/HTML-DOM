@@ -260,14 +260,36 @@ abstract class Node {
         # The textContent setter steps are to, if the given value is null, act as if it
         # was the empty string instead, and then do as described below, switching on the
         # interface this implements:
-        // PHP's DOM has issues here, so let's go...
 
         # ↪ DocumentFragment
         # ↪ Element
-        #      The descendant text content of this.
+        #      String replace all with the given value within this.
         if ($this instanceof DocumentFragment || $this instanceof Element) {
-            // This seems to be okay in PHP's DOM.
-            $this->innerNode->textContent = $value;
+            # To string replace all with a string string within a node parent, run these
+            # steps:
+            // PHP's DOM segfaults when attempting to set textContent on a DocumentFragment,
+            // and when setting textContent on an Element it incorrectly destroys all
+            // nodes replaced within the element from memory immediately regardless of
+            // whether they're stored already in code or not.
+
+            # 1. Let node be null.
+            $node = null;
+
+            # 2. If string is not the empty string, then set node to a new Text node whose
+            #    data is string and node document is parent’s node document.
+            // string is $value
+            if ($value !== '') {
+                $node = $this->innerNode->ownerDocument->createTextNode($value);
+            }
+
+            # 3. Replace all with node within parent.
+            while ($this->innerNode->hasChildNodes()) {
+                $this->innerNode->removeChild($this->innerNode->firstChild);
+            }
+
+            if ($value !== '') {
+                $this->innerNode->appendChild($node);
+            }
         }
         # ↪ Attr
         #      This's value
@@ -282,6 +304,8 @@ abstract class Node {
         }
         # ↪ Otherwise
         #      Do nothing.
+        // PHP's DOM allows the setting of textContent in Document and DocumentType so
+        // this catches that violation.
     }
 
 

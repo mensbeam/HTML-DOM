@@ -94,7 +94,7 @@ abstract class Node {
             return $this->_childNodes;
         }
 
-        $this->_childNodes = Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\Nodelist', []);
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\Nodelist', []);
         return $this->_childNodes;
     }
 
@@ -416,9 +416,15 @@ abstract class Node {
             # 6. If the clone children flag is set, clone all the children of node and append
             #    them to copy, with document as specified and the clone children flag being
             #    set.
-            if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
+            if ($this instanceof Document) {
                 $childNodes = $this->childNodes;
                 foreach ($childNodes as $child) {
+                    $copy->appendChild($child->importNode(true));
+                }
+            } elseif ($this instanceof DocumentFragment || $this instanceof Element) {
+                $childNodes = $this->childNodes;
+                foreach ($childNodes as $child) {
+                    var_export($child);
                     $copy->appendChild($child->cloneNode(true));
                 }
             }
@@ -594,14 +600,16 @@ abstract class Node {
         # ↪ Element
         #      Its namespace, namespace prefix, local name, and its attribute list’s size.
         elseif ($this instanceof Element) {
-            if ($this->namespaceURI !== $otherNode->namespaceURI || $this->prefix !== $otherNode->prefix || $this->localName !== $otherNode->localName || $this->attributes->length !== $otherNode->attributes->length) {
+            $otherAttributes = $otherNode->attributes;
+            if ($this->namespaceURI !== $otherNode->namespaceURI || $this->prefix !== $otherNode->prefix || $this->localName !== $otherNode->localName || $this->attributes->length !== $otherAttributes->length) {
                 return false;
             }
 
             # • If A is an element, each attribute in its attribute list has an attribute that
             #   equals an attribute in B’s attribute list.
-            foreach ($this->attributes as $key => $attr) {
-                if (!$attr->isEqualNode($otherNode->attributes[$key])) {
+            $thisAttributes = $this->attributes;
+            foreach ($thisAttributes as $key => $attr) {
+                if (!$attr->isEqualNode($otherAttributes[$key])) {
                     return false;
                 }
             }

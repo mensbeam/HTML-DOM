@@ -7,11 +7,26 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\Parser;
+use MensBeam\HTML\DOM\InnerNode\Reflection,
+    MensBeam\HTML\Parser;
 
 
 class Element extends Node {
     use ChildNode, DocumentOrElement, ParentNode;
+
+    protected function __get_attributes(): NodeList {
+        // NodeLists cannot be created from their constructors normally.
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', function() use($doc) {
+            $result = [];
+            $innerAttributes = $this->innerNode->attributes;
+            foreach ($innerAttributes as $i) {
+                $result[] = $doc->getWrapperNode($i);
+            }
+
+            return $result;
+        });
+    }
 
     protected function __get_localName(): ?string {
         return $this->innerNode->localName;

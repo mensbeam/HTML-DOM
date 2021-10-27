@@ -35,7 +35,6 @@ abstract class Node {
     public const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
     public const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
-    protected ?NodeList $_childNodes = null;
     protected \DOMNode $innerNode;
 
     private static ?int $rand = null;
@@ -73,29 +72,7 @@ abstract class Node {
     }
 
     protected function __get_childNodes(): NodeList {
-        // NodeLists cannot be created from their constructors normally.
-        // OPTIMIZATION: Going to optimize here and only create a truly live NodeList if
-        // the node is even capable of having children, otherwise will just be an empty
-        // NodeList. There is no sense in generating a live list that will never update.
-        if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
-            $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', function() use($doc) {
-                $result = [];
-                $innerChildNodes = $this->innerNode->childNodes;
-                foreach ($innerChildNodes as $i) {
-                    $result[] = $doc->getWrapperNode($i);
-                }
-
-                return $result;
-            });
-        }
-
-        if ($this->_childNodes !== null) {
-            return $this->_childNodes;
-        }
-
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\Nodelist', []);
-        return $this->_childNodes;
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument, $this->innerNode->childNodes);
     }
 
     protected function __get_firstChild(): ?Node {
@@ -323,6 +300,10 @@ abstract class Node {
 
     public function cloneNode(?bool $deep = false): Node {
         # The cloneNode(deep) method steps are:
+        // PHP's DOM mostly does this correctly with the exception of not cloning
+        // doctypes. However, the entire process needs to be done manually because of
+        // templates.
+
         # 1. If this is a shadow root, then throw a "NotSupportedError" DOMException.
         // DEVIATION: There is no scripting in this implementation
 
@@ -335,16 +316,14 @@ abstract class Node {
         // No need for this step. There will always be a provided document
 
         # 2. If node is an element, then:
-        if ($this instanceof Element) {
-            # 1. Let copy be the result of creating an element, given document, node’s local
-            #    name, node’s namespace, node’s namespace prefix, and node’s is value, with the
-            #    synchronous custom elements flag unset.
-            # 2. For each attribute in node’s attribute list:
-            #        1. Let copyAttribute be a clone of attribute.
-            #        2. Append copyAttribute to copy.
-            // PHP's DOM can do this part correctly by shallow cloning.
-            $copy = $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->cloneNode());
-        }
+        #        1. Let copy be the result of creating an element, given document, node’s local
+        #           name, node’s namespace, node’s namespace prefix, and node’s is value, with the
+        #           synchronous custom elements flag unset.
+        #        2. For each attribute in node’s attribute list:
+        #              1. Let copyAttribute be a clone of attribute.
+        #              2. Append copyAttribute to copy.
+        // PHP's DOM can do this part correctly by shallow cloning, so it will be
+        // handled instead in the "Otherwise" section of step #3.
 
         # 3. Otherwise, let copy be a node that implements the same interfaces as node, and
         #    fulfills these additional requirements, switching on the interface node
@@ -352,7 +331,7 @@ abstract class Node {
         #
         # ↪ Document
         #      Set copy’s encoding, content type, URL, origin, type, and mode to those of node.
-        elseif ($this instanceof Document) {
+        if ($this instanceof Document) {
             $copy = $this->innerNode->getWrapperNode($this->innerNode->cloneNode());
 
             if ($this->characterSet !== 'UTF-8' || $this->compatMode !== 'CSS1Compat' || $this->contentType !== 'text/html' || $this->URL !== '') {
@@ -410,7 +389,7 @@ abstract class Node {
                 #    contents, with document set to copy's template contents's node document, and
                 #    with the clone children flag set.
                 # 3. Append copied contents to copy's template contents.
-                $copy->content = $this->content->cloneNode(true);
+                $copy->content->appendChild($this->content->cloneNode(true));
             }
 
             # 6. If the clone children flag is set, clone all the children of node and append
@@ -419,12 +398,11 @@ abstract class Node {
             if ($this instanceof Document) {
                 $childNodes = $this->childNodes;
                 foreach ($childNodes as $child) {
-                    $copy->appendChild($child->importNode(true));
+                    $copy->appendChild($copy->importNode($child, true));
                 }
             } elseif ($this instanceof DocumentFragment || $this instanceof Element) {
                 $childNodes = $this->childNodes;
                 foreach ($childNodes as $child) {
-                    var_export($child);
                     $copy->appendChild($child->cloneNode(true));
                 }
             }
@@ -639,7 +617,7 @@ abstract class Node {
             # • Each child of A equals the child of B at the identical index.
             foreach ($this->childNodes as $key => $child) {
                 $other = $otherNode->childNodes[$key];
-                if ($child->name !== $other->name || $child->publicId !== $other->publicId || $child->systemId !== $other->systemId) {
+                if (!$child->isEqualNode($other)) {
                     return false;
                 }
             }

@@ -95,35 +95,7 @@ class Document extends Node {
             $localName = strtolower($localName);
         }
 
-        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
-        // cannot create attribute nodes if there's no document element. So, create the
-        // attribute node in a separate document which does have a document element and
-        // then import
-        $target = $this->innerNode;
-        $documentElement = $this->documentElement;
-        if ($documentElement === null) {
-            $target = new \DOMDocument();
-            $target->appendChild($target->createElement('html'));
-        }
-
-        # 3. Return a new attribute whose local name is localName and node document is
-        #    this.
-        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
-        // some characters. We have to coerce them sometimes.
-        try {
-            $attr = $target->createAttributeNS(null, $localName);
-        } catch (\DOMException $e) {
-            // The element name is invalid for XML
-            // Replace any offending characters with "UHHHHHH" where H are the
-            //   uppercase hexadecimal digits of the character's code point
-            $attr = $target->createAttributeNS(null, $this->coerceName($localName));
-        }
-
-        if ($documentElement === null) {
-            return $this->importNode($attr);
-        }
-
-        return $this->innerNode->getWrapperNode($attr);
+        return $this->__createAttribute(null, $localName);
     }
 
     public function createAttributeNS(?string $namespace, string $qualifiedName): Attr {
@@ -134,35 +106,7 @@ class Document extends Node {
         [ 'namespace' => $namespace, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespace);
         $qualifiedName = ($prefix) ? "$prefix:$localName" : $localName;
 
-        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
-        // cannot create attribute nodes if there's no document element. So, create the
-        // attribute node in a separate document which does have a document element and
-        // then import
-        $target = $this->innerNode;
-        $documentElement = $this->documentElement;
-        if ($documentElement === null) {
-            $target = new \DOMDocument();
-            $target->appendChild($target->createElement('html'));
-        }
-
-        # 2. Return a new attribute whose namespace is namespace, namespace prefix is
-        #    prefix, local name is localName, and node document is this.
-        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
-        // some characters. We have to coerce them sometimes.
-        try {
-            $attr = $target->createAttributeNS($namespace, $qualifiedName);
-        } catch (\DOMException $e) {
-            // The element name is invalid for XML
-            // Replace any offending characters with "UHHHHHH" where H are the
-            //   uppercase hexadecimal digits of the character's code point
-            $attr = $target->createAttributeNS($namespace, $this->coerceName($qualifiedName));
-        }
-
-        if ($documentElement === null) {
-            return $this->importNode($attr);
-        }
-
-        return $this->innerNode->getWrapperNode($attr);
+        return $this->__createAttribute($namespace, $qualifiedName);
     }
 
     public function createCDATASection(string $data): CDATASection {
@@ -284,17 +228,59 @@ class Document extends Node {
     }
 
     public function importNode(\DOMNode|Node $node, bool $deep = false): Node {
-        $isDOMNode = ($node instanceof \DOMNode);
-        $node = $this->innerNode->getWrapperNode($this->innerNode->importNode((!$isDOMNode) ? $this->getInnerNode($node) : $node, false));
-        if ($node instanceof Element || $node instanceof DocumentFragment) {
-            $this->convertAdoptedOrImportedNode($node, $isDOMNode);
+        # The importNode(node, deep) method steps are:
+        #
+        # 1. If node is a document or shadow root, then throw a "NotSupportedError"
+        #    DOMException.
+        if ($node instanceof Document || $node instanceof \DOMDocument) {
+            throw new DOMException(DOMException::NOT_SUPPORTED);
         }
 
-        return $node;
+        # 2. Return a clone of node, with this and the clone children flag set if deep
+        #    is true.
+        // PHP's DOM mostly does this correctly. It, however, won't import doctypes...
+        if ($node instanceof DocumentType || $node instanceof \DOMDocumentType) {
+            return $this->implementation->createDocumentType($node->name, $node->publicId, $node->systemId);
+        }
+
+        return $this->innerNode->getWrapperNode($this->innerNode->importNode((!$node instanceof \DOMNode) ? $this->getInnerNode($node) : $node, $deep));
     }
 
 
-    protected function convertAdoptedOrImportedNode(Node $node, bool $originalWasDOMNode = false): Node {
+    protected function __createAttribute(?string $namespace, string $qualifiedName): Attr {
+        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
+        // cannot create attribute nodes if there's no document element. So, create the
+        // attribute node in a separate document which does have a document element and
+        // then import
+        $target = $this->innerNode;
+        $documentElement = $this->documentElement;
+        if ($documentElement === null) {
+            $target = new \DOMDocument();
+            $target->appendChild($target->createElement('html'));
+        }
+
+        // From createAttributeNS:
+        # 2. Return a new attribute whose namespace is namespace, namespace prefix is
+        #    prefix, local name is localName, and node document is this.
+        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+        // some characters. We have to coerce them sometimes.
+        try {
+            $attr = $target->createAttributeNS($namespace, $qualifiedName);
+        } catch (\DOMException $e) {
+            // The element name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            //   uppercase hexadecimal digits of the character's code point
+            $attr = $target->createAttributeNS($namespace, $this->coerceName($qualifiedName));
+        }
+
+        if ($documentElement === null) {
+            return $this->importNode($attr);
+        }
+
+        return $this->innerNode->getWrapperNode($attr);
+    }
+
+    /*protected function convertAdoptedOrImportedNode(Node $node, bool $originalWasDOMNode = false): Node {
         // Yet another PHP DOM hang-up that is either a bug or a feature. When
         // elements are imported their id attributes aren't able to be picked up by
         // getElementById, so let's fix that.
@@ -330,5 +316,5 @@ class Document extends Node {
         }
 
         return $node;
-    }
+    }*/
 }

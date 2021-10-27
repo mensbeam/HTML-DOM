@@ -16,23 +16,35 @@ use MensBeam\HTML\DOM\{
 use MensBeam\HTML\Parser;
 
 
-/** @covers \MensBeam\HTML\DOM\Document */
+/** @covers \MensBeam\HTML\DOM\Node */
 class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::cloneNode
      *
      * @covers \MensBeam\HTML\DOM\Attr::__construct
-     * @covers \MensBeam\HTML\DOM\Comment::__construct
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Collection::current
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Collection::key
+     * @covers \MensBeam\HTML\DOM\Collection::next
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::offsetGet
+     * @covers \MensBeam\HTML\DOM\Collection::offsetExists
+     * @covers \MensBeam\HTML\DOM\Collection::rewind
+     * @covers \MensBeam\HTML\DOM\Collection::valid
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::importNode
      * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
@@ -40,6 +52,9 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::current
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::item
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::isEqualNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
@@ -59,12 +74,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         $d2 = new XMLDocument();
         $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+        $element = $d->appendChild($d->createElement('html'));
+        $element->appendChild($d->createElement('body'));
+        $d->body->setAttribute('id', 'ook');
+        $template = $d->body->appendChild($d->createElement('template'));
+        $template->content->appendChild($d->createTextNode('ook'));
         $attr = $d->createAttribute('href');
         $attr->value = 'https://poop💩.poop';
         $cdata = $d2->createCDATASection('ook');
         $comment = $d->createComment('comment');
-        $element = $d->createElement('html');
-        $element->appendChild($d->createElement('body'));
         $pi = $d->createProcessingInstruction('ook', 'eek');
         $text = $d->createTextNode('ook');
         $frag = $d->createDocumentFragment();
@@ -88,8 +106,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         // Node::cloneNode on document
         $dClone = $d->cloneNode(true);
         $this->assertNotSame($dClone, $d);
-        // Children on documents aren't cloned
-        $this->assertFalse($dClone->isEqualNode($d));
+        $this->assertTrue($dClone->isEqualNode($d));
 
         // Node::cloneNode on doctype
         $doctypeClone = $doctype->cloneNode();
@@ -99,45 +116,35 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         // Node::cloneNode on document fragment
         $fragClone = $frag->cloneNode(true);
         $this->assertNotSame($fragClone, $frag);
-        // Children on document fragments aren't cloned
-        $this->assertFalse($fragClone->isEqualNode($frag));
+        $this->assertTrue($fragClone->isEqualNode($frag));
 
         // Node::cloneNode on element
         $elementClone = $element->cloneNode(true);
         $this->assertNotSame($elementClone, $element);
-        // Children on documents aren't cloned
         $this->assertTrue($elementClone->isEqualNode($element));
 
-        /*
+        // Node::cloneNode on processing instruction
+        $piClone = $pi->cloneNode();
+        $this->assertNotSame($piClone, $pi);
+        $this->assertTrue($piClone->isEqualNode($pi));
 
-        // Node::nodeType on comment
-        $this->assertSame($d, $d->createComment('comment')->ownerDocument);
-
-        // Node::nodeType on document
-        $this->assertNull($d->ownerDocument);
-
-        // Node::nodeType on doctype
-        $this->assertSame($d, $d->implementation->createDocumentType('html', '', '')->ownerDocument);
-
-        // Node::nodeType on document fragment
-        $this->assertSame($d, $d->createDocumentFragment()->ownerDocument);
-
-        // Node::nodeType on element
-        $this->assertSame($d, $d->createElement('html')->ownerDocument);
-
-        // Node::nodeType on processing instruction
-        $this->assertSame($d, $d->createProcessingInstruction('ook', 'eek')->ownerDocument);
-
-        // Node::nodeType on text node
-        $this->assertSame($d, $d->createTextNode('ook')->ownerDocument);
-        */
+        // Node::cloneNode on text node
+        $textClone = $text->cloneNode();
+        $this->assertNotSame($textClone, $text);
+        $this->assertTrue($textClone->isEqualNode($text));
     }
 
 
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
      *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Collection::offsetGet
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
@@ -145,11 +152,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\NodeList::__construct
-     * @covers \MensBeam\HTML\DOM\NodeList::count
-     * @covers \MensBeam\HTML\DOM\NodeList::__get_length
-     * @covers \MensBeam\HTML\DOM\NodeList::item
-     * @covers \MensBeam\HTML\DOM\NodeList::offsetGet
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
@@ -186,6 +188,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
@@ -253,6 +256,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_lastChild
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
@@ -295,6 +299,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_previousSibling
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
@@ -339,6 +344,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_nextSibling
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
@@ -387,6 +393,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
@@ -470,7 +477,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
@@ -531,7 +538,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
@@ -619,7 +626,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
@@ -680,8 +687,9 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Comment::__construct
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
@@ -758,7 +766,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement

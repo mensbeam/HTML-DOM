@@ -7,8 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Element as InnerElement,
-    MensBeam\HTML\DOM\InnerNode\Reflection;
+use MensBeam\HTML\DOM\InnerNode\Reflection;
 
 
 class HTMLTemplateElement extends HTMLElement {
@@ -21,7 +20,7 @@ class HTMLTemplateElement extends HTMLElement {
     }
 
 
-    protected function __construct(InnerElement $element) {
+    protected function __construct(\DOMElement $element) {
         parent::__construct($element);
 
         $this->_content = $this->ownerDocument->createDocumentFragment();

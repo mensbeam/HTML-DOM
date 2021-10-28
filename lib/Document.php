@@ -84,7 +84,7 @@ class Document extends Node {
 
         if ($source !== null) {
             $this->importHTML($source, $charset ?? 'windows-1252');
-        } elseif ($encoding !== 'UTF-8') {
+        } elseif ($charset !== 'UTF-8') {
             $this->_characterSet = Charset::fromCharset((string)$charset) ?? 'UTF-8';
         }
     }
@@ -305,42 +305,4 @@ class Document extends Node {
             $this->appendChild($this->importNode($child, true));
         }
     }
-
-    /*protected function convertAdoptedOrImportedNode(Node $node, bool $originalWasDOMNode = false): Node {
-        // Yet another PHP DOM hang-up that is either a bug or a feature. When
-        // elements are imported their id attributes aren't able to be picked up by
-        // getElementById, so let's fix that.
-        $elementsWithIds = $node->walk(function($n) {
-            return ($n instanceof Element && $n->hasAttribute('id'));
-        }, true);
-
-        foreach ($elementsWithIds as $e) {
-            // setIdAttributeNode doesn't exist in modern DOM so isn't exposed in the
-            // wrapper element.
-            $e = $this->getInnerNode($e);
-            $e->setIdAttributeNode($e->getAttributeNode('id'), true);
-        }
-
-        // If the orginal node was a DOMNode then all child nodes of template elements
-        // need to be inserted into the template's content DocumentFragment.
-        if ($originalWasDOMNode) {
-            // Yes, it seems weird to unpack a generator like this, but there is a need to
-            // iterate through them in reverse so nested templates can be handled properly.
-            // Also, this is slightly faster than using XPath to look for the templates;
-            // they would also need to be unpacked because the NodeList is live and would
-            // create an infinite loop if not unpacked to an array.
-            $templates = [ ...$node->walk(function($n) {
-                return ($n instanceof Element && !$n instanceof HTMLTemplateElement && $n->namespaceURI === Parser::HTML_NAMESPACE && strtolower($n->nodeName) === 'template');
-            }, true) ];
-
-            for ($templatesLength = count($templates), $i = $templatesLength - 1; $i >= 0; $i--) {
-                $template = $templates[$i];
-                while ($template->hasChildNodes()) {
-                    $template->content->appendChild($template->firstChild);
-                }
-            }
-        }
-
-        return $node;
-    }*/
 }

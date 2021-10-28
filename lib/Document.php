@@ -237,7 +237,7 @@ class Document extends Node {
         return $this->innerNode->getWrapperNode($this->innerNode->createTextNode($data));
     }
 
-    public function importNode(\DOMNode|Node $node, bool $deep = false): Node {
+    public function importNode(Node $node, bool $deep = false): Node {
         # The importNode(node, deep) method steps are:
         #
         # 1. If node is a document or shadow root, then throw a "NotSupportedError"
@@ -248,12 +248,23 @@ class Document extends Node {
 
         # 2. Return a clone of node, with this and the clone children flag set if deep
         #    is true.
-        // PHP's DOM mostly does this correctly. It, however, won't import doctypes...
-        if ($node instanceof DocumentType || $node instanceof \DOMDocumentType) {
-            return $this->implementation->createDocumentType($node->name, $node->publicId, $node->systemId);
+        return $this->cloneWrapperNode($node, $this, $deep);
+    }
+
+    public function loadHTML(string $source = null, ?string $charset = null): void {
+        if ($this->hasChildNodes()) {
+            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
 
-        return $this->innerNode->getWrapperNode($this->innerNode->importNode((!$node instanceof \DOMNode) ? $this->getInnerNode($node) : $node, $deep));
+        $source = Parser::parse($source, $charset ?? 'windows-1252');
+        $this->_characterSet = $source->encoding;
+        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
+
+        $source = $source->document;
+        $childNodes = $source->childNodes;
+        foreach ($source->childNodes as $child) {
+            $this->appendChild($this->importNode($child, true));
+        }
     }
 
 
@@ -284,25 +295,9 @@ class Document extends Node {
         }
 
         if ($documentElement === null) {
-            return $this->importNode($attr);
+            $attr = $this->cloneInnerNode($attr, $this->innerNode);
         }
 
         return $this->innerNode->getWrapperNode($attr);
-    }
-
-    protected function importHTML(string $source, string $charset): void {
-        if ($this->hasChildNodes()) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
-        }
-
-        $source = Parser::parse($source, $charset);
-        $this->_characterSet = $source->encoding;
-        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
-
-        $source = $source->document;
-        $childNodes = $source->childNodes;
-        foreach ($source->childNodes as $child) {
-            $this->appendChild($this->importNode($child, true));
-        }
     }
 }

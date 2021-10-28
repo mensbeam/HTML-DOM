@@ -20,6 +20,8 @@ use MensBeam\HTML\Parser;
 class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::cloneNode
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
      *
      * @covers \MensBeam\HTML\DOM\Attr::__construct
      * @covers \MensBeam\HTML\DOM\CDATASection::__construct

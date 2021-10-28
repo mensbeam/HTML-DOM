@@ -12,6 +12,10 @@ use MensBeam\HTML\DOM\InnerNode\{
     Reflection
 };
 use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser\{
+    Charset,
+    Data
+};
 
 
 class Document extends Node {
@@ -74,9 +78,15 @@ class Document extends Node {
     }
 
 
-    public function __construct() {
+    public function __construct(string $source = null, ?string $charset = null) {
         parent::__construct(new InnerDocument($this));
         $this->_implementation = new DOMImplementation($this);
+
+        if ($source !== null) {
+            $this->importHTML($source, $charset ?? 'windows-1252');
+        } elseif ($encoding !== 'UTF-8') {
+            $this->_characterSet = Charset::fromCharset((string)$charset) ?? 'UTF-8';
+        }
     }
 
 
@@ -278,6 +288,22 @@ class Document extends Node {
         }
 
         return $this->innerNode->getWrapperNode($attr);
+    }
+
+    protected function importHTML(string $source, string $charset): void {
+        if ($this->hasChildNodes()) {
+            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+        }
+
+        $source = Parser::parse($source, $charset);
+        $this->_characterSet = $source->encoding;
+        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
+
+        $source = $source->document;
+        $childNodes = $source->childNodes;
+        foreach ($source->childNodes as $child) {
+            $this->appendChild($this->importNode($child, true));
+        }
     }
 
     /*protected function convertAdoptedOrImportedNode(Node $node, bool $originalWasDOMNode = false): Node {

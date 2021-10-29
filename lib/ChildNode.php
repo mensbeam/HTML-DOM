@@ -24,19 +24,18 @@ trait ChildNode {
      *                                   the iteration.
      */
     public function moonwalk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = $this->parentNode;
+        $node = $this->getInnerNode($this)->parentNode;
 
         if ($node !== null) {
-            $node = Reflection::getProtectedProperty($node, 'innerNode');
             $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
 
             do {
                 $next = $node->parentNode;
-                $wrapperNode = $doc->getWrapperNode($node);
-                $result = ($filter === null) ? true : $filter($wrapperNode);
+                $nodeToFilter = $doc->getWrapperNode($node);
+                $result = ($filter === null) ? true : $filter($nodeToFilter);
 
                 if ($result === true) {
-                    yield $wrapperNode;
+                    yield $nodeToFilter;
                 }
             } while ($node = $next);
         }
@@ -51,11 +50,9 @@ trait ChildNode {
      *                                   the iteration.
      */
     public function walkFollowing(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = null;
-        if ($includeReferenceNode) {
-            $node = $this->innerNode;
-        } elseif ($this->nextSibling !== null) {
-            $node = Reflection::getProtectedProperty($this->nextSibling, 'innerNode');
+        $node = $this->innerNode;
+        if (!$includeReferenceNode)  {
+            $node = $node->nextSibling;
         }
 
         if ($node !== null) {
@@ -82,11 +79,9 @@ trait ChildNode {
      *                                   the iteration.
      */
     public function walkPreceding(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = null;
-        if ($includeReferenceNode) {
-            $node = $this->innerNode;
-        } elseif ($this->nextSibling !== null) {
-            $node = Reflection::getProtectedProperty($this->previousSibling, 'innerNode');
+        $node = $this->innerNode;
+        if (!$includeReferenceNode)  {
+            $node = $node->previousSibling;
         }
 
         if ($node !== null) {

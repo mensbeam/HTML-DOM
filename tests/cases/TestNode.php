@@ -58,6 +58,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\NamedNodeMap::current
      * @covers \MensBeam\HTML\DOM\NamedNodeMap::item
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct

@@ -372,7 +372,21 @@ abstract class Node {
             self::$rand = rand(0, 1);
         }
 
-        if ($node1 === null || $node2 === null || $node1->getRootNode() !== $node2->getRootNode()) {
+        if ($node1 === null || $node2 === null) {
+            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
+        }
+
+        $n = $node1;
+        while ($n = $n->parentNode) {
+            $root1 = $n;
+        }
+
+        $n = $node2;
+        while ($n = $n->parentNode) {
+            $root2 = $n;
+        }
+
+        if ($root1 !== $root2) {
             return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
         }
 
@@ -409,7 +423,7 @@ abstract class Node {
         })->current() !== null);
     }
 
-    public function getRootNode(array $options = []): ?Node {
+    public function getRootNode(): ?Node {
         # The getRootNode(options) method steps are to return this’s shadow-including
         # root if options["composed"] is true; otherwise this’s root.
         // DEVIATION: This implementation does not have scripting, so there's no Shadow
@@ -418,13 +432,16 @@ abstract class Node {
         # The root of an object is itself, if its parent is null, or else it is the root
         # of its parent. The root of a tree is any object participating in that tree
         # whose parent is null.
-        if ($this->parentNode === null) {
+        $node = $this->innerNode;
+        if ($node->parentNode === null) {
             return $this;
         }
 
-        return $this->moonwalk(function($n) {
-            return ($n->parentNode === null);
-        })->current();
+        $n = $node;
+        while ($n = $n->parentNode) {
+            $root = $n;
+        }
+        return (!$root instanceof InnerDocument) ? $root->ownerDocument->getWrapperNode($root) : $root->wrapperNode;
     }
 
     public function hasChildNodes(): bool {
@@ -460,72 +477,7 @@ abstract class Node {
     public function isEqualNode(?Node $otherNode) {
         # The isEqualNode(otherNode) method steps are to return true if otherNode is
         # non-null and this equals otherNode; otherwise false.
-
-        # A node A equals a node B if all of the following conditions are true:
-        #
-        # • A and B implement the same interfaces.
-        if ($this::class !== $otherNode::class) {
-            return false;
-        }
-
-        # • The following are equal, switching on the interface A implements:
-        #
-        # ↪ DocumentType
-        #      Its name, public ID, and system ID.
-        if ($this instanceof DocumentType) {
-            if ($this->name !== $otherNode->name || $this->publicId !== $otherNode->publicId || $this->systemId !== $this->publicId) {
-                return false;
-            }
-        }
-        # ↪ Element
-        #      Its namespace, namespace prefix, local name, and its attribute list’s size.
-        elseif ($this instanceof Element) {
-            $otherAttributes = $otherNode->attributes;
-            if ($this->namespaceURI !== $otherNode->namespaceURI || $this->prefix !== $otherNode->prefix || $this->localName !== $otherNode->localName || $this->attributes->length !== $otherAttributes->length) {
-                return false;
-            }
-
-            # • If A is an element, each attribute in its attribute list has an attribute that
-            #   equals an attribute in B’s attribute list.
-            $thisAttributes = $this->attributes;
-            foreach ($thisAttributes as $key => $attr) {
-                if (!$attr->isEqualNode($otherAttributes[$key])) {
-                    return false;
-                }
-            }
-        }
-        # ↪ Attr
-        #       Its namespace, local name, and value.
-        elseif ($this instanceof Attr) {
-            if ($this->namespaceURI !== $otherNode->namespaceURI || $this->localName !== $otherNode->localName || $this->value !== $otherNode->value) {
-                return false;
-            }
-        }
-        # ↪ Text
-        # ↪ Comment
-        #      Its data.
-        elseif ($this instanceof Text || $this instanceof Comment) {
-            if ($this->data !== $otherNode->data) {
-                return false;
-            }
-        }
-
-        if ($this instanceof Document || $this instanceof DocumentFragment || $this instanceof Element) {
-            # • A and B have the same number of children.
-            if ($this->childNodes->length !== $otherNode->childNodes->length) {
-                return false;
-            }
-
-            # • Each child of A equals the child of B at the identical index.
-            foreach ($this->childNodes as $key => $child) {
-                $other = $otherNode->childNodes[$key];
-                if (!$child->isEqualNode($other)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return $this->isEqualInnerNode($this->innerNode, $this->getInnerNode($otherNode));
     }
 
     public function isSameNode(?Node $otherNode) {
@@ -942,6 +894,74 @@ abstract class Node {
         return Reflection::getProtectedProperty($node, 'innerNode');
     }
 
+    protected function isEqualInnerNode(\DOMNode $thisNode, \DOMNode $otherNode) {
+        # A node A equals a node B if all of the following conditions are true:
+        #
+        # • A and B implement the same interfaces.
+        if ($thisNode::class !== $otherNode::class) {
+            return false;
+        }
+
+        # • The following are equal, switching on the interface A implements:
+        #
+        # ↪ DocumentType
+        #      Its name, public ID, and system ID.
+        if ($thisNode instanceof \DOMDocumentType) {
+            if ($thisNode->name !== $otherNode->name || $thisNode->publicId !== $otherNode->publicId || $thisNode->systemId !== $thisNode->publicId) {
+                return false;
+            }
+        }
+        # ↪ Element
+        #      Its namespace, namespace prefix, local name, and its attribute list’s size.
+        elseif ($thisNode instanceof \DOMElement) {
+            $otherAttributes = $otherNode->attributes;
+            if ($thisNode->namespaceURI !== $otherNode->namespaceURI || $thisNode->prefix !== $otherNode->prefix || $thisNode->localName !== $otherNode->localName || $thisNode->attributes->length !== $otherAttributes->length) {
+                return false;
+            }
+
+            # • If A is an element, each attribute in its attribute list has an attribute that
+            #   equals an attribute in B’s attribute list.
+            $thisNodeAttributes = $thisNode->attributes;
+            foreach ($thisNodeAttributes as $key => $attr) {
+                if (!$this->isEqualInnerNode($attr, $otherAttributes[$key])) {
+                    return false;
+                }
+            }
+        }
+        # ↪ Attr
+        #       Its namespace, local name, and value.
+        elseif ($thisNode instanceof \DOMAttr) {
+            if ($thisNode->namespaceURI !== $otherNode->namespaceURI || $thisNode->localName !== $otherNode->localName || $thisNode->value !== $otherNode->value) {
+                return false;
+            }
+        }
+        # ↪ Text
+        # ↪ Comment
+        #      Its data.
+        elseif ($thisNode instanceof \DOMText || $thisNode instanceof \DOMComment) {
+            if ($thisNode->data !== $otherNode->data) {
+                return false;
+            }
+        }
+
+        if ($thisNode instanceof \DOMDocument || $thisNode instanceof \DOMDocumentFragment || $thisNode instanceof \DOMElement) {
+            # • A and B have the same number of children.
+            if ($thisNode->childNodes->length !== $otherNode->childNodes->length) {
+                return false;
+            }
+
+            # • Each child of A equals the child of B at the identical index.
+            foreach ($thisNode->childNodes as $key => $child) {
+                $other = $otherNode->childNodes[$key];
+                if (!$this->isEqualInnerNode($child, $other)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     protected function locateNamespace(Node $node, ?string $prefix = null): ?string {
         # To locate a namespace for a node using prefix, switch on the interface node
         # implements:
@@ -959,7 +979,7 @@ abstract class Node {
             #    attribute whose namespace is the XMLNS namespace, namespace prefix is null, and
             #    local name is "xmlns", then return its value if it is not the empty string, and
             #    null otherwise.
-            $attributes = $node->attributes;
+            $attributes = $this->getInnerNode($node)->attributes;
             foreach ($attributes as $attr) {
                 if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === null && $attr->localName === 'xmlns')) {
                     return ($attr->value !== '') ? $attr->value : null;
@@ -1032,7 +1052,7 @@ abstract class Node {
 
         # 2. If element has an attribute whose namespace prefix is "xmlns" and value is
         #    namespace, then return element’s first such attribute’s local name.
-        $attributes = $element->attributes;
+        $attributes = $this->getInnerNode($element)->attributes;
         foreach ($attributes as $attr) {
             if ($attr->prefix === 'xmlns' && $attr->value === $namespace) {
                 return $attr->localName;
@@ -1051,11 +1071,15 @@ abstract class Node {
     }
 
     protected function preInsertionValidity(Node $node, ?Node $child = null) {
-        // "parent" in the spec comments below is $this
+        $parent = $this->innerNode;
+        $node = $this->getInnerNode($node);
+        if ($child !== null) {
+            $child = $this->getInnerNode($child);
+        }
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" Exception.
-        if (!$this instanceof Document && !$this instanceof DocumentFragment && !$this instanceof Element) {
+        if (!$parent instanceof InnerDocument && !$parent instanceof \DOMDocumentFragment && !$parent instanceof \DOMElement) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
@@ -1066,12 +1090,17 @@ abstract class Node {
         # A is an inclusive ancestor of B, or if B’s root has a non-null host and A is a
         # host-including inclusive ancestor of B’s root’s host.
         if ($node->parentNode !== null) {
-            if ($this->parentNode !== null && ($this === $node || $node->contains($this))) {
+            if ($parent->parentNode !== null && ($parent === $node || $node->contains($parent))) {
                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
             } else {
-                $parentRoot = $this->getRootNode();
-                if ($parentRoot instanceof DocumentFragment) {
-                    $parentRootHost = Reflection::getProtectedProperty($parentRoot, 'host')->get();
+                $n = $parent;
+                while ($n = $n->parentNode) {
+                    $parentRoot = $n;
+                }
+
+                if ($parentRoot instanceof \DOMDocumentFragment) {
+                    $wrappedParentRoot = $parentRoot->ownerDocument->getWrapperNode($parentRoot);
+                    $parentRootHost = Reflection::getProtectedProperty($wrappedParentRoot, 'host')->get();
                     if ($parentRootHost !== null && ($parentRootHost === $node || $node->contains($parentRootHost))) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
@@ -1081,27 +1110,27 @@ abstract class Node {
 
         # 3. If child is non-null and its parent is not parent, then throw a
         #    "NotFoundError" Exception.
-        if ($child !== null && ($child->parentNode === null || $child->parentNode !== $this)) {
+        if ($child !== null && ($child->parentNode === null || $child->parentNode !== $parent)) {
             throw new DOMException(DOMException::NOT_FOUND);
         }
 
         # 4. If node is not a DocumentFragment, DocumentType, Element, Text,
         #    ProcessingInstruction, or Comment node, then throw a "HierarchyRequestError"
         #    Exception.
-        if (!$node instanceof DocumentFragment && !$node instanceof DocumentType && !$node instanceof Element && !$node instanceof Text && !$node instanceof ProcessingInstruction && !$node instanceof Comment) {
+        if (!$node instanceof \DOMDocumentFragment && !$node instanceof \DOMDocumentType && !$node instanceof \DOMElement && !$node instanceof \DOMText && !$node instanceof \DOMProcessingInstruction && !$node instanceof \DOMComment) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 5. If either node is a Text node and parent is a document, or node is a
         #    doctype and parent is not a document, then throw a "HierarchyRequestError"
         #    Exception.
-        if (($node instanceof Text && $this instanceof Document) || ($node instanceof DocumentType && !$this instanceof Document)) {
+        if (($node instanceof \DOMText && $parent instanceof \DOMDocument) || ($node instanceof \DOMDocumentType && !$parent instanceof InnerDocument)) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 6. If parent is a document, and any of the statements below, switched on the
         #    interface node implements, are true, then throw a "HierarchyRequestError".
-        if ($this instanceof Document) {
+        if ($parent instanceof InnerDocument) {
             # ↪ DocumentFragment
             #      If node has more than one element child or has a Text node child.
             #
@@ -1110,12 +1139,21 @@ abstract class Node {
             #      child.
             if ($node instanceof DocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
-                if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
-                    return ($n instanceof Text);
-                }, true)->current() !== null) {
+                if ($nodeChildElementCount > 1) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                } elseif ($nodeChildElementCount === 1) {
-                    if ($this->childElementCount > 0 || $child instanceof DocumentType) {
+                } else {
+                    $n = $node->firstChild;
+                    if ($n !== null) {
+                        do {
+                            if ($n instanceof Text) {
+                                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            }
+                        } while ($n = $n->nextSibling);
+                    }
+                }
+
+                if ($nodeChildElementCount === 1) {
+                    if ($parent->childElementCount > 0 || $child instanceof DocumentType) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 
@@ -1147,10 +1185,13 @@ abstract class Node {
                     }
                 }
 
-                if ($this->firstChild !== null && $this->firstChild->walkFollowing(function($n) {
-                    return ($n instanceof Element);
-                }, true)->current() !== null) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                if ($parent->firstChild !== null) {
+                    $n = $parent->firstChild;
+                    do {
+                        if ($n instanceof Element) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        }
+                    } while ($n = $n->nextSibling);
                 }
             }
 
@@ -1158,10 +1199,14 @@ abstract class Node {
             #      parent has a doctype child, child is non-null and an element is preceding
             #      child, or child is null and parent has an element child.
             elseif ($node instanceof DocumentType) {
-                if ($this->firstChild !== null && $this->firstChild->walkFollowing(function($n) {
-                    return ($n instanceof DocumentType);
-                }, true)->current() !== null) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                $firstChild = $parent->firstChild;
+                if ($firstChild !== null) {
+                    $n = $firstChild;
+                    do {
+                        if ($n instanceof DocumentType || ($child === null && $n instanceof Element)) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        }
+                    } while ($n = $n->nextSibling);
                 }
 
                 if ($child !== null) {
@@ -1170,12 +1215,6 @@ abstract class Node {
                         if ($n instanceof Element) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
-                    }
-                } else {
-                    if ($this->firstChild !== null && $this->firstChild->walkFollowing(function($n) {
-                        return ($n instanceof Element);
-                    }, true)->current() !== null) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }
             }

@@ -7,8 +7,11 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Document as InnerDocument,
-    MensBeam\HTML\Parser;
+use MensBeam\HTML\DOM\InnerNode\{
+    Document as InnerDocument,
+    Reflection
+};
+use MensBeam\HTML\Parser;
 
 
 /**
@@ -17,6 +20,24 @@ use MensBeam\HTML\DOM\InnerNode\Document as InnerDocument,
  * both the Document and Element interfaces.
  */
 trait DocumentOrElement {
+    public function getElementsByTagName(string $qualifiedName): HTMLCollection {
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', (!$this instanceof Document) ? $this->innerNode->ownerDocument : $this->innerNode, $this->innerNode->getElementsByTagNameNS(null, $qualifiedName));
+    }
+
+    public function getElementsByTagNameNS(?string $namespace = null, string $localName): HTMLCollection {
+        // If an HTML document and the namespace is the HTML namespace change it to null
+        // before running internally because HTML nodes are stored with null namespaces
+        // because of bugs in PHP DOM.
+        if ($namespace === Parser::HTML_NAMESPACE && (($this instanceof Document && !$this instanceof XMLDocument) || !$this->ownerDocument instanceof XMLDocument)) {
+            $namespace = null;
+        }
+
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', (!$this instanceof Document) ? $this->innerNode->ownerDocument : $this->innerNode, $this->innerNode->getElementsByTagNameNS($namespace, $localName));
+    }
+
+
     protected function validateAndExtract(string $qualifiedName, ?string $namespace = null): array {
         # To validate and extract a namespace and qualifiedName, run these steps:
         # 1. If namespace is the empty string, set it to null.

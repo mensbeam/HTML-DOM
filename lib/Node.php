@@ -325,6 +325,8 @@ abstract class Node {
         # 2. Let node1 be other and node2 be this.
         $node1 = $other;
         $node2 = $this;
+        $innerNode1 = $this->getInnerNode($other);
+        $innerNode2 = $this->innerNode;
 
         # 3. Let attr1 and attr2 be null.
         $attr1 = $attr2 = null;
@@ -332,20 +334,22 @@ abstract class Node {
         # 4. If node1 is an attribute, then set attr1 to node1 and node1 to attr1’s
         #   element.
         if ($node1 instanceof Attr) {
-            $attr1 = $node1;
+            $attr1 = $innerNode1;
             $node1 = $attr1->ownerElement;
         }
 
         # 5. If node2 is an attribute, then:
         if ($node2 instanceof Attr) {
             # 1. Set attr2 to node2 and node2 to attr2’s element.
-            $attr2 = $node2;
+            $attr2 = $innerNode2;
             $node2 = $attr2->ownerElement;
 
             # 2. If attr1 and node1 are non-null, and node2 is node1, then:
             if ($attr1 !== null && $node1 !== null && $node2 === $node1) {
                 # 1. For each attr in node2’s attribute list:
-                foreach ($node2->attributes as $attr) {
+                $attributes = $innerNode2->attributes;
+                die(var_export($attributes));
+                foreach ($attributes as $attr) {
                     # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
                     if ($attr === $attr1) {
                         return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
@@ -376,12 +380,12 @@ abstract class Node {
             return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
         }
 
-        $n = $node1;
+        $n = $innerNode1;
         while ($n = $n->parentNode) {
             $root1 = $n;
         }
 
-        $n = $node2;
+        $n = $innerNode2;
         while ($n = $n->parentNode) {
             $root2 = $n;
         }
@@ -393,22 +397,23 @@ abstract class Node {
         # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINS to
         #    DOCUMENT_POSITION_PRECEDING.
-        if (($node1 === $node2 && $attr2 !== null) || ($attr1 === null && $node2->contains($node1))) {
+        if (($node1 === $node2 && $attr2 !== null) || ($attr1 === null && $this->containsInner($innerNode1, $innerNode2))) {
             return Node::DOCUMENT_POSITION_CONTAINS + Node::DOCUMENT_POSITION_PRECEDING;
         }
 
         # 8. If node1 is a descendant of node2 and attr2 is null, or node1 is node2 and attr1
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINED_BY to
         #    DOCUMENT_POSITION_FOLLOWING.
-        if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $node2->contains($node1))) {
+        if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $this->containsInner($innerNode2, $innerNode1))) {
             return Node::DOCUMENT_POSITION_CONTAINED_BY + Node::DOCUMENT_POSITION_FOLLOWING;
         }
 
         # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
-        if ($node2->walkPreceding(function($n) use($node1) {
-            return ($n === $node1);
-        })->current() !== null) {
-            return Node::DOCUMENT_POSITION_PRECEDING;
+        $n = $innerNode2;
+        while ($n = $n->previousSibling) {
+            if ($n === $innerNode1) {
+                return Node::DOCUMENT_POSITION_PRECEDING;
+            }
         }
 
         # 10. Return DOCUMENT_POSITION_FOLLOWING.
@@ -416,11 +421,7 @@ abstract class Node {
     }
 
     public function contains(?Node $other): bool {
-        # The contains(other) method steps are to return true if other is an inclusive
-        # descendant of this; otherwise false (including when other is null).
-        return ($other->moonWalk(function($n) use($other) {
-            return ($n === $other);
-        })->current() !== null);
+        return $this->containsInner($this->innerNode, $this->getInnerNode($other));
     }
 
     public function getRootNode(): ?Node {
@@ -605,27 +606,27 @@ abstract class Node {
             #      child that is not child or a doctype is following child.
             if ($node instanceof DocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
-                if ($nodeChildElementCount > 1 || $node->firstChild->walkFollowing(function($n) {
-                    return ($n instanceof Text);
-                }, true)->current() !== null) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                if ($nodeChildElementCount > 1) {
+                    $n = $this->getInnerNode($node)->firstChild;
+                    do {
+                        if ($n instanceof \DOMText) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        }
+                    } while ($n = $n->nextSibling);
                 } elseif ($nodeChildElementCount === 1) {
                     $beforeChild = true;
-                    if ($node->firstChild->walkFollowing(function($n) use(&$beforeChild, $child) {
-                        if (!$beforeChild && $n instanceof DocumentType) {
-                            return true;
+                    $n = $this->getInnerNode($node)->firstChild;
+                    do {
+                        if (!$beforeChild && $n instanceof \DOMDocumentType) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
 
-                        if ($n instanceof Element && $n !== $child) {
-                            return true;
+                        if ($n instanceof \DOMElement && $n !== $child) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         } elseif ($n === $child) {
                             $beforeChild = false;
                         }
-
-                        return false;
-                    }, true)->current() !== null) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
+                    } while ($n = $n->nextSibling);
                 }
             }
 
@@ -634,21 +635,18 @@ abstract class Node {
             #      child.
             elseif ($node instanceof Element) {
                 $beforeChild = true;
-                if ($node->firstChild->walkFollowing(function($n) use(&$beforeChild, $child) {
-                    if (!$beforeChild && $n instanceof DocumentType) {
-                        return true;
+                $n = $this->getInnerNode($node)->firstChild;
+                do {
+                    if (!$beforeChild && $n instanceof \DOMDocumentType) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 
-                    if ($n instanceof Element && $n !== $child) {
-                        return true;
+                    if ($n instanceof \DOMElement && $n !== $child) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     } elseif ($n === $child) {
                         $beforeChild = false;
                     }
-
-                    return false;
-                }, true)->current() !== null) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                }
+                } while ($n = $n->nextSibling);
             }
 
             # ↪ DocumentType
@@ -656,21 +654,18 @@ abstract class Node {
             #      child.
             elseif ($node instanceof DocumentType) {
                 $beforeChild = true;
-                if ($node->firstChild->walkFollowing(function($n) use(&$beforeChild, $child) {
-                    if ($beforeChild && $n instanceof Element) {
-                        return true;
+                $n = $this->getInnerNode($node)->firstChild;
+                do {
+                    if (!$beforeChild && $n instanceof \DOMElement) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 
-                    if ($n instanceof DocumentType && $n !== $child) {
-                        return true;
+                    if ($n instanceof \DOMDocumentType && $n !== $child) {
+                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     } elseif ($n === $child) {
                         $beforeChild = false;
                     }
-
-                    return false;
-                }, true)->current() !== null) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                }
+                } while ($n = $n->nextSibling);
             }
         }
 
@@ -698,8 +693,15 @@ abstract class Node {
         #        2. For each attribute in node’s attribute list:
         #              1. Let copyAttribute be a clone of attribute.
         #              2. Append copyAttribute to copy.
-        // PHP's DOM can do this part correctly by shallow cloning, so it will be
-        // handled instead in the "Otherwise" section of step #3.
+        if ($node instanceof \DOMElement) {
+            $copy = ($import) ? $document->importNode($node) : $node->cloneNode();
+
+            // PHP DOM doesn't import id attributes where
+            // NonElementParentNode::getElementById can see them, so let's fix that.
+            if ($id = $copy->getAttributeNode('id')) {
+                $copy->setIdAttributeNode($id, true);
+            }
+        }
 
         # 3. Otherwise, let copy be a node that implements the same interfaces as node, and
         #    fulfills these additional requirements, switching on the interface node
@@ -707,7 +709,7 @@ abstract class Node {
         #
         # ↪ Document
         #      Set copy’s encoding, content type, URL, origin, type, and mode to those of node.
-        if ($node instanceof \DOMDocumentType) {
+        elseif ($node instanceof \DOMDocumentType) {
             // OPTIMIZATION: No need for the other steps as the DocumentType node is created
             // using this document's implementation
             return $document->implementation->createDocumentType($node->name, $node->publicId, $node->systemId);
@@ -821,6 +823,17 @@ abstract class Node {
             $innerNode = $this->getInnerNode($node);
             $innerDocument = $this->getInnerNode($document);
 
+            if ($node instanceof Element) {
+                $copy = ($import) ? $innerDocument->importNode($innerNode) : $innerNode->cloneNode();
+                $copyWrapper = $innerDocument->getWrapperNode($copy);
+
+                // PHP DOM doesn't import id attributes where
+                // NonElementParentNode::getElementById can see them, so let's fix that.
+                if ($id = $copy->getAttributeNode('id')) {
+                    $copy->setIdAttributeNode($id, true);
+                }
+            }
+
             # ↪ DocumentType
             #      Set copy’s name, public ID, and system ID to those of node.
             if ($node instanceof DocumentType) {
@@ -886,8 +899,21 @@ abstract class Node {
         return $copyWrapper;
     }
 
+    protected function containsInner(\DOMNode $node, \DOMNode $other): bool {
+        # The contains(other) method steps are to return true if other is an inclusive
+        # descendant of this; otherwise false (including when other is null).
+        $n = $other;
+        while ($n = $n->parentNode) {
+            if ($n === $node) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected function getInnerNode(?Node $node = null): \DOMNode {
-        if ($node === null) {
+        if ($node === null || $node === $this) {
             return $this->innerNode;
         }
 

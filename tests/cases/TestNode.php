@@ -19,6 +19,118 @@ use MensBeam\HTML\Parser;
 /** @covers \MensBeam\HTML\DOM\Node */
 class TestNode extends \PHPUnit\Framework\TestCase {
     /**
+     * @covers \MensBeam\HTML\DOM\Node::compareDocumentPosition
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Collection::current
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Collection::key
+     * @covers \MensBeam\HTML\DOM\Collection::next
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::offsetGet
+     * @covers \MensBeam\HTML\DOM\Collection::offsetExists
+     * @covers \MensBeam\HTML\DOM\Collection::rewind
+     * @covers \MensBeam\HTML\DOM\Collection::valid
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::importNode
+     * @covers \MensBeam\HTML\DOM\Document::loadHTML
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::current
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::item
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     */
+    public function testMethod_compareDocumentPosition(): void {
+        $d = new Document('<!DOCTYPE html><html><body><header><h1>Ook</h1></header><main><h2 id="eek" class="ack">Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer></body></html>');
+
+        $body = $d->body;
+        $main = $d->getElementsByTagName('main')[0];
+        $footer = $d->getElementsByTagName('footer')[0];
+        $eek = $d->getElementById('eek');
+        $h2Id = $eek->getAttributeNode('id');
+        $h2Class = $eek->getAttributeNode('class');
+        $aHref = $d->getElementsByTagName('a')[0]->getAttributeNode('href');
+
+        // Compare main element to body element
+        $compareMainToBody = $main->compareDocumentPosition($body);
+        $this->assertEquals(10, $compareMainToBody);
+        // Compare body element to main element
+        $compareBodyToMain = $body->compareDocumentPosition($main);
+        $this->assertEquals(20, $compareBodyToMain);
+        // Compare footer element to main element
+        $compareFooterToMain = $footer->compareDocumentPosition($main);
+        $this->assertEquals(2, $compareFooterToMain);
+        // Compare main element to footer element
+        $compareMainToFooter = $main->compareDocumentPosition($footer);
+        $this->assertEquals(4, $compareMainToFooter);
+        // Compare h2 element id attribute to a element href attribute
+        $compareH2IdToAHref = $h2Id->compareDocumentPosition($aHref);
+        $this->assertEquals(4, $compareH2IdToAHref);
+        // Compare h2 element id attribute to a h2 element class attribute
+        $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
+        $this->assertEquals(36, $compareH2IdToH2Class);
+
+        /*
+        $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
+        $this->assertEquals(36, $compareH2IdToH2Class);
+        $compareH2ClassToH2Id = $h2Class->compareDocumentPosition($h2Id);
+        $this->assertEquals(34, $compareH2ClassToH2Id);
+        $this->assertEquals(0, $m->compareDocumentPosition($m));
+
+        $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_CONTAINS);
+        $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_PRECEDING);
+        $this->assertEquals(0, $compareMainToBody & Document::DOCUMENT_POSITION_FOLLOWING);
+
+        $this->assertGreaterThan(0, $compareBodyToMain & Document::DOCUMENT_POSITION_CONTAINED_BY);
+        $this->assertGreaterThan(0, $compareBodyToMain & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertEquals(0, $compareBodyToMain & Document::DOCUMENT_POSITION_PRECEDING);
+
+        $this->assertGreaterThan(0, $compareFooterToMain & Document::DOCUMENT_POSITION_PRECEDING);
+        $this->assertGreaterThan(0, $compareMainToFooter & Document::DOCUMENT_POSITION_FOLLOWING);
+
+        $this->assertGreaterThan(0, $compareH2IdToAHref & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertGreaterThan(0, $compareH2IdToH2Class & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertGreaterThan(0, $compareH2ClassToH2Id & Document::DOCUMENT_POSITION_PRECEDING);
+
+        $m->parentNode->removeChild($m);
+        $compareDetachedMainToFooter = $m->compareDocumentPosition($f);
+        $this->assertEquals($compareDetachedMainToFooter, $m->compareDocumentPosition($f));
+        $this->assertGreaterThanOrEqual(35, $compareDetachedMainToFooter);
+        $this->assertLessThanOrEqual(37, $compareDetachedMainToFooter);
+        $this->assertNotEquals(36, $compareDetachedMainToFooter);*/
+    }
+
+    /**
      * @covers \MensBeam\HTML\DOM\Node::cloneNode
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
@@ -227,7 +339,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_isConnected
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      *
-     * @covers \MensBeam\HTML\DOM\ChildNode::moonwalk
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct

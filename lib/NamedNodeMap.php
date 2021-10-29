@@ -15,10 +15,10 @@ class NamedNodeMap extends Collection {
     protected Element $element;
 
 
-    protected function __construct(Element $element, InnerDocument $innerDocument, \DOMNamedNodeMap $namedNodeMap) {
+    protected function __construct(Element $element, InnerDocument $innerDocument, ?\DOMNamedNodeMap $namedNodeMap) {
         $this->element = $element;
         $this->innerDocument = $innerDocument;
-        $this->innerCollection = $namedNodeMap;
+        $this->innerCollection = $namedNodeMap ?? new \DOMNamedNodeMap();
     }
 
 

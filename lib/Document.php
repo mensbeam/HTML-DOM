@@ -19,7 +19,7 @@ use MensBeam\HTML\Parser\{
 
 
 class Document extends Node {
-    use DocumentOrElement, ParentNode;
+    use DocumentOrElement, NonElementParentNode, ParentNode;
 
     protected string $_characterSet = 'UTF-8';
     protected string $_compatMode = 'CSS1Compat';
@@ -28,17 +28,22 @@ class Document extends Node {
     protected string $_URL = '';
 
     protected function __get_body(): ?Element {
-        if ($this->documentElement === null || !$this->documentElement->hasChildNodes()) {
+        $documentElement = $this->innerNode->documentElement;
+        if ($documentElement === null || !$documentElement->hasChildNodes()) {
             return null;
         }
 
         # The body element of a document is the first of the html element's children
         # that is either a body element or a frameset element, or null if there is no
         # such element.
-        return $this->documentElement->firstChild->walkFollowing(function($n) {
-            $name = strtolower($n->nodeName);
-            return ($n instanceof Element && $n->namespaceURI === Parser::HTML_NAMESPACE && ($name === 'body' || $name === 'frameset'));
-        }, true)->current();
+        $n = $documentElement->firstChild;
+        do {
+            if ($n instanceof \DOMElement && $n->namespaceURI === null && ($n->nodeName === 'body' || $n->nodeName === 'frameset')) {
+                return $n->ownerDocument->getWrapperNode($n);
+            }
+        } while ($n = $n->nextSibling);
+
+        return null;
     }
 
     protected function __get_charset(): string {
@@ -83,7 +88,7 @@ class Document extends Node {
         $this->_implementation = new DOMImplementation($this);
 
         if ($source !== null) {
-            $this->importHTML($source, $charset ?? 'windows-1252');
+            $this->loadHTML($source, $charset ?? 'windows-1252');
         } elseif ($charset !== 'UTF-8') {
             $this->_characterSet = Charset::fromCharset((string)$charset) ?? 'UTF-8';
         }
@@ -263,7 +268,7 @@ class Document extends Node {
         $source = $source->document;
         $childNodes = $source->childNodes;
         foreach ($source->childNodes as $child) {
-            $this->appendChild($this->importNode($child, true));
+            $this->innerNode->appendChild($this->cloneInnerNode($child, $this->innerNode, true));
         }
     }
 

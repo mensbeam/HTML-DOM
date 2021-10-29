@@ -10,7 +10,7 @@ namespace MensBeam\HTML\DOM;
 
 
 class DocumentFragment extends Node {
-    use ParentNode;
+    use NonElementParentNode, ParentNode;
 
     protected ?\WeakReference $host = null;
 

@@ -45,6 +45,41 @@ class Element extends Node {
         parent::__construct($element);
     }
 
+    public function getAttributeNode(string $qualifiedName): ?Attr {
+        # The getAttributeNode(qualifiedName) method steps are to return the result of
+        # getting an attribute given qualifiedName and this.
+        #
+        # To get an attribute by name given a qualifiedName and element element, run
+        # these steps:
+        #
+        # 1. If element is in the HTML namespace and its node document is an HTML document,
+        #    then set qualifiedName to qualifiedName in ASCII lowercase.
+        // Document will always be an HTML document
+        if (!$this instanceof XMLDocument && $this->namespaceURI === Parser::HTML_NAMESPACE) {
+            $qualifiedName = strtolower($qualifiedName);
+        }
+
+        # 2. Return the first attribute in element’s attribute list whose qualified name is
+        #    qualifiedName; otherwise null.
+        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+        // when we can because it's faster.
+        $attr = $this->innerNode->getAttributeNode($qualifiedName);
+        if ($attr === false) {
+            // Replace any offending characters with "UHHHHHH" where H are the uppercase
+            // hexadecimal digits of the character's code point
+            $qualifiedName = $this->coerceName($qualifiedName);
+
+            $attributes = $this->innerNode->attributes;
+            foreach ($attributes as $a) {
+                if ($a->nodeName === $qualifiedName) {
+                    return $this->innerNode->ownerDocument->getWrapperNode($a);
+                }
+            }
+            return null;
+        }
+
+        return ($attr !== false) ? $this->innerNode->ownerDocument->getWrapperNode($attr) : null;
+    }
 
     public function hasAttribute(string $qualifiedName): bool {
         # The hasAttribute(qualifiedName) method steps are:

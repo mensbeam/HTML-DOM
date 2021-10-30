@@ -99,13 +99,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         // Compare h2 element id attribute to a h2 element class attribute
         $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
         $this->assertEquals(36, $compareH2IdToH2Class);
-
-        /*
-        $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
-        $this->assertEquals(36, $compareH2IdToH2Class);
+        // Compare h2 element id attribute to a h2 element class attribute
         $compareH2ClassToH2Id = $h2Class->compareDocumentPosition($h2Id);
         $this->assertEquals(34, $compareH2ClassToH2Id);
-        $this->assertEquals(0, $m->compareDocumentPosition($m));
+        // Compare main element to itself
+        $this->assertEquals(0, $main->compareDocumentPosition($main));
 
         $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_CONTAINS);
         $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_PRECEDING);
@@ -122,12 +120,12 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertGreaterThan(0, $compareH2IdToH2Class & Document::DOCUMENT_POSITION_FOLLOWING);
         $this->assertGreaterThan(0, $compareH2ClassToH2Id & Document::DOCUMENT_POSITION_PRECEDING);
 
-        $m->parentNode->removeChild($m);
-        $compareDetachedMainToFooter = $m->compareDocumentPosition($f);
-        $this->assertEquals($compareDetachedMainToFooter, $m->compareDocumentPosition($f));
+        $main->parentNode->removeChild($main);
+        $compareDetachedMainToFooter = $main->compareDocumentPosition($footer);
+        $this->assertEquals($compareDetachedMainToFooter, $main->compareDocumentPosition($footer));
         $this->assertGreaterThanOrEqual(35, $compareDetachedMainToFooter);
         $this->assertLessThanOrEqual(37, $compareDetachedMainToFooter);
-        $this->assertNotEquals(36, $compareDetachedMainToFooter);*/
+        $this->assertNotEquals(36, $compareDetachedMainToFooter);
     }
 
     /**

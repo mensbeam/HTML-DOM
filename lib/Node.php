@@ -336,6 +336,7 @@ abstract class Node {
         if ($node1 instanceof Attr) {
             $attr1 = $innerNode1;
             $node1 = $attr1->ownerElement;
+            $innerNode1 = $innerNode1->ownerElement;
         }
 
         # 5. If node2 is an attribute, then:
@@ -343,21 +344,24 @@ abstract class Node {
             # 1. Set attr2 to node2 and node2 to attr2’s element.
             $attr2 = $innerNode2;
             $node2 = $attr2->ownerElement;
+            $innerNode2 = $innerNode2->ownerElement;
 
             # 2. If attr1 and node1 are non-null, and node2 is node1, then:
             if ($attr1 !== null && $node1 !== null && $node2 === $node1) {
                 # 1. For each attr in node2’s attribute list:
                 $attributes = $innerNode2->attributes;
-                die(var_export($attributes));
-                foreach ($attributes as $attr) {
-                    # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
-                    if ($attr === $attr1) {
-                        return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
-                    }
+                // Have to check for null because PHP DOM violates the spec and returns null when empty
+                if ($attributes !== null) {
+                    foreach ($attributes as $attr) {
+                        # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
+                        if ($attr === $attr1) {
+                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
+                        }
 
-                    # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
-                    if ($attr === $attr2) {
-                        return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_FOLLOWING;
+                        # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
+                        if ($attr === $attr2) {
+                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_FOLLOWING;
+                        }
                     }
                 }
             }
@@ -376,21 +380,17 @@ abstract class Node {
             self::$rand = rand(0, 1);
         }
 
-        if ($node1 === null || $node2 === null) {
-            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
-        }
-
         $n = $innerNode1;
-        while ($n = $n->parentNode) {
+        do {
             $root1 = $n;
-        }
+        } while ($n = $n->parentNode);
 
         $n = $innerNode2;
-        while ($n = $n->parentNode) {
+        do {
             $root2 = $n;
-        }
+        } while ($n = $n->parentNode);
 
-        if ($root1 !== $root2) {
+        if ($node1 === null || $node2 === null || $root1 !== $root2) {
             return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
         }
 
@@ -553,8 +553,8 @@ abstract class Node {
 
     public function removeChild(Node $child): Node {
         // PHP's DOM does this correctly already.
-        $this->innerNode->removeChild($this->getInnerNode($child));
-        return $node;
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        return $doc->getWrapperNode($this->innerNode->removeChild($this->getInnerNode($child)));
     }
 
     public function replaceChild(Node $node, Node $child): Node {
@@ -1006,9 +1006,12 @@ abstract class Node {
             #    local name is "xmlns", then return its value if it is not the empty string, and
             #    null otherwise.
             $attributes = $this->getInnerNode($node)->attributes;
-            foreach ($attributes as $attr) {
-                if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === null && $attr->localName === 'xmlns')) {
-                    return ($attr->value !== '') ? $attr->value : null;
+            // Have to check for null because PHP DOM violates the spec and returns null when empty
+            if ($attributes !== null) {
+                foreach ($attributes as $attr) {
+                    if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === null && $attr->localName === 'xmlns')) {
+                        return ($attr->value !== '') ? $attr->value : null;
+                    }
                 }
             }
 
@@ -1079,9 +1082,12 @@ abstract class Node {
         # 2. If element has an attribute whose namespace prefix is "xmlns" and value is
         #    namespace, then return element’s first such attribute’s local name.
         $attributes = $this->getInnerNode($element)->attributes;
-        foreach ($attributes as $attr) {
-            if ($attr->prefix === 'xmlns' && $attr->value === $namespace) {
-                return $attr->localName;
+        // Have to check for null because PHP DOM violates the spec and returns null when empty
+        if ($attributes !== null) {
+            foreach ($attributes as $attr) {
+                if ($attr->prefix === 'xmlns' && $attr->value === $namespace) {
+                    return $attr->localName;
+                }
             }
         }
 
@@ -1120,9 +1126,9 @@ abstract class Node {
                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
             } else {
                 $n = $parent;
-                while ($n = $n->parentNode) {
+                do {
                     $parentRoot = $n;
-                }
+                } while ($n = $n->parentNode);
 
                 if ($parentRoot instanceof \DOMDocumentFragment) {
                     $wrappedParentRoot = $parentRoot->ownerDocument->getWrapperNode($parentRoot);

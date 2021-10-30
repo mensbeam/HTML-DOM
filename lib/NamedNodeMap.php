@@ -18,6 +18,7 @@ class NamedNodeMap extends Collection {
     protected function __construct(Element $element, InnerDocument $innerDocument, ?\DOMNamedNodeMap $namedNodeMap) {
         $this->element = $element;
         $this->innerDocument = $innerDocument;
+        // Have to check for null because PHP DOM violates the spec and returns null when empty
         $this->innerCollection = $namedNodeMap ?? new \DOMNamedNodeMap();
     }
 

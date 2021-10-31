@@ -19,169 +19,59 @@ use MensBeam\HTML\Parser;
 /** @covers \MensBeam\HTML\DOM\Node */
 class TestNode extends \PHPUnit\Framework\TestCase {
     /**
-     * @covers \MensBeam\HTML\DOM\Node::compareDocumentPosition
-     *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Collection::current
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::item
-     * @covers \MensBeam\HTML\DOM\Collection::key
-     * @covers \MensBeam\HTML\DOM\Collection::next
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::offsetGet
-     * @covers \MensBeam\HTML\DOM\Collection::offsetExists
-     * @covers \MensBeam\HTML\DOM\Collection::rewind
-     * @covers \MensBeam\HTML\DOM\Collection::valid
-     * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_body
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
-     * @covers \MensBeam\HTML\DOM\Document::createComment
-     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
-     * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
-     * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\Document::importNode
-     * @covers \MensBeam\HTML\DOM\Document::loadHTML
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
-     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
-     * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::current
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::item
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::containsInner
-     * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
-     * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
-     */
-    public function testMethod_compareDocumentPosition(): void {
-        $d = new Document('<!DOCTYPE html><html><body><header><h1>Ook</h1></header><main><h2 id="eek" class="ack">Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer></body></html>');
-
-        $body = $d->body;
-        $main = $d->getElementsByTagName('main')[0];
-        $footer = $d->getElementsByTagName('footer')[0];
-        $eek = $d->getElementById('eek');
-        $h2Id = $eek->getAttributeNode('id');
-        $h2Class = $eek->getAttributeNode('class');
-        $aHref = $d->getElementsByTagName('a')[0]->getAttributeNode('href');
-
-        // Compare main element to body element
-        $compareMainToBody = $main->compareDocumentPosition($body);
-        $this->assertEquals(10, $compareMainToBody);
-        // Compare body element to main element
-        $compareBodyToMain = $body->compareDocumentPosition($main);
-        $this->assertEquals(20, $compareBodyToMain);
-        // Compare footer element to main element
-        $compareFooterToMain = $footer->compareDocumentPosition($main);
-        $this->assertEquals(2, $compareFooterToMain);
-        // Compare main element to footer element
-        $compareMainToFooter = $main->compareDocumentPosition($footer);
-        $this->assertEquals(4, $compareMainToFooter);
-        // Compare h2 element id attribute to a element href attribute
-        $compareH2IdToAHref = $h2Id->compareDocumentPosition($aHref);
-        $this->assertEquals(4, $compareH2IdToAHref);
-        // Compare h2 element id attribute to a h2 element class attribute
-        $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
-        $this->assertEquals(36, $compareH2IdToH2Class);
-        // Compare h2 element id attribute to a h2 element class attribute
-        $compareH2ClassToH2Id = $h2Class->compareDocumentPosition($h2Id);
-        $this->assertEquals(34, $compareH2ClassToH2Id);
-        // Compare main element to itself
-        $this->assertEquals(0, $main->compareDocumentPosition($main));
-
-        $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_CONTAINS);
-        $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_PRECEDING);
-        $this->assertEquals(0, $compareMainToBody & Document::DOCUMENT_POSITION_FOLLOWING);
-
-        $this->assertGreaterThan(0, $compareBodyToMain & Document::DOCUMENT_POSITION_CONTAINED_BY);
-        $this->assertGreaterThan(0, $compareBodyToMain & Document::DOCUMENT_POSITION_FOLLOWING);
-        $this->assertEquals(0, $compareBodyToMain & Document::DOCUMENT_POSITION_PRECEDING);
-
-        $this->assertGreaterThan(0, $compareFooterToMain & Document::DOCUMENT_POSITION_PRECEDING);
-        $this->assertGreaterThan(0, $compareMainToFooter & Document::DOCUMENT_POSITION_FOLLOWING);
-
-        $this->assertGreaterThan(0, $compareH2IdToAHref & Document::DOCUMENT_POSITION_FOLLOWING);
-        $this->assertGreaterThan(0, $compareH2IdToH2Class & Document::DOCUMENT_POSITION_FOLLOWING);
-        $this->assertGreaterThan(0, $compareH2ClassToH2Id & Document::DOCUMENT_POSITION_PRECEDING);
-
-        $main->parentNode->removeChild($main);
-        $compareDetachedMainToFooter = $main->compareDocumentPosition($footer);
-        $this->assertEquals($compareDetachedMainToFooter, $main->compareDocumentPosition($footer));
-        $this->assertGreaterThanOrEqual(35, $compareDetachedMainToFooter);
-        $this->assertLessThanOrEqual(37, $compareDetachedMainToFooter);
-        $this->assertNotEquals(36, $compareDetachedMainToFooter);
-    }
-
-    /**
      * @covers \MensBeam\HTML\DOM\Node::cloneNode
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Collection::current
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::item
-     * @covers \MensBeam\HTML\DOM\Collection::key
-     * @covers \MensBeam\HTML\DOM\Collection::next
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::offsetGet
-     * @covers \MensBeam\HTML\DOM\Collection::offsetExists
-     * @covers \MensBeam\HTML\DOM\Collection::rewind
-     * @covers \MensBeam\HTML\DOM\Collection::valid
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Comment::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_characterSet
+     * @covers \MensBeam\HTML\DOM\Document::__get_compatMode
+     * @covers \MensBeam\HTML\DOM\Document::__get_contentType
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::__get_URL
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\Document::importNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__get_name
      * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\DocumentType::__get_publicId
+     * @covers \MensBeam\HTML\DOM\DocumentType::__get_systemId
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::current
-     * @covers \MensBeam\HTML\DOM\NamedNodeMap::item
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testMethod_cloneNode() {
         $d = new Document();
@@ -249,32 +139,161 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
 
     /**
+     * @covers \MensBeam\HTML\DOM\Node::compareDocumentPosition
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::getElementById
+     * @covers \MensBeam\HTML\DOM\Document::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\Document::loadHTML
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::removeChild
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
+    public function testMethod_compareDocumentPosition(): void {
+        $d = new Document('<!DOCTYPE html><html><body><header><h1>Ook</h1></header><main><h2 id="eek" class="ack">Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer></body></html>');
+
+        $body = $d->body;
+        $main = $d->getElementsByTagName('main')[0];
+        $footer = $d->getElementsByTagName('footer')[0];
+        $eek = $d->getElementById('eek');
+        $h2Id = $eek->getAttributeNode('id');
+        $h2Class = $eek->getAttributeNode('class');
+        $aHref = $d->getElementsByTagName('a')[0]->getAttributeNode('href');
+
+        // Compare main element to body element
+        $compareMainToBody = $main->compareDocumentPosition($body);
+        $this->assertEquals(10, $compareMainToBody);
+        // Compare body element to main element
+        $compareBodyToMain = $body->compareDocumentPosition($main);
+        $this->assertEquals(20, $compareBodyToMain);
+        // Compare footer element to main element
+        $compareFooterToMain = $footer->compareDocumentPosition($main);
+        $this->assertEquals(2, $compareFooterToMain);
+        // Compare main element to footer element
+        $compareMainToFooter = $main->compareDocumentPosition($footer);
+        $this->assertEquals(4, $compareMainToFooter);
+        // Compare h2 element id attribute to a element href attribute
+        $compareH2IdToAHref = $h2Id->compareDocumentPosition($aHref);
+        $this->assertEquals(4, $compareH2IdToAHref);
+        // Compare h2 element id attribute to a h2 element class attribute
+        $compareH2IdToH2Class = $h2Id->compareDocumentPosition($h2Class);
+        $this->assertEquals(36, $compareH2IdToH2Class);
+        // Compare h2 element id attribute to a h2 element class attribute
+        $compareH2ClassToH2Id = $h2Class->compareDocumentPosition($h2Id);
+        $this->assertEquals(34, $compareH2ClassToH2Id);
+        // Compare main element to itself
+        $this->assertEquals(0, $main->compareDocumentPosition($main));
+
+        $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_CONTAINS);
+        $this->assertGreaterThan(0, $compareMainToBody & Document::DOCUMENT_POSITION_PRECEDING);
+        $this->assertEquals(0, $compareMainToBody & Document::DOCUMENT_POSITION_FOLLOWING);
+
+        $this->assertGreaterThan(0, $compareBodyToMain & Document::DOCUMENT_POSITION_CONTAINED_BY);
+        $this->assertGreaterThan(0, $compareBodyToMain & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertEquals(0, $compareBodyToMain & Document::DOCUMENT_POSITION_PRECEDING);
+
+        $this->assertGreaterThan(0, $compareFooterToMain & Document::DOCUMENT_POSITION_PRECEDING);
+        $this->assertGreaterThan(0, $compareMainToFooter & Document::DOCUMENT_POSITION_FOLLOWING);
+
+        $this->assertGreaterThan(0, $compareH2IdToAHref & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertGreaterThan(0, $compareH2IdToH2Class & Document::DOCUMENT_POSITION_FOLLOWING);
+        $this->assertGreaterThan(0, $compareH2ClassToH2Id & Document::DOCUMENT_POSITION_PRECEDING);
+
+        $main->parentNode->removeChild($main);
+        $compareDetachedMainToFooter = $main->compareDocumentPosition($footer);
+        $this->assertEquals($compareDetachedMainToFooter, $main->compareDocumentPosition($footer));
+        $this->assertGreaterThanOrEqual(35, $compareDetachedMainToFooter);
+        $this->assertLessThanOrEqual(37, $compareDetachedMainToFooter);
+        $this->assertNotEquals(36, $compareDetachedMainToFooter);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::contains
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
+    public function testMethod_contains(): void {
+        $d = new Document();
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->appendChild($d->createElement('body'));
+
+        // Just need to run it; mostly covered elsewhere.
+        $this->assertTrue($d->documentElement->contains($d->body));
+    }
+
+
+    /**
      * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
      *
      * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::count
      * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
      * @covers \MensBeam\HTML\DOM\Collection::item
      * @covers \MensBeam\HTML\DOM\Collection::offsetGet
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_lastChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_nodeName
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      */
     public function testProperty_childNodes() {
         $d = new Document();
@@ -302,21 +321,22 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      */
     public function testProperty_firstChild() {
         $d = new Document();
@@ -335,24 +355,26 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_isConnected
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      */
     public function testProperty_isConnected() {
         $d = new Document();
@@ -369,23 +391,24 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      */
     public function testProperty_lastChild() {
         $d = new Document();
@@ -409,9 +432,10 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_previousSibling
-     *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
@@ -419,19 +443,20 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_previousSibling() {
         $d = new Document();
@@ -457,6 +482,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
@@ -464,19 +491,20 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_lastChild
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_nextSibling() {
         $d = new Document();
@@ -500,20 +528,21 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeName
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
      * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__get_name
@@ -521,18 +550,18 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_nodeName() {
         $d = new Document();
@@ -584,37 +613,36 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeType
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
      * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_nodeType() {
         $d = new Document();
@@ -645,37 +673,37 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeValue
      * @covers \MensBeam\HTML\DOM\Node::__set_nodeValue
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_nodeValue() {
         $d = new Document();
@@ -733,19 +761,18 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
      * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
@@ -753,18 +780,19 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_ownerDocument() {
         $d = new Document();
@@ -795,39 +823,42 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_parentElement
      * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
-     * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_parentElement() {
         $d = new Document();
@@ -873,38 +904,45 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_textContent
      * @covers \MensBeam\HTML\DOM\Node::__set_textContent
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__construct
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
      * @covers \MensBeam\HTML\DOM\Comment::__construct
-     * @covers \MensBeam\HTML\DOM\CDATASection::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
-     * @covers \MensBeam\HTML\DOM\DocumentType::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testProperty_textContent() {
         $d = new Document();

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3897d645c52d2c74808975ebcdddff81",
+    "content-hash": "64e0c3baf9ecd7960acc83f89ab580bd",
     "packages": [
         {
             "name": "mensbeam/framework",
@@ -59,11 +59,11 @@
         },
         {
             "name": "mensbeam/html-parser",
-            "version": "1.1.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://code.mensbeam.com/MensBeam/HTML-Parser",
-                "reference": "3fc966226b7d45ab51a6c20cb8cafeedcf54ccec"
+                "url": "mensbeam-gitea:MensBeam/HTML-Parser.git",
+                "reference": "5698a93c01f38f1236fd83d6913dff41d844ee72"
             },
             "require": {
                 "ext-dom": "*",
@@ -77,6 +77,7 @@
             "suggest": {
                 "ext-ctype": "Improved performance"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -91,7 +92,20 @@
                     "lib/Parser/ctype.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "MensBeam\\HTML\\Test\\": "tests/lib/",
+                    "MensBeam\\HTML\\TestCase\\": "tests/cases/"
+                }
+            },
+            "scripts": {
+                "post-install-cmd": [
+                    "@composer bin all install"
+                ],
+                "post-update-cmd": [
+                    "@composer bin all update"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -109,14 +123,14 @@
             ],
             "description": "Parser and serializer for modern HTML documents",
             "keywords": [
-                "HTML5",
-                "WHATWG",
                 "dom",
                 "html",
+                "html5",
                 "parser",
-                "parsing"
+                "parsing",
+                "whatwg"
             ],
-            "time": "2021-10-24T17:24:48+00:00"
+            "time": "2021-10-31T16:11:06+00:00"
         },
         {
             "name": "mensbeam/intl",
@@ -1370,16 +1384,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v5.3.7",
+            "version": "v5.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "8b1008344647462ae6ec57559da166c2bfa5e16a"
+                "reference": "d4e409d9fbcfbf71af0e5a940abb7b0b4bad0bd3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/8b1008344647462ae6ec57559da166c2bfa5e16a",
-                "reference": "8b1008344647462ae6ec57559da166c2bfa5e16a",
+                "url": "https://api.github.com/repos/symfony/console/zipball/d4e409d9fbcfbf71af0e5a940abb7b0b4bad0bd3",
+                "reference": "d4e409d9fbcfbf71af0e5a940abb7b0b4bad0bd3",
                 "shasum": ""
             },
             "require": {
@@ -1449,7 +1463,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v5.3.7"
+                "source": "https://github.com/symfony/console/tree/v5.3.10"
             },
             "funding": [
                 {
@@ -1465,7 +1479,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-08-25T20:02:16+00:00"
+            "time": "2021-10-26T09:30:15+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -1536,16 +1550,16 @@
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v5.3.7",
+            "version": "v5.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "e36c8e5502b4f3f0190c675f1c1f1248a64f04e5"
+                "reference": "9f34f02e8a5fdc7a56bafe011cea1ce97300e54c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/e36c8e5502b4f3f0190c675f1c1f1248a64f04e5",
-                "reference": "e36c8e5502b4f3f0190c675f1c1f1248a64f04e5",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/9f34f02e8a5fdc7a56bafe011cea1ce97300e54c",
+                "reference": "9f34f02e8a5fdc7a56bafe011cea1ce97300e54c",
                 "shasum": ""
             },
             "require": {
@@ -1589,7 +1603,7 @@
             "description": "Defines an object-oriented layer for the HTTP specification",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/http-foundation/tree/v5.3.7"
+                "source": "https://github.com/symfony/http-foundation/tree/v5.3.10"
             },
             "funding": [
                 {
@@ -1605,7 +1619,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-08-27T11:20:35+00:00"
+            "time": "2021-10-11T15:41:55+00:00"
         },
         {
             "name": "symfony/mime",
@@ -2486,16 +2500,16 @@
         },
         {
             "name": "symfony/string",
-            "version": "v5.3.7",
+            "version": "v5.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/string.git",
-                "reference": "8d224396e28d30f81969f083a58763b8b9ceb0a5"
+                "reference": "d70c35bb20bbca71fc4ab7921e3c6bda1a82a60c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/string/zipball/8d224396e28d30f81969f083a58763b8b9ceb0a5",
-                "reference": "8d224396e28d30f81969f083a58763b8b9ceb0a5",
+                "url": "https://api.github.com/repos/symfony/string/zipball/d70c35bb20bbca71fc4ab7921e3c6bda1a82a60c",
+                "reference": "d70c35bb20bbca71fc4ab7921e3c6bda1a82a60c",
                 "shasum": ""
             },
             "require": {
@@ -2549,7 +2563,7 @@
                 "utf8"
             ],
             "support": {
-                "source": "https://github.com/symfony/string/tree/v5.3.7"
+                "source": "https://github.com/symfony/string/tree/v5.3.10"
             },
             "funding": [
                 {
@@ -2565,7 +2579,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-08-26T08:00:08+00:00"
+            "time": "2021-10-27T18:21:46+00:00"
         },
         {
             "name": "symfony/yaml",
@@ -2718,6 +2732,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "mensbeam/html-parser": 20,
         "mensbeam/framework": 20
     },
     "prefer-stable": false,

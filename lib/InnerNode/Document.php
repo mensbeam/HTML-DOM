@@ -10,6 +10,7 @@ namespace MensBeam\HTML\DOM\InnerNode;
 use MensBeam\Framework\MagicProperties;
 use MensBeam\HTML\DOM\{
     Document as WrapperDocument,
+    DOMException,
     Node as WrapperNode,
     XMLDocument as WrapperXMLDocument
 };
@@ -47,6 +48,22 @@ class Document extends \DOMDocument {
         }
     }
 
+
+    public function getInnerNode(WrapperNode $node = null): ?\DOMNode {
+        if ($node === null) {
+            return null;
+        }
+
+        if ($node === $this) {
+            return $this;
+        }
+
+        if ($node instanceof \DOMDocument) {
+            throw new DOMException(DOMException::WRONG_DOCUMENT);
+        }
+
+        return $this->nodeMap->get($node);
+    }
 
     public function getWrapperNode(?\DOMNode $node = null): ?WrapperNode {
         if ($node === null) {

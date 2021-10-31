@@ -264,6 +264,32 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /** @covers \MensBeam\HTML\DOM\Node::insertBefore */
+    public function testMethod_insertBefore(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $div = $d->body->appendChild($d->createElement('div'));
+        $ook = $d->body->insertBefore($d->createTextNode('ook'), $div);
+
+        $this->assertSame('<body>ook<div></div></body>', (string)$d->body);
+
+        $t = $d->body->insertBefore($d->createElement('template'), $ook);
+
+        $this->assertSame('<body><template></template>ook<div></div></body>', (string)$d->body);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace */
+    public function testMethod_isDefaultNamespace(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $this->assertTrue($d->body->isDefaultNamespace(Parser::HTML_NAMESPACE));
+        $this->assertFalse($d->body->isDefaultNamespace(''));
+    }
+
+
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
      *

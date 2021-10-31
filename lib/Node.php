@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
+    MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\NameCoercion;
 use MensBeam\HTML\DOM\InnerNode\{
     Document as InnerDocument,
@@ -455,7 +456,7 @@ abstract class Node {
         # pre-inserting node into this before child.
         // Aside from pre-insertion validity PHP's DOM does this correctly already.
         $this->preInsertionValidity($node, $child);
-        $this->innerNode->insertBefore($this->getInnerNode($node));
+        $this->innerNode->insertBefore($this->getInnerNode($node), $this->getInnerNode($child));
         return $node;
     }
 
@@ -472,7 +473,7 @@ abstract class Node {
         # 2. Let defaultNamespace be the result of running locate a namespace for this
         #    using null.
         # 3. Return true if defaultNamespace is the same as namespace; otherwise false.
-        return ($this->locateNamespace($this, null) === $namespace);
+        return ($this->locateNamespace($this->innerNode, null) === $namespace);
     }
 
     public function isEqualNode(?Node $otherNode) {
@@ -752,12 +753,28 @@ abstract class Node {
                 #    contents, with document set to copy's template contents's node document, and
                 #    with the clone children flag set.
                 # 3. Append copied contents to copy's template contents.
-                // Create a wrapper node for the cloned template regardless and then append a
-                // clone of its DocumentFragment to its content. Template contents are stored in
-                // the wrapper nodes.
-                $copyWrapper = $copy->ownerDocument->getWrapperNode($copy);
-                $nodeWrapper = $node->ownerDocument->getWrapperNode($node);
-                $copyWrapper->content->appendChild($this->cloneWrapperNode($nodeWrapper, $document->wrapperNode, true));
+                // Template contents are stored in the wrapper nodes.
+                $copyWrapperContent = $copy->ownerDocument->getWrapperNode($copy)->content;
+
+                // Need to check to see if what is being cloned is a MensBeam inner node or not.
+                // Most of the time this will be the case, but if a document is being parsed
+                // that has template elements it won't be; instead the template element's
+                // children need to be appended to the inner content DOMDocumentFragment.
+                if ($node->ownerDocument instanceof InnerDocument) {
+                    $nodeWrapperContent = $node->ownerDocument->getWrapperNode($node)->content;
+                    if ($nodeWrapperContent->hasChildNodes()) {
+                        $copyWrapperContent->appendChild($this->cloneWrapperNode($nodeWrapperContent, $document->wrapperNode, true));
+                    }
+                } else {
+                    $copyContent = $this->getInnerNode($copyWrapperContent);
+                    $childNodes = $node->childNodes;
+                    foreach ($childNodes as $child) {
+                        $copyContent->appendChild($this->cloneInnerNode($child, $document, true));
+                    }
+
+                    // Step #6 isn't necessary now; just return the copy.
+                    return $copy;
+                }
             }
 
             # 6. If the clone children flag is set, clone all the children of node and append
@@ -917,6 +934,14 @@ abstract class Node {
             return $this->innerNode;
         }
 
+        // If the node isn't a Document node and its document is the same as $this'
+        // document then get the inner node from the inner document's node map cache.
+        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
+        if (!$node instanceof Document && $node->ownerDocument === $doc) {
+            return $doc->getInnerNode($node);
+        }
+
+        // Otherwise, use reflection to get the innerNode protected property.
         return Reflection::getProtectedProperty($node, 'innerNode');
     }
 
@@ -988,16 +1013,29 @@ abstract class Node {
         return true;
     }
 
-    protected function locateNamespace(Node $node, ?string $prefix = null): ?string {
+    protected function locateNamespace(\DOMNode $node, ?string $prefix = null): ?string {
         # To locate a namespace for a node using prefix, switch on the interface node
         # implements:
         #
         # ↪ Element
-        if ($node instanceof Element) {
+        if ($node instanceof \DOMElement) {
+            // Work around PHP DOM HTML namespace bug
+            if ($node->namespaceURI === null && !$node->ownerDocument->getWrapperNode($node->ownerDocument) instanceof XMLDocument) {
+                $namespace = Parser::HTML_NAMESPACE;
+            } else {
+                $namespace = $node->namespaceURI;
+            }
+
+            // Work around another PHP DOM bug where \DOMNode::prefix returns an empty string if empty instead of null
+            $nodePrefix = $node->prefix;
+            if ($nodePrefix === '') {
+                $nodePrefix = null;
+            }
+
             # 1. If its namespace is non-null and its namespace prefix is prefix, then return
             #    namespace.
-            if ($node->namespaceURI !== null && $node->prefix === $prefix) {
-                return $node->namespaceURI;
+            if ($namespace !== null && $nodePrefix === $prefix) {
+                return $namespace;
             }
 
             # 2. If it has an attribute whose namespace is the XMLNS namespace, namespace prefix
@@ -1005,7 +1043,7 @@ abstract class Node {
             #    attribute whose namespace is the XMLNS namespace, namespace prefix is null, and
             #    local name is "xmlns", then return its value if it is not the empty string, and
             #    null otherwise.
-            $attributes = $this->getInnerNode($node)->attributes;
+            $attributes = $node->attributes;
             // Have to check for null because PHP DOM violates the spec and returns null when empty
             if ($attributes !== null) {
                 foreach ($attributes as $attr) {
@@ -1015,10 +1053,9 @@ abstract class Node {
                 }
             }
 
-            $parentElement = $node->parentElement;
-
             # 3. If its parent element is null, then return null.
-            if ($parentElement === null) {
+            $parentElement = $node->parentNode;
+            if (!$parentElement instanceof \DOMElement) {
                 return null;
             }
 
@@ -1028,7 +1065,7 @@ abstract class Node {
         }
 
         # ↪ Document
-        elseif ($node instanceof Document) {
+        elseif ($node instanceof InnerDocument) {
             # 1. If its document element is null, then return null.
             if ($node->documentElement === null) {
                 return null;
@@ -1041,13 +1078,13 @@ abstract class Node {
 
         # ↪ DocumentType
         # ↪ DocumentFragment
-        elseif ($node instanceof DocumentType || $node instanceof DocumentFragment) {
+        elseif ($node instanceof \DOMDocumentType || $node instanceof \DOMDocumentFragment) {
             # Return null.
             return null;
         }
 
         # ↪ Attr
-        elseif ($node instanceof Attr) {
+        elseif ($node instanceof \DOMAttr) {
             # 1. If its element is null, then return null.
             if ($node->ownerElement === null) {
                 return null;
@@ -1060,9 +1097,11 @@ abstract class Node {
 
         # ↪ Otherwise
         # 1. If its parent element is null, then return null.
-        $parentElement = $node->parentElement;
-        if ($parentElement === null) {
-            return null;
+        else {
+            $parentElement = $node->parentNode;
+            if (!$parentElement instanceof \DOMElement) {
+                return null;
+            }
         }
 
         # 2. Return the result of running locate a namespace on its parent element using
@@ -1251,5 +1290,10 @@ abstract class Node {
                 }
             }
         }
+    }
+
+
+    public function __toString() {
+        return $this->ownerDocument->saveHTML($this);
     }
 }

@@ -14,7 +14,9 @@ use MensBeam\HTML\DOM\InnerNode\{
 use MensBeam\HTML\Parser;
 use MensBeam\HTML\Parser\{
     Charset,
-    Data
+    Data,
+    Config as ParserConfig,
+    Serializer
 };
 
 
@@ -88,7 +90,7 @@ class Document extends Node {
         $this->_implementation = new DOMImplementation($this);
 
         if ($source !== null) {
-            $this->loadHTML($source, $charset ?? 'windows-1252');
+            $this->loadHTML($source, $charset);
         } elseif ($charset !== 'UTF-8') {
             $this->_characterSet = Charset::fromCharset((string)$charset) ?? 'UTF-8';
         }
@@ -256,12 +258,50 @@ class Document extends Node {
         return $this->cloneWrapperNode($node, $this, $deep);
     }
 
+    public function loadFile(string $filename, ?string $charset = null): void {
+        $f = fopen($filename, 'r');
+        if (!$f) {
+            return;
+        }
+
+        $data = stream_get_contents($f);
+        $charset = Charset::fromCharset((string)$charset) ?? Charset::fromTransport((string)$charset);
+        $meta = stream_get_meta_data($f);
+        $wrapperType = $meta['wrapper_type'];
+        if (!$charset && $wrapperType === 'http') {
+            // Try to find a Content-Type header field
+            foreach ($meta['wrapper_data'] as $h) {
+                $h = explode(':', $h, 2);
+                if (count($h) === 2 && preg_match("/^\s*Content-Type\s*$/i", $h[0])) {
+                    // Try to get an encoding from it
+                    $charset = Charset::fromTransport($h[1]);
+                    break;
+                }
+            }
+        }
+
+        if ($wrapperType === 'plainfile') {
+            $filename = realpath($filename);
+            $this->_URL = "file://$filename";
+        } else {
+            $this->_URL = $filename;
+        }
+
+        $this->loadHTML($data, $charset);
+    }
+
     public function loadHTML(string $source = null, ?string $charset = null): void {
         if ($this->hasChildNodes()) {
             throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
 
-        $source = Parser::parse($source, $charset ?? 'windows-1252');
+        $config = null;
+        if ($charset !== null) {
+            $config = new ParserConfig();
+            $config->fallbackEncoding = Charset::fromCharset($charset);
+        }
+
+        $source = Parser::parse($source, null, $config);
         $this->_characterSet = $source->encoding;
         $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
 
@@ -270,6 +310,21 @@ class Document extends Node {
         foreach ($source->childNodes as $child) {
             $this->innerNode->appendChild($this->cloneInnerNode($child, $this->innerNode, true));
         }
+    }
+
+    public function saveHTML(Comment|Document|DocumentFragment|DocumentType|Element|ProcessingInstruction|Text|null $node = null): string {
+        $node = $node ?? $this;
+        if ($node !== $this) {
+            if ($node->ownerDocument !== $this) {
+                throw new DOMException(DOMException::WRONG_DOCUMENT);
+            }
+
+            $node = $this->getInnerNode($node);
+        } else {
+            $node = $node->innerNode;
+        }
+
+        return Serializer::serialize($node);
     }
 
 
@@ -304,5 +359,10 @@ class Document extends Node {
         }
 
         return $this->innerNode->getWrapperNode($attr);
+    }
+
+
+    public function __toString() {
+        return $this->saveHTML();
     }
 }

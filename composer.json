@@ -5,7 +5,7 @@
     "require": {
         "php": ">=8.0",
         "ext-dom": "*",
-        "mensbeam/html-parser": ">=1.0",
+        "mensbeam/html-parser": "dev-master",
         "mensbeam/framework": "dev-main",
         "symfony/css-selector": "^5.3"
     },
@@ -53,6 +53,10 @@
         {
             "type": "git",
             "url": "mensbeam-gitea:MensBeam/Framework.git"
+        },
+        {
+            "type": "git",
+            "url": "mensbeam-gitea:MensBeam/HTML-Parser.git"
         }
     ]
 }

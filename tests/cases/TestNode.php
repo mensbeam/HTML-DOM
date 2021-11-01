@@ -147,7 +147,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::getElementById
      * @covers \MensBeam\HTML\DOM\Document::getElementsByTagName
-     * @covers \MensBeam\HTML\DOM\Document::loadHTML
+     * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
@@ -273,7 +273,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\Document::serialize
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
@@ -387,11 +387,41 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /** @covers \MensBeam\HTML\DOM\Node::lookupPrefix */
     public function testMethod_lookupPrefix(): void {
         $d = new Document();
-        $d->appendChild($d->createElement('html'));
-        $body = $d->documentElement->appendChild($d->createElement('body'));
+        $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:poop💩', 'https://poop💩.poop');
+        $body = $documentElement->appendChild($d->createElement('body'));
+        $svg = $body->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'svg'));
+        $svg->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:xlink', Parser::XLINK_NAMESPACE);
+        $comment = $body->appendChild($d->createComment('Ook'));
+        $jeff = $body->appendChild($d->createElementNS('https://poop💩.poop', 'poop💩:jeff'));
+        $attr = $d->createAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns');
+        $attr->value = Parser::HTML_NAMESPACE;
+        $attr = $documentElement->setAttributeNodeNS($attr);
+        $frag = $d->createDocumentFragment();
 
+        // HTML namespace on document
         $this->assertNull($d->lookupPrefix(Parser::HTML_NAMESPACE));
+        // HTML namespace on element
         $this->assertNull($body->lookupPrefix(Parser::HTML_NAMESPACE));
+        // SVG namespace on element
+        $this->assertNull($svg->lookupPrefix(Parser::SVG_NAMESPACE));
+        // Custom namespace on namespaced element
+        $this->assertSame('poop💩', $jeff->lookupPrefix('https://poop💩.poop'));
+        // Xlink namespace
+        $this->assertSame('xlink', $svg->lookupPrefix(Parser::XLINK_NAMESPACE));
+        // Null prefix
+        $this->assertNull($body->lookupPrefix());
+        // On doctype
+        $this->assertNull($doctype->lookupPrefix(Parser::HTML_NAMESPACE));
+        // Document fragment
+        $this->assertNull($frag->lookupPrefix(Parser::HTML_NAMESPACE));
+        // Attribute with namespace on element with no prefix
+        $this->assertNull($attr->lookupPrefix(Parser::HTML_NAMESPACE));
+        // Comment
+        $this->assertNull($comment->lookupPrefix(Parser::HTML_NAMESPACE));
+        // Look up prefix on ancestor
+        $this->assertSame('poop💩', $comment->lookupPrefix('https://poop💩.poop'));
     }
 
 

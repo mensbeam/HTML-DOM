@@ -136,8 +136,8 @@ class Element extends Node {
             $this->innerNode->setAttributeNS(null, $this->coerceName($qualifiedName), $value);
         }
 
-        // If you create an id attribute this way it won't be used by PHP in
-        // getElementById, so let's fix that.
+        // If you create an id attribute it won't be used by PHP in getElementById, so
+        // let's fix that.
         if ($qualifiedName === 'id') {
             $this->innerNode->setIdAttribute($qualifiedName, true);
         }
@@ -147,6 +147,13 @@ class Element extends Node {
         # The setAttributeNode(attr) and setAttributeNodeNS(attr) methods steps are to
         # return the result of setting an attribute given attr and this.
         $this->innerNode->setAttributeNode($this->getInnerNode($attr));
+
+        // If you create an id attribute it won't be used by PHP in getElementById, so
+        // let's fix that.
+        if ($attr->namespaceURI === null && $attr->localName === 'id') {
+            $this->innerNode->setIdAttributeNode($attr, true);
+        }
+
         return $attr;
     }
 
@@ -164,8 +171,8 @@ class Element extends Node {
         #    namespace.
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster.
-        // NOTE: We create attribute nodes so that xmlns attributes
-        // don't get lost; otherwise they cannot be serialized
+        // NOTE: We create attribute nodes so that xmlns attributes don't get lost;
+        // otherwise they cannot be serialized
         if ($namespace === Parser::XMLNS_NAMESPACE) {
             // Xmlns attributes have special bugs just for them. How lucky! Xmlns attribute
             // nodes won't stick and can actually cause segmentation faults if created on a
@@ -173,6 +180,7 @@ class Element extends Node {
             // retrieved. So, use the methods used in Document::createAttributeNS to get an
             // attribute node.
             $a = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
+
             $a->value = $this->escapeString($value, true);
             $this->setAttributeNodeNS($a);
         } else {
@@ -182,11 +190,12 @@ class Element extends Node {
                 // The attribute name is invalid for XML
                 // Replace any offending characters with "UHHHHHH" where H are the
                 // uppercase hexadecimal digits of the character's code point
-                if ($namespace !== null) {
-                    $qualifiedName = implode(':', array_map([$this, 'coerceName'], explode(':', $qualifiedName, 2)));
+                if ($prefix !== null) {
+                    $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
                 } else {
                     $qualifiedName = $this->coerceName($qualifiedName);
                 }
+
                 $this->innerNode->setAttributeNS($namespace, $qualifiedName, $value);
             }
         }

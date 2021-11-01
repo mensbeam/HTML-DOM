@@ -90,7 +90,7 @@ class Document extends Node {
         $this->_implementation = new DOMImplementation($this);
 
         if ($source !== null) {
-            $this->loadHTML($source, $charset);
+            $this->load($source, $charset);
         } elseif ($charset !== 'UTF-8') {
             $this->_characterSet = Charset::fromCharset((string)$charset) ?? 'UTF-8';
         }
@@ -121,9 +121,43 @@ class Document extends Node {
         # 1. Let namespace, prefix, and localName be the result of passing namespace and
         #    qualifiedName to validate and extract.
         [ 'namespace' => $namespace, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespace);
-        $qualifiedName = ($prefix) ? "$prefix:$localName" : $localName;
+        $qualifiedName = ($prefix !== null) ? "$prefix:$localName" : $localName;
 
-        return $this->__createAttribute($namespace, $qualifiedName);
+        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
+        // cannot create attribute nodes if there's no document element. So, create the
+        // attribute node in a separate document which does have a document element and
+        // then import
+        $target = $this->innerNode;
+        $documentElement = $this->documentElement;
+        if ($documentElement === null) {
+            $target = new \DOMDocument();
+            $target->appendChild($target->createElement('html'));
+        }
+
+        # 2. Return a new attribute whose namespace is namespace, namespace prefix is
+        #    prefix, local name is localName, and node document is this.
+        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+        // some characters. We have to coerce them sometimes.
+        try {
+            $attr = $target->createAttributeNS($namespace, $qualifiedName);
+        } catch (\DOMException $e) {
+            // The element name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            //   uppercase hexadecimal digits of the character's code point
+            if ($prefix !== null) {
+                $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
+            } else {
+                $qualifiedName = $this->coerceName($localName);
+            }
+
+            $attr = $target->createAttributeNS($namespace, $qualifiedName);
+        }
+
+        if ($documentElement === null) {
+            $attr = $this->cloneInnerNode($attr, $this->innerNode);
+        }
+
+        return $this->innerNode->getWrapperNode($attr);
     }
 
     public function createCDATASection(string $data): CDATASection {
@@ -215,8 +249,8 @@ class Document extends Node {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            if ($namespace !== null) {
-                $qualifiedName = implode(':', array_map([ $this, 'coerceName' ], explode(':', $qualifiedName, 2)));
+            if ($prefix !== null) {
+                $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
             } else {
                 $qualifiedName = $this->coerceName($qualifiedName);
             }
@@ -258,6 +292,32 @@ class Document extends Node {
         return $this->cloneWrapperNode($node, $this, $deep);
     }
 
+    public function load(string $source = null, ?string $charset = null): void {
+        if ($this->hasChildNodes()) {
+            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+        }
+
+        $config = null;
+        if ($charset !== null) {
+            $config = new ParserConfig();
+            $config->encodingFallback = Charset::fromCharset($charset);
+            // Preserve processing instructions when parsing. This violates the parsing
+            // specification, but since this library is not a browser it should be able to
+            // read and print processing instructions.
+            $config->processingInstructions = true;
+        }
+
+        $source = Parser::parse($source, null, $config);
+        $this->_characterSet = $source->encoding;
+        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
+
+        $source = $source->document;
+        $childNodes = $source->childNodes;
+        foreach ($source->childNodes as $child) {
+            $this->innerNode->appendChild($this->cloneInnerNode($child, $this->innerNode, true));
+        }
+    }
+
     public function loadFile(string $filename, ?string $charset = null): void {
         $f = fopen($filename, 'r');
         if (!$f) {
@@ -287,34 +347,16 @@ class Document extends Node {
             $this->_URL = $filename;
         }
 
-        $this->loadHTML($data, $charset);
+        $this->load($data, $charset);
     }
 
-    public function loadHTML(string $source = null, ?string $charset = null): void {
-        if ($this->hasChildNodes()) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
-        }
-
-        $config = null;
-        if ($charset !== null) {
-            $config = new ParserConfig();
-            $config->fallbackEncoding = Charset::fromCharset($charset);
-        }
-
-        $source = Parser::parse($source, null, $config);
-        $this->_characterSet = $source->encoding;
-        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
-
-        $source = $source->document;
-        $childNodes = $source->childNodes;
-        foreach ($source->childNodes as $child) {
-            $this->innerNode->appendChild($this->cloneInnerNode($child, $this->innerNode, true));
-        }
-    }
-
-    public function saveHTML(Comment|Document|DocumentFragment|DocumentType|Element|ProcessingInstruction|Text|null $node = null): string {
+    public function serialize(?Node $node = null): string {
         $node = $node ?? $this;
         if ($node !== $this) {
+            if (!$this instanceof XMLDocument && $node instanceof CDATASection) {
+                throw new DOMException(DOMException::NOT_SUPPORTED);
+            }
+
             if ($node->ownerDocument !== $this) {
                 throw new DOMException(DOMException::WRONG_DOCUMENT);
             }
@@ -363,6 +405,6 @@ class Document extends Node {
 
 
     public function __toString() {
-        return $this->saveHTML();
+        return $this->serialize();
     }
 }

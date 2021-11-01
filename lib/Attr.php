@@ -31,7 +31,7 @@ class Attr extends Node {
 
     protected function __get_ownerElement(): Element {
         // PHP's DOM does this correctly already.
-        $wrapperNode = &$this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerElement);
+        $wrapperNode = $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerElement);
         return $wrapperNode;
     }
 

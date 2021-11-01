@@ -935,14 +935,9 @@ abstract class Node {
             return $this->innerNode;
         }
 
-        // If the node isn't a Document node and its document is the same as $this'
-        // document then get the inner node from the inner document's node map cache.
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        if (!$node instanceof Document && $node->ownerDocument === $doc) {
-            return $doc->getInnerNode($node);
-        }
-
-        // Otherwise, use reflection to get the innerNode protected property.
+        // Using reflection to get the inner node (for everything but documents) rather
+        // than polling the inner owner document's node map is a good bit faster. It's
+        // wrong to do this, but hey... it's faster.
         return Reflection::getProtectedProperty($node, 'innerNode');
     }
 
@@ -1111,22 +1106,17 @@ abstract class Node {
     }
 
     protected function locateNamespacePrefix(\DOMElement $element, ?string $namespace = null) {
-        // Work around PHP DOM HTML namespace bug
-        if ($element->namespaceURI === null && !$element->ownerDocument->getWrapperNode($element->ownerDocument) instanceof XMLDocument) {
-            $elementNamespace = Parser::HTML_NAMESPACE;
-        } else {
-            $elementNamespace = $element->namespaceURI;
-        }
-
         # To locate a namespace prefix for an element using namespace, run these steps:
         #
         # 1. If element’s namespace is namespace and its namespace prefix is non-null,
         #    then return its namespace prefix.
-        if ($elementNamespace === $namespace && $element->prefix !== null) {
-            // Work around a PHP DOM bug where the prefix is an empty string if nonexistent
-            // when it should be null...
-            $elementPrefix = $element->prefix;
-            return ($elementPrefix === '') ? null : $elementPrefix;
+        // PHP DOM uses an empty string instead of null...
+        $elementPrefix = $element->prefix;
+        if ($elementPrefix !== null && $elementPrefix !== '') {
+            if ($element->namespaceURI === $namespace) {
+                // Need to uncoerce if necessary...
+                return (!str_contains(needle: 'U', haystack: $elementPrefix)) ? $elementPrefix : $this->uncoerceName($elementPrefix);
+            }
         }
 
         # 2. If element has an attribute whose namespace prefix is "xmlns" and value is
@@ -1135,8 +1125,15 @@ abstract class Node {
         // Have to check for null because PHP DOM violates the spec and returns null when empty
         if ($attributes !== null) {
             foreach ($attributes as $attr) {
-                if ($attr->prefix === 'xmlns' && $attr->value === $namespace) {
-                    return $attr->localName;
+                // This is not in the specification at all, but all the browsers do this.
+                // 'xmlns:xmlns' is the same as 'xmlns' because the XML developers want to make
+                // our lives miserable, so if we followed the specification as written we could
+                // get an incorrect answer. So, also check to see if the local name is not
+                // 'xmlns', too.
+                $localName = $attr->localName;
+                if ($attr->prefix === 'xmlns' && $localName !== 'xmlns' && $attr->value === $namespace) {
+                    // Need to uncoerce if necessary...
+                    return (!str_contains(needle: 'U', haystack: $localName)) ? $localName : $this->uncoerceName($localName);
                 }
             }
         }
@@ -1305,6 +1302,6 @@ abstract class Node {
 
 
     public function __toString() {
-        return $this->ownerDocument->saveHTML($this);
+        return $this->ownerDocument->serialize($this);
     }
 }

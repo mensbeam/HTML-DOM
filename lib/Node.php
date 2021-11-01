@@ -731,9 +731,7 @@ abstract class Node {
 
         # ↪ Otherwise
         #      Do nothing.
-        else {
-            $copy = ($import) ? $document->importNode($node) : $node->cloneNode();
-        }
+        // This is for documents. There won't be an instance of cloning an inner document.
 
         # 4. Set copy’s node document and document to copy, if copy is a document, and
         # set copy’s node document to document otherwise.
@@ -1043,7 +1041,12 @@ abstract class Node {
             // Have to check for null because PHP DOM violates the spec and returns null when empty
             if ($attributes !== null) {
                 foreach ($attributes as $attr) {
-                    if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === null && $attr->localName === 'xmlns')) {
+                    // This is not in the specification at all, but all the browsers do this.
+                    // 'xmlns:xmlns' is the same as 'xmlns' because the XML developers want to make
+                    // our lives miserable, so if we followed the specification as written we could
+                    // get an incorrect answer. So, also check to see if the local name is not
+                    // 'xmlns', too.
+                    if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && ($attr->prefix === null || $attr->prefix === '' || $attr->prefix === 'xmlns') && $attr->localName === 'xmlns')) {
                         return ($attr->value !== '') ? $attr->value : null;
                     }
                 }

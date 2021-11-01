@@ -78,8 +78,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $d2 = new XMLDocument();
         $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
         $element = $d->appendChild($d->createElement('html'));
-        $element->appendChild($d->createElement('body'));
-        $d->body->setAttribute('id', 'ook');
+        $body = $element->appendChild($d->createElement('body'));
+        $body->setAttribute('id', 'ook');
         $template = $d->body->appendChild($d->createElement('template'));
         $template->content->appendChild($d->createTextNode('ook'));
         $attr = $d->createAttribute('href');
@@ -125,6 +125,16 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $elementClone = $element->cloneNode(true);
         $this->assertNotSame($elementClone, $element);
         $this->assertTrue($elementClone->isEqualNode($element));
+
+        // Node::cloneNode on element with attribute
+        $bodyClone = $body->cloneNode(true);
+        $this->assertNotSame($bodyClone, $body);
+        $this->assertTrue($bodyClone->isEqualNode($body));
+
+        // Node::cloneNode on template element
+        $templateClone = $template->cloneNode(true);
+        $this->assertNotSame($templateClone, $template);
+        $this->assertTrue($templateClone->isEqualNode($template));
 
         // Node::cloneNode on processing instruction
         $piClone = $pi->cloneNode();
@@ -374,13 +384,60 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      */
     public function testMethod_isDefaultNamespace(): void {
         $d = new Document();
-        $d->appendChild($d->createElement('html'));
-        $body = $d->documentElement->appendChild($d->createElement('body'));
-        $svg = $body->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'svg'));
 
+        // Empty document
+        $this->assertFalse($d->isDefaultNamespace(Parser::HTML_NAMESPACE));
+
+        $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+        $documentElement = $d->createElement('html');
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:poop💩', 'https://poop💩.poop');
+        $body = $documentElement->appendChild($d->createElement('body'));
+        $svg = $body->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'svg'));
+        $svg->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:xlink', Parser::XLINK_NAMESPACE);
+        $comment = $d->createComment('Ook');
+
+        // Detached comment
+        $this->assertFalse($comment->isDefaultNamespace(Parser::HTML_NAMESPACE));
+
+        $body->appendChild($comment);
+        $jeff = $body->appendChild($d->createElementNS('https://poop💩.poop', 'poop💩:jeff'));
+        $attr = $d->createAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns');
+        $attr->value = Parser::HTML_NAMESPACE;
+
+        // Detached attribute
+        $this->assertFalse($attr->isDefaultNamespace(Parser::HTML_NAMESPACE));
+
+        $attr = $documentElement->setAttributeNodeNS($attr);
+        $frag = $d->createDocumentFragment();
+
+        $d2 = new XMLDocument();
+        $xmlDocumentElement = $d2->appendChild($d2->createElement('poop'));
+        $xmlDocumentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns', 'https://poop💩.poop');
+        $detached = $d2->createElement('div');
+
+        // Namespace empty string
+        $this->assertFalse($d->isDefaultNamespace(''));
+        // HTML namespace on document
+        $this->assertTrue($d->isDefaultNamespace(Parser::HTML_NAMESPACE));
+        // HTML namespace on element
         $this->assertTrue($body->isDefaultNamespace(Parser::HTML_NAMESPACE));
-        $this->assertFalse($body->isDefaultNamespace(''));
+        // SVG namespace on svg element
         $this->assertTrue($svg->isDefaultNamespace(Parser::SVG_NAMESPACE));
+        // On detached XML element with null namespace
+        $this->assertTrue($detached->isDefaultNamespace(null));
+        // Custom namespace on namespaced element
+        $this->assertFalse($jeff->isDefaultNamespace('https://poop💩.poop'));
+        // xmlns attribute on document element of XML document
+        $this->assertTrue($xmlDocumentElement->isDefaultNamespace('https://poop💩.poop'));
+        // Attribute
+        $this->assertTrue($attr->isDefaultNamespace(Parser::HTML_NAMESPACE));
+        // On doctype
+        $this->assertFalse($doctype->isDefaultNamespace(Parser::HTML_NAMESPACE));
+        // Document fragment
+        $this->assertFalse($frag->isDefaultNamespace(Parser::HTML_NAMESPACE));
+        // Comment
+        $this->assertTrue($comment->isDefaultNamespace(Parser::HTML_NAMESPACE));
     }
 
 
@@ -422,6 +479,30 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertNull($comment->lookupPrefix(Parser::HTML_NAMESPACE));
         // Look up prefix on ancestor
         $this->assertSame('poop💩', $comment->lookupPrefix('https://poop💩.poop'));
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Node::lookupNamespaceURI */
+    public function testMethod_lookupNamespaceURI(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+
+        // Nust need to test empty string prefix, rest is covered elsewhere
+        $this->assertSame(Parser::HTML_NAMESPACE, $d->lookupNamespaceURI(''));
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Node::normalize */
+    public function testMethod_normalize(): void {
+        // Unless we implement Ranges PHP's DOM does this correctly.
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $body = $d->documentElement->appendChild($d->createElement('body'));
+        $body->appendChild($d->createTextNode('ook'));
+        $body->appendChild($d->createTextNode('eek'));
+
+        $body->normalize();
+        $this->assertEquals(1, $body->childNodes->length);
     }
 
 

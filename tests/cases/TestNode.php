@@ -264,7 +264,40 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::insertBefore */
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::insertBefore
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::saveHTML
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__toString
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getInnerNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     */
     public function testMethod_insertBefore(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
@@ -280,13 +313,85 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace */
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace
+     * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
+    public function testMethod_isSameNode(): void {
+        $d = new Document();
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $body = $documentElement->appendChild($d->createElement('body'));
+
+        $this->assertTrue($body->isSameNode($documentElement->firstChild));
+        $this->assertFalse($body->isSameNode($documentElement));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
     public function testMethod_isDefaultNamespace(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
-        $d->documentElement->appendChild($d->createElement('body'));
-        $this->assertTrue($d->body->isDefaultNamespace(Parser::HTML_NAMESPACE));
-        $this->assertFalse($d->body->isDefaultNamespace(''));
+        $body = $d->documentElement->appendChild($d->createElement('body'));
+        $svg = $body->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'svg'));
+
+        $this->assertTrue($body->isDefaultNamespace(Parser::HTML_NAMESPACE));
+        $this->assertFalse($body->isDefaultNamespace(''));
+        $this->assertTrue($svg->isDefaultNamespace(Parser::SVG_NAMESPACE));
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Node::lookupPrefix */
+    public function testMethod_lookupPrefix(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $body = $d->documentElement->appendChild($d->createElement('body'));
+
+        $this->assertNull($d->lookupPrefix(Parser::HTML_NAMESPACE));
+        $this->assertNull($body->lookupPrefix(Parser::HTML_NAMESPACE));
     }
 
 

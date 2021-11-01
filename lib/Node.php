@@ -503,14 +503,15 @@ abstract class Node {
         # ↪ Element
         if ($this instanceof Element) {
             # Return the result of locating a namespace prefix for it using namespace.
-            return $this->locateNamespacePrefix($this, $namespace);
+            return $this->locateNamespacePrefix($this->innerNode, $namespace);
         }
 
         # ↪ Document
         elseif ($this instanceof Document) {
+            $documentElement = $this->documentElement;
             # Return the result of locating a namespace prefix for its document element, if
             # its document element is non-null; otherwise null.
-            return ($this->documentElement !== null) ? $this->locateNamespacePrefix($this->documentElement, $namespace) : null;
+            return ($documentElement !== null) ? $this->locateNamespacePrefix($this->getInnerNode($documentElement), $namespace) : null;
         }
 
         # ↪ DocumentType
@@ -523,14 +524,14 @@ abstract class Node {
         elseif ($this instanceof Attr) {
             # Return the result of locating a namespace prefix for its element, if its
             # element is non-null; otherwise null.
-            return $this->locateNamespacePrefix($this->ownerElement, $namespace);
+            return $this->locateNamespacePrefix($this->getInnerNode($this->ownerElement), $namespace);
         }
 
         # ↪ Otherwise
         #      Return the result of locating a namespace prefix for its parent element,
         #      if its parent element is non-null; otherwise null.
         $parentElement = $this->parentElement;
-        return ($parentElement !== null) ? $this->locateNamespacePrefix($this->parentElement, $namespace) : null;
+        return ($parentElement !== null) ? $this->locateNamespacePrefix($this->getInnerNode($parentElement), $namespace) : null;
     }
 
     public function lookupNamespaceURI(?string $prefix = null): ?string {
@@ -544,7 +545,7 @@ abstract class Node {
         }
 
         # 2. Return the result of running locate a namespace for this using prefix.
-        return $this->locateNamespace($this, $prefix);
+        return $this->locateNamespace($this->innerNode, $prefix);
     }
 
     public function normalize(): void {
@@ -1109,18 +1110,28 @@ abstract class Node {
         return $this->locateNamespace($parentElement, $prefix);
     }
 
-    protected function locateNamespacePrefix(Element $element, ?string $namespace = null) {
+    protected function locateNamespacePrefix(\DOMElement $element, ?string $namespace = null) {
+        // Work around PHP DOM HTML namespace bug
+        if ($element->namespaceURI === null && !$element->ownerDocument->getWrapperNode($element->ownerDocument) instanceof XMLDocument) {
+            $elementNamespace = Parser::HTML_NAMESPACE;
+        } else {
+            $elementNamespace = $element->namespaceURI;
+        }
+
         # To locate a namespace prefix for an element using namespace, run these steps:
         #
         # 1. If element’s namespace is namespace and its namespace prefix is non-null,
         #    then return its namespace prefix.
-        if ($element->namespaceURI === $namespace && $element->$prefix !== null) {
-            return $element->prefix;
+        if ($elementNamespace === $namespace && $element->prefix !== null) {
+            // Work around a PHP DOM bug where the prefix is an empty string if nonexistent
+            // when it should be null...
+            $elementPrefix = $element->prefix;
+            return ($elementPrefix === '') ? null : $elementPrefix;
         }
 
         # 2. If element has an attribute whose namespace prefix is "xmlns" and value is
         #    namespace, then return element’s first such attribute’s local name.
-        $attributes = $this->getInnerNode($element)->attributes;
+        $attributes = $element->attributes;
         // Have to check for null because PHP DOM violates the spec and returns null when empty
         if ($attributes !== null) {
             foreach ($attributes as $attr) {
@@ -1132,8 +1143,8 @@ abstract class Node {
 
         # 3. If element’s parent element is not null, then return the result of running
         #    locate a namespace prefix on that element using namespace.
-        $parentElement = $element->parentElement;
-        if ($parentElement !== null) {
+        $parentElement = $element->parentNode;
+        if ($parentElement instanceof \DOMElement) {
             return $this->locateNamespacePrefix($parentElement, $namespace);
         }
 

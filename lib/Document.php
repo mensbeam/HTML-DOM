@@ -31,7 +31,7 @@ class Document extends Node {
 
     protected function __get_body(): ?Element {
         $documentElement = $this->innerNode->documentElement;
-        if ($documentElement === null || !$documentElement->hasChildNodes()) {
+        if ($documentElement === null) {
             return null;
         }
 
@@ -39,11 +39,13 @@ class Document extends Node {
         # that is either a body element or a frameset element, or null if there is no
         # such element.
         $n = $documentElement->firstChild;
-        do {
-            if ($n instanceof \DOMElement && $n->namespaceURI === null && ($n->nodeName === 'body' || $n->nodeName === 'frameset')) {
-                return $n->ownerDocument->getWrapperNode($n);
-            }
-        } while ($n = $n->nextSibling);
+        if ($n !== null) {
+            do {
+                if ($n instanceof \DOMElement && $n->namespaceURI === null && ($n->nodeName === 'body' || $n->nodeName === 'frameset')) {
+                    return $n->ownerDocument->getWrapperNode($n);
+                }
+            } while ($n = $n->nextSibling);
+        }
 
         return null;
     }
@@ -62,6 +64,11 @@ class Document extends Node {
 
     protected function __get_contentType(): string {
         return $this->_contentType;
+    }
+
+    protected function __get_doctype(): DocumentType {
+        // PHP's DOM does this correctly already.
+        return $this->innerNode->getWrapperNode($this->innerNode->doctype);
     }
 
     protected function __get_documentElement(): ?Element {
@@ -96,6 +103,42 @@ class Document extends Node {
         }
     }
 
+
+    public function adoptNode(Node &$node): Node {
+        # The adoptNode(node) method steps are:
+        #
+        # 1. If node is a document, then throw a "NotSupportedError" DOMException.
+        if ($node instanceof Document) {
+            throw new DOMException(DOMException::NOT_SUPPORTED);
+        }
+
+        # 2. If node is a shadow root, then throw a "HierarchyRequestError" DOMException.
+        // DEVIATION: There is no scripting in this implementation
+
+        # 3. If node is a DocumentFragment node whose host is non-null, then return.
+        // DEVIATION: One can't just return here?
+        if ($node instanceof DocumentFragment) {
+            $host = Reflection::getProtectedProperty($node, 'host');
+            if ($host === null || $host->get() === null) {
+                return $node;
+            }
+        }
+
+        # 4. Adopt node into this.
+        $newNode = $this->importNode($node, true);
+
+        $parent = $node->parentNode;
+        if ($parent !== null) {
+            $parent->removeChild($node);
+        }
+
+        // Remove node from the inner document's node cache.
+        Reflection::getProtectedProperty($this->getInnerNode($node)->ownerDocument, 'nodeCache')->delete($node);
+
+        # 5. Return node.
+        $node = $newNode;
+        return $node;
+    }
 
     public function createAttribute(string $localName): Attr {
         # The createAttribute(localName) method steps are:

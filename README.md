@@ -39,9 +39,9 @@ Coming soon
   $d->loadHTML('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
   ```
 
-## Differences from Specification ##
+## Limitations & Differences from Specification ##
 
-The primary aim of this library is accuracy. However, due either to limitations imposed by PHP's DOM or by assumptions made by the specification that aren't applicable to a PHP library some changes have needed to be made. These are as follows:
+The primary aim of this library is accuracy. However, due either to limitations imposed by PHP's DOM, by assumptions made by the specification that aren't applicable to a PHP library, or simply because of impractability some changes have needed to be made. These are as follows:
 
 1. Any mention of scripting or anything necessary because of scripting (such as the `ElementCreationOptions` options dictionary on `Document::createElement`) will not be implemented.
 2. The specification is written entirely with browsers in mind and aren't concerned with the DOM's being used outside of the browser. In browser there is always a document created by parsing serialized markup, and the DOM spec always assumes such. This is impossible in the way this PHP library is intended to be used. The default when creating a new `Document` is to set its content type to "application/xml". This isn't ideal when creating an HTML document entirely through the DOM, so this implementation will instead default to "text/html" unless using `XMLDocument`.

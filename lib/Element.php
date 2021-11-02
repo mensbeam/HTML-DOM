@@ -22,7 +22,20 @@ class Element extends Node {
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NamedNodeMap', $this, ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument, $this->innerNode->attributes);
     }
 
+    protected function __get_id(): string {
+        # The id attribute must reflect the "id" content attribute.
+        # Return the result of running get an attribute value given this and name.
+        return $this->getAttribute('id') ?? '';
+    }
+
+    protected function __set_id(string $value): string {
+        # The id attribute must reflect the "id" content attribute.
+        # Set an attribute value for this using name and the given value.
+        return $this->setAttribute('id', $value);
+    }
+
     protected function __get_localName(): ?string {
+        // PHP's DOM does this correctly already.
         return $this->innerNode->localName;
     }
 
@@ -37,12 +50,33 @@ class Element extends Node {
     }
 
     protected function __get_prefix(): ?string {
+        // PHP's DOM does this correctly already.
         return $this->innerNode->prefix;
+    }
+
+    protected function __get_tagName(): string {
+        // PHP's DOM does this correctly already.
+        return $this->innerNode->tagName;
     }
 
 
     protected function __construct(\DOMElement $element) {
         parent::__construct($element);
+    }
+
+
+    public function getAttributeNames(): array {
+        # The getAttributeNames() method steps are to return the qualified names of the
+        # attributes in this’s attribute list, in order; otherwise a new list.
+        $list = [];
+        $attributes = $this->innerNode->attributes;
+        if ($attributes !== null) {
+            foreach ($attributes as $attr) {
+                $list[] = $attr->nodeName;
+            }
+        }
+
+        return $list;
     }
 
     public function getAttributeNode(string $qualifiedName): ?Attr {
@@ -79,6 +113,13 @@ class Element extends Node {
         }
 
         return ($attr !== false) ? $this->innerNode->ownerDocument->getWrapperNode($attr) : null;
+    }
+
+    public function hasAttributes(): bool {
+        # The hasAttributes() method steps are to return false if this’s attribute list
+        # is empty; otherwise true.
+        // PHP's DOM does this correctly already.
+        return $this->innerNode->hasAttributes();
     }
 
     public function hasAttribute(string $qualifiedName): bool {

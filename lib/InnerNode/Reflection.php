@@ -8,7 +8,14 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM\InnerNode;
 
-
+/**
+ * Class which uses reflection to gain access to protected constructors and
+ * properties. We are well aware of the negative conotations around using
+ * Reflection. The specification itself is written in a manner that expects
+ * C++-style friend classes which PHP lacks, so it first comes out of necessity.
+ * Any other use of it comes down to speed optimizations (such as gaining access
+ * to Node::innerNode).
+ */
 class Reflection {
     public static function createFromProtectedConstructor(string $className, ...$arguments): mixed {
         $reflector = new \ReflectionClass($className);

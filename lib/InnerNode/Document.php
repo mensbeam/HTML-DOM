@@ -25,7 +25,7 @@ class Document extends \DOMDocument {
     public const NAME_PRODUCTION_REGEX = '/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
     public const QNAME_PRODUCTION_REGEX = '/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
 
-    protected NodeMap $nodeMap;
+    protected NodeCache $nodeCache;
     protected \WeakReference $_wrapperNode;
 
     protected function __get_wrapperNode(): WrapperNode {
@@ -39,7 +39,7 @@ class Document extends \DOMDocument {
         parent::__construct();
         parent::registerNodeClass('DOMDocument', self::class);
 
-        $this->nodeMap = new NodeMap();
+        $this->nodeCache = new NodeCache();
         // Use a weak reference here to prevent a circular reference
         $this->_wrapperNode = \WeakReference::create($wrapperNode);
 
@@ -50,7 +50,7 @@ class Document extends \DOMDocument {
 
 
     public function getInnerNode(WrapperNode $node): ?\DOMNode {
-        return $this->nodeMap->get($node);
+        return Reflection::getProtectedProperty($node, 'innerNode');
     }
 
     public function getWrapperNode(?\DOMNode $node = null): ?WrapperNode {
@@ -64,7 +64,7 @@ class Document extends \DOMDocument {
         }
 
         // If the wrapper node already exists then return that.
-        if ($wrapperNode = $this->nodeMap->get($node)) {
+        if ($wrapperNode = $this->nodeCache->get($node)) {
             return $wrapperNode;
         }
 
@@ -109,7 +109,7 @@ class Document extends \DOMDocument {
             Reflection::setProtectedProperties($wrapperNode, [ '_ownerDocument' => $this->_wrapperNode ]);
         }
 
-        $this->nodeMap->set($wrapperNode, $node);
+        $this->nodeCache->set($wrapperNode, $node);
         return $wrapperNode;
     }
 }

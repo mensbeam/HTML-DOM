@@ -1311,7 +1311,6 @@ abstract class Node {
         }
     }
 
-
     public function __toString() {
         return $this->ownerDocument->serialize($this);
     }

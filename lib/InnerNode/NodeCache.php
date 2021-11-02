@@ -10,7 +10,7 @@ namespace MensBeam\HTML\DOM\InnerNode;
 use MensBeam\HTML\DOM\Node as WrapperNode;
 
 
-class NodeMap {
+class NodeCache {
     protected $wrapperArray = [];
     protected $innerArray = [];
 

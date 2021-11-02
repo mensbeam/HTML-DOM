@@ -90,61 +90,40 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $text = $d->createTextNode('ook');
         $frag = $d->createDocumentFragment();
         $frag->appendChild($d->createTextNode('ook'));
+        $d3 = new Document('<!DOCTYPE html><html><template>Ook</template></html>');
 
-        // Node::cloneNode on attribute node
-        $attrClone = $attr->cloneNode();
-        $this->assertNotSame($attrClone, $attr);
-        $this->assertTrue($attrClone->isEqualNode($attr));
+        $nodes = [
+            // Attribute node
+            $attr,
+            // CDATA section node
+            $cdata,
+            // Comment
+            $comment,
+            // Document
+            $d,
+            // Parsed document
+            $d3,
+            // Doctype
+            $doctype,
+            // Document fragment
+            $frag,
+            // Element
+            $element,
+            // Body with id attribute
+            $body,
+            // Template
+            $template,
+            // Processing instruction
+            $pi,
+            // Text
+            $text
+        ];
 
-        // Node::cloneNode on CDATA section
-        $cdataClone = $cdata->cloneNode();
-        $this->assertNotSame($cdataClone, $cdata);
-        $this->assertTrue($cdataClone->isEqualNode($cdata));
-
-        // Node::cloneNode on comment
-        $commentClone = $comment->cloneNode();
-        $this->assertNotSame($commentClone, $comment);
-        $this->assertTrue($commentClone->isEqualNode($comment));
-
-        // Node::cloneNode on document
-        $dClone = $d->cloneNode(true);
-        $this->assertNotSame($dClone, $d);
-        $this->assertTrue($dClone->isEqualNode($d));
-
-        // Node::cloneNode on doctype
-        $doctypeClone = $doctype->cloneNode();
-        $this->assertNotSame($doctypeClone, $doctype);
-        $this->assertTrue($doctypeClone->isEqualNode($doctype));
-
-        // Node::cloneNode on document fragment
-        $fragClone = $frag->cloneNode(true);
-        $this->assertNotSame($fragClone, $frag);
-        $this->assertTrue($fragClone->isEqualNode($frag));
-
-        // Node::cloneNode on element
-        $elementClone = $element->cloneNode(true);
-        $this->assertNotSame($elementClone, $element);
-        $this->assertTrue($elementClone->isEqualNode($element));
-
-        // Node::cloneNode on element with attribute
-        $bodyClone = $body->cloneNode(true);
-        $this->assertNotSame($bodyClone, $body);
-        $this->assertTrue($bodyClone->isEqualNode($body));
-
-        // Node::cloneNode on template element
-        $templateClone = $template->cloneNode(true);
-        $this->assertNotSame($templateClone, $template);
-        $this->assertTrue($templateClone->isEqualNode($template));
-
-        // Node::cloneNode on processing instruction
-        $piClone = $pi->cloneNode();
-        $this->assertNotSame($piClone, $pi);
-        $this->assertTrue($piClone->isEqualNode($pi));
-
-        // Node::cloneNode on text node
-        $textClone = $text->cloneNode();
-        $this->assertNotSame($textClone, $text);
-        $this->assertTrue($textClone->isEqualNode($text));
+        foreach ($nodes as $n) {
+            $clone = $n->cloneNode(true);
+            $this->assertNotSame($clone, $n);
+            $this->assertTrue($clone->isEqualNode($n));
+        }
     }
 
 
@@ -321,6 +300,38 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
         $this->assertSame('<body><template></template>ook<div></div></body>', (string)$d->body);
     }
+
+    /** @covers \MensBeam\HTML\DOM\Node::isEqualNode */
+    public function testMethod_isEqualNode(): void {
+        $d = new Document();
+
+        // Only thing left to check for are failures.
+        // Different node types
+        $this->assertFalse($d->isEqualNode($d->createElement('html')));
+
+        // Different doctypes
+        $this->assertFalse($d->implementation->createDocumentType('html', '', '')->isEqualNode($d->implementation->createDocumentType('lmht', 'ook', 'eek')));
+
+        // Different elements
+        $html = $d->createElement('html');
+        $html2 = $d->createElement('html');
+        $body = $d->createElement('body');
+        $body->setAttribute('id', 'ook');
+        $body2 = $html2->appendChild($d->createElement('body'));
+        $body2->setAttribute('id', 'eek');
+        $this->assertFalse($html->isEqualNode($body));
+        $this->assertFalse($body->isEqualNode($body2));
+        $this->assertFalse($html->isEqualNode($html2));
+        $html->appendChild($body);
+        $this->assertFalse($html->isEqualNode($html2));
+
+        // Different text nodes
+        $this->assertFalse($d->createTextNode('ook')->isEqualNode($d->createTextNode('eek')));
+
+        // Different comments
+        $this->assertFalse($d->createComment('ook')->isEqualNode($d->createComment('eek')));
+    }
+
 
 
     /**

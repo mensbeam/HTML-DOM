@@ -10,6 +10,7 @@ namespace MensBeam\HTML\DOM\TestCase;
 
 use MensBeam\HTML\DOM\{
     Document,
+    DOMException,
     Node,
     XMLDocument
 };
@@ -39,6 +40,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__get_name
@@ -57,6 +59,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
@@ -301,7 +304,36 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertSame('<body><template></template>ook<div></div></body>', (string)$d->body);
     }
 
-    /** @covers \MensBeam\HTML\DOM\Node::isEqualNode */
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::isEqualNode
+     *
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     */
     public function testMethod_isEqualNode(): void {
         $d = new Document();
 
@@ -331,7 +363,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         // Different comments
         $this->assertFalse($d->createComment('ook')->isEqualNode($d->createComment('eek')));
     }
-
 
 
     /**
@@ -371,12 +402,27 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace
      *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
+     * @covers \MensBeam\HTML\DOM\Element::validateAndExtract
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
@@ -392,6 +438,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
      */
     public function testMethod_isDefaultNamespace(): void {
         $d = new Document();
@@ -404,8 +451,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $documentElement = $d->appendChild($d->createElement('html'));
         $documentElement->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:poop💩', 'https://poop💩.poop');
         $body = $documentElement->appendChild($d->createElement('body'));
-        $svg = $body->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'svg'));
-        $svg->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:xlink', Parser::XLINK_NAMESPACE);
+        $mathml = $body->appendChild($d->createElementNS(Parser::MATHML_NAMESPACE, 'mathml'));
+        $mathml->setAttributeNS(Parser::XMLNS_NAMESPACE, 'xmlns:xlink', Parser::XLINK_NAMESPACE);
         $comment = $d->createComment('Ook');
 
         // Detached comment
@@ -433,8 +480,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($d->isDefaultNamespace(Parser::HTML_NAMESPACE));
         // HTML namespace on element
         $this->assertTrue($body->isDefaultNamespace(Parser::HTML_NAMESPACE));
-        // SVG namespace on svg element
-        $this->assertTrue($svg->isDefaultNamespace(Parser::SVG_NAMESPACE));
+        // MathML namespace on mathml element
+        $this->assertTrue($mathml->isDefaultNamespace(Parser::MATHML_NAMESPACE));
         // On detached XML element with null namespace
         $this->assertTrue($detached->isDefaultNamespace(null));
         // Custom namespace on namespaced element
@@ -452,7 +499,50 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::lookupPrefix */
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::lookupPrefix
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Attr::__get_ownerElement
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
+     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
+     * @covers \MensBeam\HTML\DOM\Element::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentElement
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::locateNamespacePrefix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     */
     public function testMethod_lookupPrefix(): void {
         $d = new Document();
         $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
@@ -493,7 +583,28 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::lookupNamespaceURI */
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::lookupNamespaceURI
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
     public function testMethod_lookupNamespaceURI(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
@@ -503,7 +614,33 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::normalize */
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::normalize
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeMap::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
     public function testMethod_normalize(): void {
         // Unless we implement Ranges PHP's DOM does this correctly.
         $d = new Document();
@@ -514,6 +651,77 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
         $body->normalize();
         $this->assertEquals(1, $body->childNodes->length);
+    }
+
+
+    /** @covers \MensBeam\HTML\DOM\Node::replaceChild */
+    public function testMethod_replaceChild(): void {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $div = $d->body->appendChild($d->createElement('div'));
+        $ook = $d->body->replaceChild($d->createTextNode('ook'), $div);
+
+        $this->assertSame('<body>ook</body>', (string)$d->body);
+
+        $t = $d->body->replaceChild($d->createElement('template'), $ook);
+
+        $this->assertSame('<body><template></template></body>', (string)$d->body);
+
+        $d->body->replaceChild($d->createElement('br'), $t);
+
+        $this->assertSame('<body><br></body>', (string)$d->body);
+    }
+
+
+    public function provideMethod_replaceChild_errors(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $comment = $d->createComment('ook');
+                $comment->replaceChild($d->createTextNode('fail'), $d->createComment('ook'));
+            } ],
+            [ function() {
+                $d = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $body = $d->documentElement->appendChild($d->createElement('body'));
+                $body->replaceChild($documentElement, $d->createTextNode('ook'));
+            } ],
+            [ function() {
+                $d = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $body = $d->documentElement->appendChild($d->createElement('body'));
+                $documentElement->replaceChild($documentElement, $body);
+            } ],
+            [ function() {
+                $d = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $body = $d->documentElement->appendChild($d->createElement('body'));
+                $body->replaceChild($d->createTextNode('ook'), $documentElement);
+            }, DOMException::NOT_FOUND ],
+            [ function() {
+                $d = new Document();
+                $d2 = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $body = $d->documentElement->appendChild($d->createElement('body'));
+                $documentElement->replaceChild($d2, $body);
+            } ],
+            [ function() {
+                $d = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $d->replaceChild($d->createTextNode('ook'), $documentElement);
+            } ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideMethod_replaceChild_errors
+     * @covers \MensBeam\HTML\DOM\Node::replaceChild
+     */
+    public function testMethod_replaceChild_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
     }
 
 

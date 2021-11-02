@@ -560,6 +560,11 @@ abstract class Node {
     }
 
     public function replaceChild(Node $node, Node $child): Node {
+        $wrapperNode = $node;
+        $node = $this->getInnerNode($node);
+        $child = $this->getInnerNode($child);
+        $inner = $this->innerNode;
+
         # The replaceChild(node, child) method steps are to return the result of
         # replacing child with node within this.
         // PHP's DOM has some issues due to not checking for some edge cases the DOM
@@ -570,46 +575,49 @@ abstract class Node {
         #
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" DOMException.
-        if (!$this instanceof Document && !$this instanceof DocumentFragment && !$this instanceof Element) {
+        if (!$inner instanceof InnerDocument && !$inner instanceof \DOMDocumentFragment && !$inner instanceof \DOMElement) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 2. If node is a host-including inclusive ancestor of parent, then throw a
         #    "HierarchyRequestError" DOMException.
-        if ($node->contains($this)) {
+        // The specification makes no mention of checking to see if child is a
+        // host-including inclusive ancestor of parent or if child is a host-including
+        // inclusive ancestor of node, but it should. All browsers check for this.
+        if ($this->containsInner($node, $inner) || $this->containsInner($node, $child)) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 3. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
-        if ($child->parentNode !== $this) {
+        if ($child->parentNode !== $inner) {
             throw new DOMException(DOMException::NOT_FOUND);
         }
 
         # 4. If node is not a DocumentFragment, DocumentType, Element, or CharacterData
         #    node, then throw a "HierarchyRequestError" DOMException.
-        if (!$node instanceof DocumentFragment && !$node instanceof DocumentType && !$node instanceof Element && !$node instanceof CharacterData) {
+        if (!$node instanceof \DOMDocumentFragment && !$node instanceof \DOMDocumentType && !$node instanceof \DOMElement && !$node instanceof \DOMCharacterData) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 5. If either node is a Text node and parent is a document, or node is a
         #    doctype and parent is not a document, then throw a "HierarchyRequestError"
         #    DOMException.
-        if (($node instanceof Text && $this instanceof Document) || ($node instanceof DocumentType && !$this instanceof Document)) {
+        if (($node instanceof \DOMText && $inner instanceof InnerDocument) || ($node instanceof \DOMDocumentType && !$inner instanceof InnerDocument)) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }
 
         # 6. If parent is a document, and any of the statements below, switched on the
         #    interface node implements, are true, then throw a "HierarchyRequestError".
-        if ($this instanceof Document) {
+        if ($inner instanceof InnerDocument) {
             # ↪ DocumentFragment
             #      If node has more than one element child or has a Text node child.
             #
             #      Otherwise, if node has one element child and either parent has an element
             #      child that is not child or a doctype is following child.
-            if ($node instanceof DocumentFragment) {
+            if ($node instanceof \DOMDocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1) {
-                    $n = $this->getInnerNode($node)->firstChild;
+                    $n = $node->firstChild;
                     do {
                         if ($n instanceof \DOMText) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
@@ -617,7 +625,7 @@ abstract class Node {
                     } while ($n = $n->nextSibling);
                 } elseif ($nodeChildElementCount === 1) {
                     $beforeChild = true;
-                    $n = $this->getInnerNode($node)->firstChild;
+                    $n = $node->firstChild;
                     do {
                         if (!$beforeChild && $n instanceof \DOMDocumentType) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
@@ -635,9 +643,9 @@ abstract class Node {
             # ↪ Element
             #      parent has an element child that is not child or a doctype is following
             #      child.
-            elseif ($node instanceof Element) {
+            elseif ($node instanceof \DOMElement) {
                 $beforeChild = true;
-                $n = $this->getInnerNode($node)->firstChild;
+                $n = $node->firstChild;
                 do {
                     if (!$beforeChild && $n instanceof \DOMDocumentType) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
@@ -654,9 +662,9 @@ abstract class Node {
             # ↪ DocumentType
             #      parent has a doctype child that is not child, or an element is preceding
             #      child.
-            elseif ($node instanceof DocumentType) {
+            elseif ($node instanceof \DOMDocumentType) {
                 $beforeChild = true;
-                $n = $this->getInnerNode($node)->firstChild;
+                $n = $node->firstChild;
                 do {
                     if (!$beforeChild && $n instanceof \DOMElement) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
@@ -672,8 +680,8 @@ abstract class Node {
         }
 
         // PHP's DOM does fine with the rest of the steps.
-        $this->innerNode->replaceChild($this->getInnerNode($node), $this->getInnerNode($child));
-        return $node;
+        $inner->replaceChild($node, $child);
+        return $wrapperNode;
     }
 
 

@@ -49,19 +49,7 @@ class Document extends \DOMDocument {
     }
 
 
-    public function getInnerNode(WrapperNode $node = null): ?\DOMNode {
-        if ($node === null) {
-            return null;
-        }
-
-        if ($node === $this) {
-            return $this;
-        }
-
-        if ($node instanceof \DOMDocument) {
-            throw new DOMException(DOMException::WRONG_DOCUMENT);
-        }
-
+    public function getInnerNode(WrapperNode $node): ?\DOMNode {
         return $this->nodeMap->get($node);
     }
 
@@ -88,8 +76,6 @@ class Document extends \DOMDocument {
             $className = 'CDATASection';
         } elseif ($node instanceof \DOMComment) {
             $className = 'Comment';
-        } elseif ($node instanceof \DOMDocument) {
-            $className = ($this->wrapperNode instanceof WrapperXMLDocument) ? 'XMLDocument' : 'Document';
         } elseif ($node instanceof \DOMDocumentFragment) {
             $className = 'DocumentFragment';
         } elseif ($node instanceof \DOMDocumentType) {
@@ -123,11 +109,7 @@ class Document extends \DOMDocument {
             Reflection::setProtectedProperties($wrapperNode, [ '_ownerDocument' => $this->_wrapperNode ]);
         }
 
-        // Don't put documents into the node map cache to prevent circular references.
-        if ($className !== 'Document') {
-            $this->nodeMap->set($wrapperNode, $node);
-        }
-
+        $this->nodeMap->set($wrapperNode, $node);
         return $wrapperNode;
     }
 }

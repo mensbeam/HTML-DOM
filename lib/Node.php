@@ -581,9 +581,9 @@ abstract class Node {
 
         # 2. If node is a host-including inclusive ancestor of parent, then throw a
         #    "HierarchyRequestError" DOMException.
-        // The specification makes no mention of checking to see if child is a
-        // host-including inclusive ancestor of parent or if child is a host-including
-        // inclusive ancestor of node, but it should. All browsers check for this.
+        // The specification makes no mention of checking to see if node is a
+        // host-including inclusive ancestor of child, but it should. All browsers check
+        // for this.
         if ($this->containsInner($node, $inner) || $this->containsInner($node, $child)) {
             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
         }

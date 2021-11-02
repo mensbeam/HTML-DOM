@@ -663,10 +663,12 @@ abstract class Node {
             #      parent has a doctype child that is not child, or an element is preceding
             #      child.
             elseif ($node instanceof \DOMDocumentType) {
-                $beforeChild = true;
-                $n = $node->firstChild;
+                $n = $inner->firstChild;
+                $beforeChild = ($n !== $child);
                 do {
-                    if (!$beforeChild && $n instanceof \DOMElement) {
+                    echo "{$n->nodeName}\n";
+
+                    if ($beforeChild && $n instanceof \DOMElement) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 

@@ -657,12 +657,18 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /** @covers \MensBeam\HTML\DOM\Node::replaceChild */
     public function testMethod_replaceChild(): void {
         $d = new Document();
+        $d->appendChild($d->createComment('ook'));
+        $comment = $d->appendChild($d->createComment('ook'));
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
         $div = $d->body->appendChild($d->createElement('div'));
         $ook = $d->body->replaceChild($d->createTextNode('ook'), $div);
 
         $this->assertSame('<body>ook</body>', (string)$d->body);
+
+        $d->replaceChild($d->implementation->createDocumentType('html', '', ''), $comment);
+
+        $this->assertSame('<!--ook--><!DOCTYPE html><html><body>ook</body></html>', (string)$d);
 
         $t = $d->body->replaceChild($d->createElement('template'), $ook);
 
@@ -710,7 +716,20 @@ class TestNode extends \PHPUnit\Framework\TestCase {
                 $d = new Document();
                 $documentElement = $d->appendChild($d->createElement('html'));
                 $d->replaceChild($d->createTextNode('ook'), $documentElement);
-            } ]
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createComment('ook'));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $comment = $d->appendChild($d->createComment('ook'));
+                $d->replaceChild($d->implementation->createDocumentType('html', '', ''), $comment);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $d->replaceChild($d->implementation->createDocumentType('html', '', ''), $documentElement);
+            } ],
         ];
     }
 

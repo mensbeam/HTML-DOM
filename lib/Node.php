@@ -48,10 +48,10 @@ abstract class Node {
         # URL, serialized.
         #
         # The document base URL of a Document object is the absolute URL obtained by running these steps:
-        $document = ($this instanceof Document) ? $this : $this->ownerDocument;
-        $base = $doc->getElementsByNodeName('base');
+        $doc = ($this instanceof Document) ? $this : $this->ownerDocument;
+        $base = $this->getInnerNode($doc)->getElementsByTagName('base');
         foreach ($base as $b) {
-            $href = $base->getAttribute('href');
+            $href = $b->getAttribute('href');
             # 2. Otherwise, return the frozen base URL of the first base element in the
             #    Document that has an href attribute, in tree order.
             // URL of base element is always frozen
@@ -70,9 +70,9 @@ abstract class Node {
         // DEVIATION: There can't be an iframe srcdoc document in this implementation.
         # 2. If document's URL is about:blank, and document's browsing context's creator
         #    base URL is non-null, then return that creator base URL.
-        // DEVIATION: Document's URL cannot be about:blank in this implementation.
+        // DEVIATION: Cannot have a browsing context in this implementation.
         # 3. Return document's URL.
-        return $document->URL;
+        return $doc->URL;
     }
 
     protected function __get_childNodes(): NodeList {
@@ -451,7 +451,7 @@ abstract class Node {
         return $this->innerNode->hasChildNodes();
     }
 
-    public function insertBefore(Node $node, ?Node $child): Node {
+    public function insertBefore(Node $node, ?Node $child = null): Node {
         # The insertBefore(node, child) method steps are to return the result of
         # pre-inserting node into this before child.
         // Aside from pre-insertion validity PHP's DOM does this correctly already.
@@ -617,21 +617,42 @@ abstract class Node {
             if ($node instanceof \DOMDocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1) {
-                    $n = $node->firstChild;
+                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                }
+
+                $n = $node->firstChild;
+                if ($n !== null) {
                     do {
                         if ($n instanceof \DOMText) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     } while ($n = $n->nextSibling);
-                } elseif ($nodeChildElementCount === 1) {
-                    $beforeChild = true;
-                    $n = $node->firstChild;
-                    do {
-                        if (!$beforeChild && $n instanceof \DOMDocumentType) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                        }
+                }
 
-                        if ($n instanceof \DOMElement && $n !== $child) {
+                if ($nodeChildElementCount === 1) {
+                    $n = $inner->firstChild;
+                    if ($n !== null) {
+                        $beforeChild = ($n !== $child);
+                        do {
+                            if (($n instanceof \DOMElement && $n !== $child) || (!$beforeChild && $n instanceof \DOMDocumentType)) {
+                                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            } elseif ($n === $child) {
+                                $beforeChild = false;
+                            }
+                        } while ($n = $n->nextSibling);
+                    }
+                }
+            }
+
+            # ↪ Element
+            #      parent has an element child that is not child or a doctype is following
+            #      child.
+            elseif ($node instanceof \DOMElement) {
+                $n = $inner->firstChild;
+                if ($n !== null) {
+                    $beforeChild = ($n !== $child);
+                    do {
+                        if (($n instanceof \DOMElement && $n !== $child) || (!$beforeChild && $n instanceof \DOMDocumentType)) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         } elseif ($n === $child) {
                             $beforeChild = false;
@@ -640,44 +661,21 @@ abstract class Node {
                 }
             }
 
-            # ↪ Element
-            #      parent has an element child that is not child or a doctype is following
-            #      child.
-            elseif ($node instanceof \DOMElement) {
-                $beforeChild = true;
-                $n = $node->firstChild;
-                do {
-                    if (!$beforeChild && $n instanceof \DOMDocumentType) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-
-                    if ($n instanceof \DOMElement && $n !== $child) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    } elseif ($n === $child) {
-                        $beforeChild = false;
-                    }
-                } while ($n = $n->nextSibling);
-            }
-
             # ↪ DocumentType
             #      parent has a doctype child that is not child, or an element is preceding
             #      child.
             elseif ($node instanceof \DOMDocumentType) {
                 $n = $inner->firstChild;
-                $beforeChild = ($n !== $child);
-                do {
-                    echo "{$n->nodeName}\n";
-
-                    if ($beforeChild && $n instanceof \DOMElement) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    }
-
-                    if ($n instanceof \DOMDocumentType && $n !== $child) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
-                    } elseif ($n === $child) {
-                        $beforeChild = false;
-                    }
-                } while ($n = $n->nextSibling);
+                if ($n !== null) {
+                    $beforeChild = ($n !== $child);
+                    do {
+                        if (($n instanceof \DOMDocumentType && $n !== $child) || $beforeChild && $n instanceof \DOMElement) {
+                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        } elseif ($n === $child) {
+                            $beforeChild = false;
+                        }
+                    } while ($n = $n->nextSibling);
+                }
             }
         }
 
@@ -832,7 +830,7 @@ abstract class Node {
             $innerDocument = $this->getInnerNode($document);
             $import = true;
 
-            if ($node->characterSet !== 'UTF-8' || $node->compatMode !== 'CSS1Compat' || $node->contentType !== 'text/html' || $node->URL !== '') {
+            if ($node->characterSet !== 'UTF-8' || $node->compatMode !== 'CSS1Compat' || $node->contentType !== 'text/html' || $node->URL !== 'about:blank') {
                 Reflection::setProtectedProperties($document, [
                     '_characterSet' => $node->characterSet,
                     '_compatMode' => $node->compatMode,
@@ -1182,7 +1180,7 @@ abstract class Node {
         # A is an inclusive ancestor of B, or if B’s root has a non-null host and A is a
         # host-including inclusive ancestor of B’s root’s host.
         if ($node->parentNode !== null) {
-            if ($parent->parentNode !== null && ($parent === $node || $node->contains($parent))) {
+            if ($parent->parentNode !== null && ($parent === $node || $this->containsInner($node, $parent))) {
                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
             } else {
                 $n = $parent;
@@ -1192,8 +1190,8 @@ abstract class Node {
 
                 if ($parentRoot instanceof \DOMDocumentFragment) {
                     $wrappedParentRoot = $parentRoot->ownerDocument->getWrapperNode($parentRoot);
-                    $parentRootHost = Reflection::getProtectedProperty($wrappedParentRoot, 'host')->get();
-                    if ($parentRootHost !== null && ($parentRootHost === $node || $node->contains($parentRootHost))) {
+                    $parentRootHost = $this->getInnerNode(Reflection::getProtectedProperty($wrappedParentRoot, 'host')->get());
+                    if ($parentRootHost !== null && ($parentRootHost === $node || $this->containsInner($node, $parentRootHost))) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }
@@ -1229,7 +1227,7 @@ abstract class Node {
             #      Otherwise, if node has one element child and either parent has an element
             #      child, child is a doctype, or child is non-null and a doctype is following
             #      child.
-            if ($node instanceof DocumentFragment) {
+            if ($node instanceof \DOMDocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
@@ -1237,7 +1235,7 @@ abstract class Node {
                     $n = $node->firstChild;
                     if ($n !== null) {
                         do {
-                            if ($n instanceof Text) {
+                            if ($n instanceof \DOMText) {
                                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                             }
                         } while ($n = $n->nextSibling);
@@ -1245,14 +1243,14 @@ abstract class Node {
                 }
 
                 if ($nodeChildElementCount === 1) {
-                    if ($parent->childElementCount > 0 || $child instanceof DocumentType) {
+                    if ($parent->childElementCount > 0 || $child instanceof \DOMDocumentType) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
 
                     if ($child !== null) {
                         $n = $child;
                         while ($n = $n->nextSibling) {
-                            if ($n instanceof DocumentType) {
+                            if ($n instanceof \DOMDocumentType) {
                                 throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                             }
                         }
@@ -1263,15 +1261,15 @@ abstract class Node {
             # ↪ Element
             #      parent has an element child, child is a doctype, or child is non-null and a
             #      doctype is following child.
-            elseif ($node instanceof Element) {
-                if ($child instanceof DocumentType) {
+            elseif ($node instanceof \DOMElement) {
+                if ($child instanceof \DOMDocumentType) {
                     throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                 }
 
                 if ($child !== null) {
                     $n = $child;
                     while ($n = $n->nextSibling) {
-                        if ($n instanceof DocumentType) {
+                        if ($n instanceof \DOMDocumentType) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     }
@@ -1280,7 +1278,7 @@ abstract class Node {
                 if ($parent->firstChild !== null) {
                     $n = $parent->firstChild;
                     do {
-                        if ($n instanceof Element) {
+                        if ($n instanceof \DOMElement) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     } while ($n = $n->nextSibling);
@@ -1290,12 +1288,12 @@ abstract class Node {
             # ↪ DocumentType
             #      parent has a doctype child, child is non-null and an element is preceding
             #      child, or child is null and parent has an element child.
-            elseif ($node instanceof DocumentType) {
+            elseif ($node instanceof \DOMDocumentType) {
                 $firstChild = $parent->firstChild;
                 if ($firstChild !== null) {
                     $n = $firstChild;
                     do {
-                        if ($n instanceof DocumentType || ($child === null && $n instanceof Element)) {
+                        if ($n instanceof \DOMDocumentType || ($child === null && $n instanceof \DOMElement)) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     } while ($n = $n->nextSibling);
@@ -1304,7 +1302,7 @@ abstract class Node {
                 if ($child !== null) {
                     $n = $child;
                     while ($n = $n->previousSibling) {
-                        if ($n instanceof Element) {
+                        if ($n instanceof \DOMElement) {
                             throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                         }
                     }

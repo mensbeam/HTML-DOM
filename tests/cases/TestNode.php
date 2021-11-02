@@ -654,6 +654,122 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
+    public function provideMethod_preInsertionValidity_errors(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $comment = $d->appendChild($d->createComment('ook'));
+                $comment->appendChild($d->createElement('div'));
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $b = $d->documentElement->appendChild($d->createElement('body'));
+                $b->appendChild($d->documentElement);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $b = $d->documentElement->appendChild($d->createElement('body'));
+                $t = $b->appendChild($d->createElement('template'));
+                $t->content->appendChild($b);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $b = $d->documentElement->appendChild($d->createElement('body'));
+                $d->insertBefore($d->createElement('fail'), $b);
+            }, DOMException::NOT_FOUND ],
+            [ function() {
+                $d = new Document();
+                $df = $d->createDocumentFragment();
+                $df->appendChild($d->createElement('html'));
+                $df->appendChild($d->createTextNode(' '));
+                $d->appendChild($df);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $c = $d->appendChild($d->createComment('ook'));
+                $d->insertBefore($d->implementation->createDocumentType('html', '', ''), $c);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $d->documentElement->insertBefore($d->implementation->createDocumentType('html', '', ''));
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $d->documentElement->insertBefore($d->implementation->createDocumentType('html', '', ''));
+            } ],
+            [ function() {
+                $d = new Document();
+                $dt = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $df = $d->createDocumentFragment();
+                $df->appendChild($d->createElement('html'));
+                $df->appendChild($d->createElement('body'));
+                $d->insertBefore($df, $dt);
+            } ],
+            [ function() {
+                $d = new Document();
+                $dt = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $df = $d->createDocumentFragment();
+                $df->appendChild($d->createElement('html'));
+                $d->insertBefore($df, $dt);
+            } ],
+            [ function() {
+                $d = new Document();
+                $c = $d->appendChild($d->createComment('OOK'));
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $df = $d->createDocumentFragment();
+                $df->appendChild($d->createElement('html'));
+                $d->insertBefore($df, $c);
+            } ],
+            [ function() {
+                $d = new Document();
+                $dt = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $d->insertBefore($d->createElement('html'), $dt);
+            } ],
+            [ function() {
+                $d = new Document();
+                $c = $d->appendChild($d->createComment('OOK'));
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $d->insertBefore($d->createElement('html'), $c);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createElement('html'));
+                $d->appendChild($d->createElement('body'));
+            } ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideMethod_preInsertionValidity_errors
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     */
+    public function testMethod_preInsertionValidity_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
+    }
+
+
     /** @covers \MensBeam\HTML\DOM\Node::replaceChild */
     public function testMethod_replaceChild(): void {
         $d = new Document();
@@ -662,20 +778,17 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
         $div = $d->body->appendChild($d->createElement('div'));
-        $ook = $d->body->replaceChild($d->createTextNode('ook'), $div);
 
+        $ook = $d->body->replaceChild($d->createTextNode('ook'), $div);
         $this->assertSame('<body>ook</body>', (string)$d->body);
 
         $d->replaceChild($d->implementation->createDocumentType('html', '', ''), $comment);
-
         $this->assertSame('<!--ook--><!DOCTYPE html><html><body>ook</body></html>', (string)$d);
 
         $t = $d->body->replaceChild($d->createElement('template'), $ook);
-
         $this->assertSame('<body><template></template></body>', (string)$d->body);
 
         $d->body->replaceChild($d->createElement('br'), $t);
-
         $this->assertSame('<body><br></body>', (string)$d->body);
     }
 
@@ -721,6 +834,54 @@ class TestNode extends \PHPUnit\Framework\TestCase {
                 $d = new Document();
                 $d->appendChild($d->createComment('ook'));
                 $documentElement = $d->appendChild($d->createElement('html'));
+                $frag = $d->createDocumentFragment();
+                $frag->appendChild($d->createElement('html'));
+                $frag->appendChild($d->createElement('body'));
+                $d->replaceChild($frag, $documentElement);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createComment('ook'));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $frag = $d->createDocumentFragment();
+                $frag->appendChild($d->createElement('html'));
+                $frag->appendChild($d->createTextNode('ook'));
+                $d->replaceChild($frag, $documentElement);
+            } ],
+            [ function() {
+                $d = new Document();
+                $comment = $d->appendChild($d->createComment('ook'));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $frag = $d->createDocumentFragment();
+                $frag->appendChild($d->createElement('html'));
+                $d->replaceChild($frag, $comment);
+            } ],
+            [ function() {
+                $d = new Document();
+                $comment = $d->appendChild($d->createComment('ook'));
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $frag = $d->createDocumentFragment();
+                $frag->appendChild($d->createElement('html'));
+                $d->replaceChild($frag, $comment);
+            } ],
+            [ function() {
+                $d = new Document();
+                $comment = $d->appendChild($d->createComment('ook'));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $d->replaceChild($d->createElement('html'), $comment);
+            } ],
+            [ function() {
+                $d = new Document();
+                $comment = $d->appendChild($d->createComment('ook'));
+                $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $d->replaceChild($d->createElement('html'), $comment);
+            } ],
+            [ function() {
+                $d = new Document();
+                $d->appendChild($d->createComment('ook'));
+                $documentElement = $d->appendChild($d->createElement('html'));
                 $comment = $d->appendChild($d->createComment('ook'));
                 $d->replaceChild($d->implementation->createDocumentType('html', '', ''), $comment);
             } ],
@@ -741,6 +902,21 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();
+    }
+
+
+    public function testProperty_baseURI() {
+        $d = new Document();
+        $d->loadFile('https://google.com');
+
+        $this->assertSame('https://google.com', $d->baseURI);
+
+        $head = $d->getElementsByTagName('head')[0];
+        $base = $d->createElement('base');
+        $base->setAttribute('href', 'https://duckduckgo.com');
+        $head->appendChild($base);
+
+        $this->assertSame('https://duckduckgo.com', $d->baseURI);
     }
 
 

@@ -27,7 +27,7 @@ class Document extends Node {
     protected string $_compatMode = 'CSS1Compat';
     protected string $_contentType = 'text/html';
     protected DOMImplementation $_implementation;
-    protected string $_URL = '';
+    protected string $_URL = 'about:blank';
 
     protected function __get_body(): ?Element {
         $documentElement = $this->innerNode->documentElement;

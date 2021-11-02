@@ -12,6 +12,7 @@ use MensBeam\HTML\DOM\InnerNode\{
     Reflection
 };
 use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser\Data;
 
 
 /**
@@ -20,6 +21,50 @@ use MensBeam\HTML\Parser;
  * both the Document and Element interfaces.
  */
 trait DocumentOrElement {
+    public function getElementsByClassName(string $classNames): HTMLCollection {
+        $innerNode = $this->innerNode;
+
+        # The list of elements with class names classNames for a node root is the
+        # HTMLCollection returned by the following algorithm:
+        // DEVIATION: There's no HTMLCollection. The result will be a DOMNodeList
+        // instead. It is, fortunately, almost exactly the same thing anyway.
+
+        # 1. Let classes be the result of running the ordered set parser on classNames.
+        #
+        ## The ordered set parser takes a string input and then runs these steps:
+        ##
+        ## 1. Let inputTokens be the result of splitting input on ASCII whitespace.
+        // There isn't a Set object in php, so make sure all the tokens are unique.
+        $inputTokens = ($classNames !== '') ? array_unique(preg_split(Data::WHITESPACE_REGEX, $classNames)) : [];
+        $doc = ($this instanceof Document) ? $innerNode : $innerNode->ownerDocument;
+
+        ## 2. Let tokens be a new ordered set.
+        ## 3. For each token in inputTokens, append token to tokens.
+        ## 4. Return tokens.
+        // There isn't a Set object in php, so just use the uniqued input tokens.
+
+        # 2. If classes is the empty set, return an empty HTMLCollection.
+        if ($inputTokens === []) {
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, new \DOMNodeList());
+        }
+
+        # 3. Return a HTMLCollection rooted at root, whose filter matches descendant
+        # elements that have all their classes in classes.
+        #
+        # The comparisons for the classes must be done in an ASCII case-insensitive manner
+        # if root’s node document’s mode is "quirks"; otherwise in an identical to manner.
+        // It's just faster to use XPath to create the a nodelist that will then be
+        // wrapped instead of polling a closure containing a DOM walker that has to then
+        // explode each and every class string by whitespace and then iterate through
+        // them... yeah not gonna do that.
+        $query = '//*';
+        foreach ($inputTokens as $token) {
+            $query .= "[@class=\"$token\"]";
+        }
+
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, new \DOMXPath($doc)->query($query, $this));
+    }
+
     public function getElementsByTagName(string $qualifiedName): HTMLCollection {
         // HTMLCollections cannot be created from their constructors normally.
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', (!$this instanceof Document) ? $this->innerNode->ownerDocument : $this->innerNode, $this->innerNode->getElementsByTagNameNS(null, $qualifiedName));

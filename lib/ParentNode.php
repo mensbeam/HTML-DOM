@@ -24,7 +24,7 @@ trait ParentNode {
      *                                   the iteration.
      */
     public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        $node = (!$node instanceof DocumentFragment) ? $this->getInnerNode($node) : null;
+        $node = (!$this instanceof DocumentFragment) ? $this->getInnerNode($node) : null;
         if (!$includeReferenceNode) {
             $node = $node->firstChild;
         }

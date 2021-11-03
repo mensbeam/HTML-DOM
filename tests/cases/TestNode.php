@@ -759,10 +759,29 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-    /**
-     * @dataProvider provideMethod_preInsertionValidity_errors
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     */
+     /**
+      * @dataProvider provideMethod_preInsertionValidity_errors
+      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+      *
+      * @covers \MensBeam\HTML\DOM\Comment::__construct
+      * @covers \MensBeam\HTML\DOM\Document::__construct
+      * @covers \MensBeam\HTML\DOM\Document::createComment
+      * @covers \MensBeam\HTML\DOM\Document::createElement
+      * @covers \MensBeam\HTML\DOM\DOMException::__construct
+      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+      * @covers \MensBeam\HTML\DOM\Element::__construct
+      * @covers \MensBeam\HTML\DOM\Node::__construct
+      * @covers \MensBeam\HTML\DOM\Node::appendChild
+      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+      */
     public function testMethod_preInsertionValidity_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
@@ -770,7 +789,47 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    /** @covers \MensBeam\HTML\DOM\Node::replaceChild */
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::replaceChild
+     *
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::__toString
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__toString
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getInnerNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     */
     public function testMethod_replaceChild(): void {
         $d = new Document();
         $d->appendChild($d->createComment('ook'));
@@ -894,10 +953,28 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-    /**
-     * @dataProvider provideMethod_replaceChild_errors
-     * @covers \MensBeam\HTML\DOM\Node::replaceChild
-     */
+     /**
+      * @dataProvider provideMethod_replaceChild_errors
+      * @covers \MensBeam\HTML\DOM\Node::replaceChild
+      *
+      * @covers \MensBeam\HTML\DOM\Comment::__construct
+      * @covers \MensBeam\HTML\DOM\Document::__construct
+      * @covers \MensBeam\HTML\DOM\Document::createComment
+      * @covers \MensBeam\HTML\DOM\Document::createTextNode
+      * @covers \MensBeam\HTML\DOM\DOMException::__construct
+      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+      * @covers \MensBeam\HTML\DOM\Node::__construct
+      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+      * @covers \MensBeam\HTML\DOM\Text::__construct
+      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+      */
     public function testMethod_replaceChild_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
@@ -905,6 +982,37 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Node::__get_baseURI
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_URL
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::loadFile
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
     public function testProperty_baseURI() {
         $d = new Document();
         $d->loadFile('https://google.com');

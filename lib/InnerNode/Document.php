@@ -53,10 +53,7 @@ class Document extends \DOMDocument {
         return Reflection::getProtectedProperty($node, 'innerNode');
     }
 
-    public function getWrapperNode(?\DOMNode $node = null): ?WrapperNode {
-        if ($node === null) {
-            return null;
-        }
+    public function getWrapperNode(\DOMNode $node): ?WrapperNode {
         // If the node is a Document then the wrapperNode is this's wrapperNode
         // property.
         if ($node instanceof Document) {

@@ -122,7 +122,7 @@ class Document extends Node {
         // DEVIATION: One can't just return here?
         if ($node instanceof DocumentFragment) {
             $host = Reflection::getProtectedProperty($node, 'host');
-            if ($host === null || $host->get() === null) {
+            if ($host !== null || $host->get() !== null) {
                 return $node;
             }
         }

@@ -62,7 +62,7 @@ trait DocumentOrElement {
             $query .= "[@class=\"$token\"]";
         }
 
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, new \DOMXPath($doc)->query($query, $this));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query($query, $this));
     }
 
     public function getElementsByTagName(string $qualifiedName): HTMLCollection {

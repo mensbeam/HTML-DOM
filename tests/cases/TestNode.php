@@ -136,9 +136,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Collection::item
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
-     * @covers \MensBeam\HTML\DOM\Document::getElementById
-     * @covers \MensBeam\HTML\DOM\Document::getElementsByTagName
      * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
@@ -150,9 +149,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::removeChild
+     * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode

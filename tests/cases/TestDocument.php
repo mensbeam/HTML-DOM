@@ -20,6 +20,41 @@ use MensBeam\HTML\Parser,
 
 /** @covers \MensBeam\HTML\DOM\Document */
 class TestDocument extends \PHPUnit\Framework\TestCase {
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::adoptNode
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::importNode
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Node::removeChild
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::delete
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     */
     public function testMethod_adoptNode(): void {
         $d = new Document();
         $documentElement = $d->appendChild($d->createElement('html'));
@@ -35,6 +70,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::adoptNode
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_adoptNode_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
@@ -44,6 +88,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_createAttribute_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
@@ -65,7 +118,16 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-    /** @dataProvider provideMethod_createCDATASection_errors */
+    /**
+     * @dataProvider provideMethod_createCDATASection_errors
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_createCDATASection_errors(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
@@ -73,6 +135,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_createElement_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
@@ -81,6 +152,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::importNode
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_importNode_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
@@ -89,6 +169,28 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::load
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     */
     public function testMethod_load_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
@@ -98,6 +200,19 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::loadFile
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_charset
+     * @covers \MensBeam\HTML\DOM\Document::__get_URL
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_loadFile(): void {
         $d = new Document();
 
@@ -125,6 +240,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::loadFile
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     */
     public function testMethod_loadFile_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::FILE_NOT_FOUND);
@@ -133,6 +257,25 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     */
     public function testMethod_serialize_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);

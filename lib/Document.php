@@ -66,13 +66,16 @@ class Document extends Node {
         return $this->_contentType;
     }
 
-    protected function __get_doctype(): DocumentType {
+    protected function __get_doctype(): ?DocumentType {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->getWrapperNode($this->innerNode->doctype);
+        $doctype = $this->innerNode->doctype;
+        return ($doctype !== null) ? $this->innerNode->getWrapperNode($doctype) : null;
     }
 
     protected function __get_documentElement(): ?Element {
-        return $this->innerNode->getWrapperNode($this->innerNode->documentElement);
+        // PHP's DOM does this correctly already.
+        $documentElement = $this->innerNode->documentElement;
+        return ($documentElement !== null) ? $this->innerNode->getWrapperNode($documentElement) : null;
     }
 
     protected function __get_documentURI(): string {

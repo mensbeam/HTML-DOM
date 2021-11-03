@@ -66,6 +66,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame('GBK', $d->inputEncoding);
     }
 
+    /** @covers \MensBeam\HTML\DOM\Document::__get_doctype */
+    public function testProperty_doctype() {
+        $d = new Document();
+        $this->assertNull($d->doctype);
+
+        $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
+        $this->assertSame($doctype, $d->doctype);
+    }
+
     /** @covers \MensBeam\HTML\DOM\Document::__get_documentURI */
     public function testProperty_documentURI() {
         $d = new Document();

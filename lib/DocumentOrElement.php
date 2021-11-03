@@ -71,6 +71,15 @@ trait DocumentOrElement {
     }
 
     public function getElementsByTagNameNS(?string $namespace = null, string $localName): HTMLCollection {
+        $doc = $this->getInnerDocument();
+        if (!$doc instanceof XMLDocument) {
+            if ($namespace === null) {
+                return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, new \DOMNodeList());
+            } elseif ($namespace === Parser::HTML_NAMESPACE) {
+                $namespace = null;
+            }
+        }
+
         // If an HTML document and the namespace is the HTML namespace change it to null
         // before running internally because HTML nodes are stored with null namespaces
         // because of bugs in PHP DOM.
@@ -79,7 +88,7 @@ trait DocumentOrElement {
         }
 
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', (!$this instanceof Document) ? $this->innerNode->ownerDocument : $this->innerNode, $this->innerNode->getElementsByTagNameNS($namespace, $localName));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $this->innerNode->getElementsByTagNameNS($namespace, $localName));
     }
 
 
@@ -129,7 +138,8 @@ trait DocumentOrElement {
 
         # 10. Return namespace, prefix, and localName.
         return [
-            'namespace' => $namespace,
+            // Internally HTML namespaced elements in HTML documents use null because of a PHP DOM bug.
+            'namespace' => (!$this->getInnerDocument() instanceof XMLDocument && $namespace === Parser::HTML_NAMESPACE) ? null : $namespace,
             'prefix' => $prefix,
             'localName' => $localName
         ];

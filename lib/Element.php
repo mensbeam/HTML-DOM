@@ -185,14 +185,17 @@ class Element extends Node {
     }
 
     public function setAttributeNode(Attr $attr): ?Attr {
+        $innerNode = $this->innerNode;
+        $innerAttr = $this->getInnerNode($attr);
+
         # The setAttributeNode(attr) and setAttributeNodeNS(attr) methods steps are to
         # return the result of setting an attribute given attr and this.
-        $this->innerNode->setAttributeNode($this->getInnerNode($attr));
+        $this->innerNode->setAttributeNode($innerAttr);
 
         // If you create an id attribute it won't be used by PHP in getElementById, so
         // let's fix that.
-        if ($attr->namespaceURI === null && $attr->localName === 'id') {
-            $this->innerNode->setIdAttributeNode($attr, true);
+        if ($innerAttr->namespaceURI === null && $innerAttr->localName === 'id') {
+            $innerNode->setIdAttributeNode($attr, true);
         }
 
         return $attr;

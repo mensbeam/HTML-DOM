@@ -11,14 +11,16 @@ namespace MensBeam\HTML\DOM\TestCase;
 use MensBeam\HTML\DOM\{
     Document,
     DOMException,
-    Node
+    Node,
+    XMLDocument
 };
-use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser,
+    org\bovigo\vfs\vfsStream;
 
 
 /** @covers \MensBeam\HTML\DOM\Document */
 class TestDocument extends \PHPUnit\Framework\TestCase {
-    public function testMethod_adoptNode() {
+    public function testMethod_adoptNode(): void {
         $d = new Document();
         $documentElement = $d->appendChild($d->createElement('html'));
         $body = $documentElement->appendChild($d->createElement('body'));
@@ -33,12 +35,110 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function testMethod_adoptNode_errors() {
+    public function testMethod_adoptNode_errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
         $d = new Document();
         $d2 = new Document();
         $d2->adoptNode($d);
+    }
+
+
+    public function testMethod_createAttribute_errors(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
+        $d = new Document();
+        $d->createAttribute('this will fail');
+    }
+
+
+    public function provideMethod_createCDATASection_errors(): iterable {
+        return [
+            [ function () {
+                $d = new Document();
+                $d->createCDATASection('ook');
+            }, DOMException::NOT_SUPPORTED ],
+            [ function () {
+                $d = new XMLDocument();
+                $d->createCDATASection('ook]]>');
+            }, DOMException::INVALID_CHARACTER ],
+        ];
+    }
+
+    /** @dataProvider provideMethod_createCDATASection_errors */
+    public function testMethod_createCDATASection_errors(\Closure $closure, int $errorCode): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
+    }
+
+
+    public function testMethod_createElement_errors(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
+        $d = new Document();
+        $d->createElement('this will fail');
+    }
+
+
+    public function testMethod_importNode_errors(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
+        $d = new Document();
+        $d->importNode(new Document());
+    }
+
+
+    public function testMethod_load_errors(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->load('this will fail');
+    }
+
+
+    public function testMethod_loadFile(): void {
+        $d = new Document();
+
+        $vfs = vfsStream::setup('DOM', 0777, [ 'test.html' => <<<HTML
+        <!DOCTYPE html>
+        <html>
+         <head>
+          <meta charset="ISO-2022-JP">
+          <title>Ook</title>
+         </head>
+        </html>
+        HTML ]);
+        $f = $vfs->url() . '/test.html';
+
+        // Test loading of virtual file
+        $d->loadFile($f);
+        $this->assertSame('ISO-2022-JP', $d->charset);
+        $this->assertStringStartsWith('vfs://', $d->URL);
+
+        // Test loading of local file
+        $d = new Document();
+        $d->loadFile(dirname(__FILE__) . '/../test.html', 'UTF-8');
+        $this->assertSame('ISO-2022-JP', $d->charset);
+        $this->assertStringStartsWith('file://', $d->URL);
+    }
+
+
+    public function testMethod_loadFile_errors(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::FILE_NOT_FOUND);
+        $d = new Document();
+        $d->loadFile('fail.html');
+    }
+
+
+    public function testMethod_serialize_errors(): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
+        $d = new XMLDocument();
+        $d2 = new Document();
+        $d2->serialize($d->createTextNode('ook'));
     }
 
 

@@ -19,9 +19,11 @@ class DOMException extends Exception {
     public const NOT_FOUND = 8;
     public const NOT_SUPPORTED = 9;
     public const SYNTAX_ERROR = 12;
-    public const INVALID_MODIFICATION_ERROR = 13;
+    public const INVALID_MODIFICATION = 13;
     public const NAMESPACE_ERROR = 14;
-    public const INVALID_ACCESS_ERROR = 15;
+    public const INVALID_ACCESS = 15;
+
+    public const FILE_NOT_FOUND = 301;
 
 
     public function __construct(int $code, ...$args) {
@@ -36,7 +38,9 @@ class DOMException extends Exception {
              12 => 'Syntax error',
              13 => 'Invalid modification error',
              14 => 'Namespace error',
-             15 => 'Invalid access error'
+             15 => 'Invalid access error',
+
+             301 => 'File not found'
         ]);
 
         parent::__construct($code, ...$args);

@@ -85,8 +85,7 @@ abstract class Node {
             return null;
         }
 
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($value);
+        return $this->getInnerDocument()->getWrapperNode($value);
     }
 
     protected function __get_isConnected(): bool {
@@ -102,8 +101,7 @@ abstract class Node {
             return null;
         }
 
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($value);
+        return $this->getInnerDocument()->getWrapperNode($value);
     }
 
     protected function __get_previousSibling(): ?Node {
@@ -112,8 +110,7 @@ abstract class Node {
             return null;
         }
 
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($value);
+        return $this->getInnerDocument()->getWrapperNode($value);
     }
 
     protected function __get_nextSibling(): ?Node {
@@ -122,8 +119,7 @@ abstract class Node {
             return null;
         }
 
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($value);
+        return $this->getInnerDocument()->getWrapperNode($value);
     }
 
     protected function __get_nodeName(): string {
@@ -223,8 +219,7 @@ abstract class Node {
             return null;
         }
 
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($parent);
+        return $this->getInnerDocument()->getWrapperNode($parent);
     }
 
     protected function __get_textContent(): ?string {
@@ -555,8 +550,7 @@ abstract class Node {
 
     public function removeChild(Node $child): Node {
         // PHP's DOM does this correctly already.
-        $doc = ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-        return $doc->getWrapperNode($this->innerNode->removeChild($this->getInnerNode($child)));
+        return $this->getInnerDocument()->getWrapperNode($this->innerNode->removeChild($this->getInnerNode($child)));
     }
 
     public function replaceChild(Node $node, Node $child): Node {
@@ -934,6 +928,10 @@ abstract class Node {
         }
 
         return false;
+    }
+
+    protected function getInnerDocument(): InnerDocument {
+        return ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
     }
 
     protected function getInnerNode(?Node $node = null): \DOMNode {

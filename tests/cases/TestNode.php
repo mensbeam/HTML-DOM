@@ -32,7 +32,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
      * @covers \MensBeam\HTML\DOM\Document::__get_URL
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
@@ -413,7 +412,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
-     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
@@ -422,10 +421,10 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
-     * @covers \MensBeam\HTML\DOM\Element::validateAndExtract
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
@@ -514,8 +513,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
-     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
@@ -523,12 +522,12 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
-     * @covers \MensBeam\HTML\DOM\Element::validateAndExtract
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::__get_parentElement
      * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespacePrefix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
@@ -1296,7 +1295,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
@@ -1306,8 +1304,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::createProcessingInstruction
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\Document::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DocumentType::__get_name
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
@@ -1315,6 +1313,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
@@ -1335,6 +1334,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertSame('href', $d->createAttribute('href')->nodeName);
         // Node::nodeName on attribute node with coerced name
         $this->assertSame('poop💩', $d->createAttribute('poop💩')->nodeName);
+        // Node::nodeName on attribute node with coerced name and HTML namespace
+        $this->assertSame('poop💩', $d->createAttributeNS(Parser::HTML_NAMESPACE, 'poop💩')->nodeName);
         // Node::nodeName on namespaced attribute node
         $this->assertSame('xlink:href', $d->createAttributeNS(Parser::XLINK_NAMESPACE, 'xlink:href')->nodeName);
         // Node::nodeName on namespaced attribute node with coerced name
@@ -1381,7 +1382,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
@@ -1442,7 +1442,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
@@ -1529,7 +1528,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
@@ -1593,7 +1591,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment
@@ -1677,7 +1674,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\Document::__createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createAttribute
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      * @covers \MensBeam\HTML\DOM\Document::createComment

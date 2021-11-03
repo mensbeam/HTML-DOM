@@ -144,6 +144,8 @@ class Document extends Node {
     }
 
     public function createAttribute(string $localName): Attr {
+        $innerNode = $this->innerNode;
+
         # The createAttribute(localName) method steps are:
         #
         # 1. If localName does not match the Name production in XML, then throw an
@@ -158,7 +160,35 @@ class Document extends Node {
             $localName = strtolower($localName);
         }
 
-        return $this->__createAttribute(null, $localName);
+        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
+        // cannot create attribute nodes if there's no document element. So, create the
+        // attribute node in a separate document which does have a document element and
+        // then import
+        $target = $innerNode;
+        $documentElement = $this->documentElement;
+        if ($documentElement === null) {
+            $target = new \DOMDocument();
+            $target->appendChild($target->createElement('html'));
+        }
+
+        # 3. Return a new attribute whose local name is localName and node document is
+        # this.
+        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
+        // some characters. We have to coerce them sometimes.
+        try {
+            $attr = $target->createAttributeNS(null, $localName);
+        } catch (\DOMException $e) {
+            // The element name is invalid for XML
+            // Replace any offending characters with "UHHHHHH" where H are the
+            //   uppercase hexadecimal digits of the character's code point
+            $attr = $target->createAttributeNS(null, $this->coerceName($localName));
+        }
+
+        if ($documentElement === null) {
+            $attr = $this->cloneInnerNode($attr, $innerNode);
+        }
+
+        return $this->innerNode->getWrapperNode($attr);
     }
 
     public function createAttributeNS(?string $namespace, string $qualifiedName): Attr {
@@ -217,7 +247,7 @@ class Document extends Node {
         # 2. If data contains the string "]]>", then throw an "InvalidCharacterError"
         #    DOMException.
         if (str_contains(needle: ']]>', haystack: $data)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER_ERROR);
+            throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
         # 3. Return a new CDATASection node with its data set to data and node document
@@ -295,12 +325,7 @@ class Document extends Node {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            if ($prefix !== null) {
-                $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
-            } else {
-                $qualifiedName = $this->coerceName($qualifiedName);
-            }
-
+            $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
             $element = $this->innerNode->createElementNS($namespace, $qualifiedName);
         }
 
@@ -329,7 +354,7 @@ class Document extends Node {
         #
         # 1. If node is a document or shadow root, then throw a "NotSupportedError"
         #    DOMException.
-        if ($node instanceof Document || $node instanceof \DOMDocument) {
+        if ($node instanceof Document) {
             throw new DOMException(DOMException::NOT_SUPPORTED);
         }
 
@@ -365,9 +390,9 @@ class Document extends Node {
     }
 
     public function loadFile(string $filename, ?string $charset = null): void {
-        $f = fopen($filename, 'r');
+        $f = @fopen($filename, 'r');
         if (!$f) {
-            return;
+            throw new DOMException(DOMException::FILE_NOT_FOUND);
         }
 
         $data = stream_get_contents($f);
@@ -399,10 +424,6 @@ class Document extends Node {
     public function serialize(?Node $node = null): string {
         $node = $node ?? $this;
         if ($node !== $this) {
-            if (!$this instanceof XMLDocument && $node instanceof CDATASection) {
-                throw new DOMException(DOMException::NOT_SUPPORTED);
-            }
-
             if ($node->ownerDocument !== $this) {
                 throw new DOMException(DOMException::WRONG_DOCUMENT);
             }
@@ -413,40 +434,6 @@ class Document extends Node {
         }
 
         return Serializer::serialize($node);
-    }
-
-
-    protected function __createAttribute(?string $namespace, string $qualifiedName): Attr {
-        // Before we do the next step we need to work around a PHP DOM bug. PHP DOM
-        // cannot create attribute nodes if there's no document element. So, create the
-        // attribute node in a separate document which does have a document element and
-        // then import
-        $target = $this->innerNode;
-        $documentElement = $this->documentElement;
-        if ($documentElement === null) {
-            $target = new \DOMDocument();
-            $target->appendChild($target->createElement('html'));
-        }
-
-        // From createAttributeNS:
-        # 2. Return a new attribute whose namespace is namespace, namespace prefix is
-        #    prefix, local name is localName, and node document is this.
-        // We need to do a couple more things here. PHP's XML-based DOM doesn't allow
-        // some characters. We have to coerce them sometimes.
-        try {
-            $attr = $target->createAttributeNS($namespace, $qualifiedName);
-        } catch (\DOMException $e) {
-            // The element name is invalid for XML
-            // Replace any offending characters with "UHHHHHH" where H are the
-            //   uppercase hexadecimal digits of the character's code point
-            $attr = $target->createAttributeNS($namespace, $this->coerceName($qualifiedName));
-        }
-
-        if ($documentElement === null) {
-            $attr = $this->cloneInnerNode($attr, $this->innerNode);
-        }
-
-        return $this->innerNode->getWrapperNode($attr);
     }
 
 

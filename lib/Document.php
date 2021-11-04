@@ -349,18 +349,19 @@ class Document extends Node {
         return $this->innerNode->getWrapperNode($this->innerNode->createTextNode($data));
     }
 
-    public function importNode(Node $node, bool $deep = false): Node {
+    public function importNode(Node|\DOMNode $node, bool $deep = false): Node {
         # The importNode(node, deep) method steps are:
         #
         # 1. If node is a document or shadow root, then throw a "NotSupportedError"
         #    DOMException.
-        if ($node instanceof Document) {
+        // Because this can import from PHP's DOM we must check for more stuff.
+        if ($node instanceof Document || $node instanceof \DOMDocument || ($node instanceof \DOMNode && $node->ownerDocument::class !== 'DOMDocument') || $node instanceof \DOMEntityReference) {
             throw new DOMException(DOMException::NOT_SUPPORTED);
         }
 
         # 2. Return a clone of node, with this and the clone children flag set if deep
         #    is true.
-        return $this->cloneWrapperNode($node, $this, $deep);
+        return ($node instanceof \DOMNode) ? $this->innerNode->getWrapperNode($this->cloneInnerNode($node, $this->innerNode, $deep)) : $this->cloneWrapperNode($node, $this, $deep);
     }
 
     public function load(string $source = null, ?string $charset = null): void {

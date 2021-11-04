@@ -26,9 +26,7 @@ trait DocumentOrElement {
 
         # The list of elements with class names classNames for a node root is the
         # HTMLCollection returned by the following algorithm:
-        // DEVIATION: There's no HTMLCollection. The result will be a DOMNodeList
-        // instead. It is, fortunately, almost exactly the same thing anyway.
-
+        #
         # 1. Let classes be the result of running the ordered set parser on classNames.
         #
         ## The ordered set parser takes a string input and then runs these steps:
@@ -36,7 +34,14 @@ trait DocumentOrElement {
         ## 1. Let inputTokens be the result of splitting input on ASCII whitespace.
         // There isn't a Set object in php, so make sure all the tokens are unique.
         $inputTokens = ($classNames !== '') ? array_unique(preg_split(Data::WHITESPACE_REGEX, $classNames)) : [];
-        $doc = ($this instanceof Document) ? $innerNode : $innerNode->ownerDocument;
+
+        if ($this instanceof Document) {
+            $doc = $innerNode;
+            $wrapperDoc = $this;
+        } else {
+            $doc = $innerNode->ownerDocument;
+            $wrapperDoc = $this->ownerDocument;
+        }
 
         ## 2. Let tokens be a new ordered set.
         ## 3. For each token in inputTokens, append token to tokens.
@@ -57,12 +62,16 @@ trait DocumentOrElement {
         // wrapped instead of polling a closure containing a DOM walker that has to then
         // explode each and every class string by whitespace and then iterate through
         // them... yeah not gonna do that.
-        $query = '//*';
-        foreach ($inputTokens as $token) {
-            $query .= "[@class=\"$token\"]";
+        foreach ($inputTokens as &$token) {
+            if ($wrapperDoc->compatMode === 'BackCompat') {
+                $token = strtolower($token);
+            }
+            $token = "contains(concat(' ',normalize-space(@class),' '),' $token ')";
         }
 
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query($query, $this));
+        $query = './/*[' . implode(' and ', $inputTokens) . ']';
+
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($this->getInnerDocument()))->query($query, $innerNode));
     }
 
     public function getElementsByTagName(string $qualifiedName): HTMLCollection {

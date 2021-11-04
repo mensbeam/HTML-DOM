@@ -18,10 +18,6 @@ trait NonElementParentNode {
     public function getElementById(string $elementId): ?Element {
         $document = (!$this instanceof Element) ? $this->innerNode : $this->innerNode->ownerDocument;
         $innerElement = $this->innerNode->getElementById($elementId);
-        if ($innerElement === null) {
-            return null;
-        }
-
-        return $document->getWrapperNode($innerElement);
+        return ($innerElement !== null) ? $document->getWrapperNode($innerElement) : null;
     }
 }

@@ -12,7 +12,8 @@ use MensBeam\Framework\MagicProperties,
     MensBeam\HTML\Parser\NameCoercion;
 use MensBeam\HTML\DOM\InnerNode\{
     Document as InnerDocument,
-    Reflection
+    Reflection,
+    XMLDocument as InnerXMLDocument
 };
 
 
@@ -727,6 +728,15 @@ abstract class Node {
         # ↪ ProcessingInstruction
         #      Set copy’s target and data to those of node.
         elseif ($node instanceof \DOMAttr || $node instanceof \DOMText || $node instanceof \DOMComment || $node instanceof \DOMProcessingInstruction) {
+            // DEVIATION: CDATA section nodes will be converted to text nodes when importing
+            // into HTML documents
+            if ($node instanceof \DOMCdataSection) {
+                $doc = ($this->innerNode instanceof InnerDocument) ? $this->innerNode : $this->innerNode->ownerDocument;
+                if (!$doc instanceof InnerXMLDocument) {
+                    return $document->createTextNode($node->data);
+                }
+            }
+
             // OPTIMIZATION: No need for the other steps as PHP's DOM handles this fine
             return ($import) ? $document->importNode($node) : $node->cloneNode();
         }
@@ -868,6 +878,15 @@ abstract class Node {
             # ↪ ProcessingInstruction
             #      Set copy’s target and data to those of node.
             elseif ($node instanceof Attr || $node instanceof Text || $node instanceof Comment || $node instanceof ProcessingInstruction) {
+                // DEVIATION: CDATA section nodes will be converted to text nodes when importing
+                // into HTML documents
+                if ($node instanceof CDATASection) {
+                    $doc = ($this instanceof Document) ? $this : $this->ownerDocument;
+                    if (!$doc instanceof XMLDocument) {
+                        return $document->createTextNode($node->data);
+                    }
+                }
+
                 // OPTIMIZATION: No need for the other steps as PHP's DOM handles this fine
                 return $innerDocument->getWrapperNode(($import) ? $innerDocument->importNode($innerNode) : $innerNode->cloneNode());
             }

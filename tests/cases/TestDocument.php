@@ -11,7 +11,9 @@ namespace MensBeam\HTML\DOM\TestCase;
 use MensBeam\HTML\DOM\{
     Document,
     DOMException,
+    Element,
     Node,
+    Text,
     XMLDocument
 };
 use MensBeam\HTML\Parser,
@@ -155,17 +157,93 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Document::importNode
      *
+     * @covers \MensBeam\HTML\DOM\CharacterData::__get_data
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
      */
-    public function testMethod_importNode_errors(): void {
+    public function testMethod_importNode(): void {
+        $d = new Document();
+        $d2 = new XMLDocument();
+        $d3 = new \DOMDocument();
+
+        // Test importing of PHP DOM node
+        $div = $d3->createElement('div');
+        $div = $d->importNode($div);
+        $this->assertTrue($div instanceof Element);
+
+        // Test importing of CDATA section node
+        $cdata = $d2->createCDATASection('ook');
+        $cdata = $d->importNode($cdata);
+        $this->assertSame(Text::class, $cdata::class);
+
+        // Test importing of element containing CDATA section node
+        $div = $d2->createElement('div');
+        $div->appendChild($d2->createCDATASection('ook'));
+        $div = $d->importNode($div, true);
+        $this->assertSame(Text::class, $div->firstChild::class);
+    }
+
+
+    public function provideMethod_importNode_errors(): iterable {
+        return [
+            [ function () {
+                $d = new Document();
+                $d->importNode(new Document());
+            } ],
+            [ function () {
+                $d = new Document();
+                $d->importNode(new \DOMDocument());
+            } ],
+            [ function () {
+                $d = new Document();
+                $d2 = new class extends \DOMDocument {};
+                $d2->createTextNode('fail');
+                $d->importNode($d2);
+            } ],
+            [ function () {
+                $d = new Document();
+                $d2 = new \DOMDocument();
+                $d2->createEntityReference('nbsp');
+                $d->importNode($d2);
+            } ],
+        ];
+    }
+
+     /**
+      * @dataProvider provideMethod_importNode_errors
+      * @covers \MensBeam\HTML\DOM\Document::importNode
+      *
+      * @covers \MensBeam\HTML\DOM\Document::__construct
+      * @covers \MensBeam\HTML\DOM\DOMException::__construct
+      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+      * @covers \MensBeam\HTML\DOM\Node::__construct
+      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
+      */
+    public function testMethod_importNode_errors(\Closure $closure): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
-        $d = new Document();
-        $d->importNode(new Document());
+        $closure();
     }
 
 

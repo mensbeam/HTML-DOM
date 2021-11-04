@@ -17,14 +17,12 @@ class NodeCache {
 
     public function delete(\DOMNode|WrapperNode $node): void {
         $key = $this->key($node);
-        if ($key === false) {
-            return;
+        if ($key !== false) {
+            unset($this->wrapperArray[$key]);
+            unset($this->innerArray[$key]);
+            $this->wrapperArray = array_values($this->wrapperArray);
+            $this->innerArray = array_values($this->innerArray);
         }
-
-        unset($this->wrapperArray[$key]);
-        unset($this->innerArray[$key]);
-        $this->wrapperArray = array_values($this->wrapperArray);
-        $this->innerArray = array_values($this->innerArray);
     }
 
     public function get(\DOMNode|WrapperNode $node): \DOMNode|WrapperNode|null {

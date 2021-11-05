@@ -23,6 +23,13 @@ use MensBeam\HTML\Parser\Data;
 trait DocumentOrElement {
     public function getElementsByClassName(string $classNames): HTMLCollection {
         $innerNode = $this->innerNode;
+        if ($this instanceof Document) {
+            $doc = $innerNode;
+            $wrapperDoc = $this;
+        } else {
+            $doc = $innerNode->ownerDocument;
+            $wrapperDoc = $this->ownerDocument;
+        }
 
         # The list of elements with class names classNames for a node root is the
         # HTMLCollection returned by the following algorithm:
@@ -33,15 +40,7 @@ trait DocumentOrElement {
         ##
         ## 1. Let inputTokens be the result of splitting input on ASCII whitespace.
         // There isn't a Set object in php, so make sure all the tokens are unique.
-        $inputTokens = ($classNames !== '') ? array_unique(preg_split(Data::WHITESPACE_REGEX, $classNames)) : [];
-
-        if ($this instanceof Document) {
-            $doc = $innerNode;
-            $wrapperDoc = $this;
-        } else {
-            $doc = $innerNode->ownerDocument;
-            $wrapperDoc = $this->ownerDocument;
-        }
+        $inputTokens = ($classNames !== '') ? array_unique(preg_split(Data::WHITESPACE_REGEX, ($wrapperDoc->compatMode !== 'BackCompat') ? $classNames : strtolower($classNames))) : [];
 
         ## 2. Let tokens be a new ordered set.
         ## 3. For each token in inputTokens, append token to tokens.
@@ -49,27 +48,27 @@ trait DocumentOrElement {
         // There isn't a Set object in php, so just use the uniqued input tokens.
 
         # 2. If classes is the empty set, return an empty HTMLCollection.
-        if ($inputTokens === []) {
+        if ($inputTokens === [] || $inputTokens === [ '' ]) {
             return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, new \DOMNodeList());
         }
 
         # 3. Return a HTMLCollection rooted at root, whose filter matches descendant
         # elements that have all their classes in classes.
-        #
-        # The comparisons for the classes must be done in an ASCII case-insensitive manner
-        # if root’s node document’s mode is "quirks"; otherwise in an identical to manner.
         // It's just faster to use XPath to create the a nodelist that will then be
         // wrapped instead of polling a closure containing a DOM walker that has to then
         // explode each and every class string by whitespace and then iterate through
         // them... yeah not gonna do that.
-        foreach ($inputTokens as &$token) {
-            if ($wrapperDoc->compatMode === 'BackCompat') {
-                $token = strtolower($token);
-            }
-            $token = "contains(concat(' ',normalize-space(@class),' '),' $token ')";
-        }
 
-        $query = './/*[' . implode(' and ', $inputTokens) . ']';
+        # The comparisons for the classes must be done in an ASCII case-insensitive manner
+        # if root’s node document’s mode is "quirks"; otherwise in an identical to manner.
+        // This is done earlier when exploding the classes. It's faster to do it before
+        // exploding than after...
+
+        $query = './/*[';
+        foreach ($inputTokens as $token) {
+            $query .= "contains(concat(' ',normalize-space(@class),' '),' $token ') and";
+        }
+        $query = substr($query, 0, -4) . ']';
 
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($this->getInnerDocument()))->query($query, $innerNode));
     }

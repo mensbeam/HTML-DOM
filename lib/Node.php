@@ -1133,7 +1133,7 @@ abstract class Node {
         return $this->locateNamespace($parentElement, $prefix);
     }
 
-    protected function locateNamespacePrefix(\DOMElement $element, ?string $namespace = null) {
+    protected function locateNamespacePrefix(\DOMElement $element, ?string $namespace = null): ?string {
         # To locate a namespace prefix for an element using namespace, run these steps:
         #
         # 1. If element’s namespace is namespace and its namespace prefix is non-null,

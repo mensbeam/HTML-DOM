@@ -1363,6 +1363,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertSame('POOP💩', $d->createElement('poop💩')->nodeName);
         // Node::nodeName on namespaced element
         $this->assertSame('SVG', $d->createElementNS(Parser::SVG_NAMESPACE, 'svg')->nodeName);
+        // Node::nodeName on namespaced element with empty namespace
+        $this->assertSame('HTML', $d->createElementNS('', 'html')->nodeName);
         // Node::nodeName on namespaced element with coerced name
         $this->assertSame('POOP💩:POOP💩', $d->createElementNS('https://poop💩.poop', 'poop💩:poop💩')->nodeName);
 

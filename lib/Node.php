@@ -126,18 +126,18 @@ abstract class Node {
     protected function __get_nodeName(): string {
         # The nodeName getter steps are to return the first matching statement,
         # switching on the interface this implements:
-        $nodeName = $this->innerNode->nodeName;
-
+        #
         # ↪ Element
         #     Its HTML-uppercased qualified name.
         if ($this instanceof Element) {
+            $tagName = $this->tagName;
             // Uncoerce names if necessary
-            return strtoupper(!str_contains(needle: 'U', haystack: $nodeName) ? $nodeName : $this->uncoerceName($nodeName));
+            return strtoupper(!str_contains(needle: 'U', haystack: $tagName) ? $tagName : $this->uncoerceName($tagName));
         }
         // Attribute nodes and processing instructions need the node name uncoerced if
         // necessary
         elseif ($this instanceof Attr || $this instanceof ProcessingInstruction) {
-            return (!str_contains(needle: 'U', haystack: $nodeName)) ? $nodeName : $this->uncoerceName($nodeName);
+            return (!str_contains(needle: 'U', haystack: $nodeName)) ? $nodeName : $this->uncoerceName($this->innerNode->nodeName);
         }
         // While the DOM itself cannot create a doctype with an empty string as the
         // name, the HTML parser can. PHP's DOM cannot handle an empty string as the
@@ -148,7 +148,7 @@ abstract class Node {
         }
 
         // PHP's DOM handles everything correctly on everything else.
-        return $nodeName;
+        return $this->innerNode->nodeName;
     }
 
     protected function __get_nodeType(): int {
@@ -292,9 +292,9 @@ abstract class Node {
 
 
     public function appendChild(Node $node): Node {
-        // Aside from pre-insertion validity PHP's DOM does this correctly already.
         $this->preInsertionValidity($node);
-        $this->innerNode->appendChild($this->getInnerNode($node));
+        $innerNode = $this->getInnerNode($node);
+        $this->innerNode->appendChild($innerNode);
         return $node;
     }
 
@@ -450,9 +450,9 @@ abstract class Node {
     public function insertBefore(Node $node, ?Node $child = null): Node {
         # The insertBefore(node, child) method steps are to return the result of
         # pre-inserting node into this before child.
-        // Aside from pre-insertion validity PHP's DOM does this correctly already.
         $this->preInsertionValidity($node, $child);
-        $this->innerNode->insertBefore($this->getInnerNode($node), $this->getInnerNode($child));
+        $innerNode = $this->getInnerNode($node);
+        $this->innerNode->insertBefore($innerNode, $this->getInnerNode($child));
         return $node;
     }
 
@@ -930,6 +930,11 @@ abstract class Node {
                     $copy->appendChild($this->cloneInnerNode($child, $innerDocument, true));
                 }
             }
+        }
+
+        if ($copy instanceof \DOMElement) {
+            $xpath = new \DOMXPath($innerDocument);
+            $xpath->query('.//')
         }
 
         # 7. Return copy.

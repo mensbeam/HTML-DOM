@@ -46,17 +46,16 @@ class Element extends Node {
         // but print out the HTML namespace instead.
         $namespace = $this->innerNode->namespaceURI;
         $doc = $this->ownerDocument;
-        return (($doc instanceof Document && !$doc instanceof XMLDocument) && $namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
+        return (!$doc instanceof XMLDocument && $namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
     }
 
     protected function __get_prefix(): ?string {
-        // PHP's DOM does this correctly already.
-        return $this->innerNode->prefix;
+        $prefix = $this->innerNode->prefix;
+        return ($prefix !== '') ? $prefix : null;
     }
 
     protected function __get_tagName(): string {
-        // PHP's DOM does this correctly already.
-        return $this->innerNode->tagName;
+        return ($this->prefix === null) ? $this->localName : "{$this->prefix}:{$this->localName}";
     }
 
 
@@ -77,6 +76,10 @@ class Element extends Node {
         }
 
         return $list;
+    }
+
+    public function getAttributeNS(string $namespace, string $localName): ?string {
+        return $this->innerNode->getAttributeNS($namespace, $localName);
     }
 
     public function getAttributeNode(string $qualifiedName): ?Attr {

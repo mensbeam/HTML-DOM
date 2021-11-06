@@ -137,7 +137,8 @@ abstract class Node {
         // Attribute nodes and processing instructions need the node name uncoerced if
         // necessary
         elseif ($this instanceof Attr || $this instanceof ProcessingInstruction) {
-            return (!str_contains(needle: 'U', haystack: $nodeName)) ? $nodeName : $this->uncoerceName($this->innerNode->nodeName);
+            $nodeName = $this->innerNode->nodeName;
+            return (!str_contains(needle: 'U', haystack: $nodeName)) ? $nodeName : $this->uncoerceName($nodeName);
         }
         // While the DOM itself cannot create a doctype with an empty string as the
         // name, the HTML parser can. PHP's DOM cannot handle an empty string as the
@@ -930,11 +931,6 @@ abstract class Node {
                     $copy->appendChild($this->cloneInnerNode($child, $innerDocument, true));
                 }
             }
-        }
-
-        if ($copy instanceof \DOMElement) {
-            $xpath = new \DOMXPath($innerDocument);
-            $xpath->query('.//')
         }
 
         # 7. Return copy.

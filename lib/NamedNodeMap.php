@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Document as InnerDocument;
+use MensBeam\HTML\DOM\Inner\Document as InnerDocument;
 
 
 class NamedNodeMap extends Collection {

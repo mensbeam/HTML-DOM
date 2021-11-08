@@ -6,7 +6,7 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\InnerNode;
+namespace MensBeam\HTML\DOM\Inner;
 use MensBeam\HTML\DOM\Node as WrapperNode;
 
 

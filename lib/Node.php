@@ -10,10 +10,9 @@ namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
     MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\NameCoercion;
-use MensBeam\HTML\DOM\InnerNode\{
+use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
-    Reflection,
-    XMLDocument as InnerXMLDocument
+    Reflection
 };
 
 
@@ -42,8 +41,8 @@ abstract class Node {
 
     public const WALK_ACCEPT = 0x01;
     public const WALK_REJECT = 0x02;
-    public const WALK_KILL = 0x03;
     public const WALK_SKIP_CHILDREN = 0x04;
+    public const WALK_STOP = 0x08;
 
     protected \DOMNode $innerNode;
     protected array $bullshitReplacements = [];
@@ -759,8 +758,8 @@ abstract class Node {
             // DEVIATION: CDATA section nodes will be converted to text nodes when importing
             // into HTML documents
             if ($node instanceof \DOMCdataSection) {
-                $doc = ($this->innerNode instanceof InnerDocument) ? $this->innerNode : $this->innerNode->ownerDocument;
-                if (!$doc instanceof InnerXMLDocument) {
+                $doc = ($this instanceof InnerDocument) ? $this : $this->innerNode;
+                if (!$doc instanceof XMLDocument) {
                     return $document->createTextNode($node->data);
                 }
             }

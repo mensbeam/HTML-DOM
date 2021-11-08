@@ -8,7 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\Framework\MagicProperties,
-    MensBeam\HTML\DOM\InnerNode\Document as InnerDocument;
+    MensBeam\HTML\DOM\Inner\Document as InnerDocument;
 
 
 

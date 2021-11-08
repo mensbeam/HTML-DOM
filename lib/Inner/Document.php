@@ -6,7 +6,7 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\InnerNode;
+namespace MensBeam\HTML\DOM\Inner;
 use MensBeam\Framework\MagicProperties;
 use MensBeam\HTML\DOM\{
     Document as WrapperDocument,

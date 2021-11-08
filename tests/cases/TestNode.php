@@ -64,16 +64,16 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_cloneNode() {
         $d = new Document();
@@ -154,15 +154,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::removeChild
      * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_compareDocumentPosition(): void {
         $d = new Document('<!DOCTYPE html><html><body><header><h1>Ook</h1></header><main><h2 id="eek" class="ack">Eek</h2><p>Ook <a href="ook">eek</a>, ook?</p></main><footer></footer></body></html>');
@@ -237,14 +237,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::containsInner
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_contains(): void {
         $d = new Document();
@@ -278,17 +278,17 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getInnerNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_insertBefore(): void {
         $d = new Document();
@@ -324,15 +324,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_isEqualNode(): void {
         $d = new Document();
@@ -379,15 +379,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_isSameNode(): void {
         $d = new Document();
@@ -429,16 +429,16 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_isDefaultNamespace(): void {
         $d = new Document();
@@ -532,16 +532,16 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespacePrefix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_lookupPrefix(): void {
         $d = new Document();
@@ -595,15 +595,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_lookupNamespaceURI(): void {
         $d = new Document();
@@ -632,14 +632,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_normalize(): void {
         // Unless we implement Ranges PHP's DOM does this correctly.
@@ -773,14 +773,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
       * @covers \MensBeam\HTML\DOM\Node::__construct
       * @covers \MensBeam\HTML\DOM\Node::appendChild
       * @covers \MensBeam\HTML\DOM\Node::getInnerNode
-      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
       */
     public function testMethod_preInsertionValidity_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
@@ -818,17 +818,17 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getInnerNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_replaceChild(): void {
         $d = new Document();
@@ -966,14 +966,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
       * @covers \MensBeam\HTML\DOM\Node::__construct
       * @covers \MensBeam\HTML\DOM\Node::getInnerNode
       * @covers \MensBeam\HTML\DOM\Text::__construct
-      * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-      * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-      * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-      * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
       */
     public function testMethod_replaceChild_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
@@ -1004,14 +1004,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProperty_baseURI() {
         $d = new Document();
@@ -1050,14 +1050,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProperty_childNodes() {
         $d = new Document();
@@ -1093,14 +1093,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProperty_firstChild() {
         $d = new Document();
@@ -1130,15 +1130,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProperty_isConnected() {
         $d = new Document();
@@ -1165,14 +1165,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProperty_lastChild() {
         $d = new Document();
@@ -1212,15 +1212,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_previousSibling() {
         $d = new Document();
@@ -1260,15 +1260,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_nextSibling() {
         $d = new Document();
@@ -1317,15 +1317,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_nodeName() {
         $d = new Document();
@@ -1401,15 +1401,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_nodeType() {
         $d = new Document();
@@ -1461,15 +1461,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_nodeValue() {
         $d = new Document();
@@ -1548,16 +1548,16 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_ownerDocument() {
         $d = new Document();
@@ -1613,16 +1613,16 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_parentElement() {
         $d = new Document();
@@ -1697,15 +1697,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::__construct
-     * @covers \MensBeam\HTML\DOM\InnerNode\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\InnerNode\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\InnerNode\Reflection::setProtectedProperties
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testProperty_textContent() {
         $d = new Document();

@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\{
+use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     Reflection
 };
@@ -50,8 +50,6 @@ trait ParentNode {
                     default: return;
                 }
 
-                // If the filter returns true (accept) or false (skip) and the node wasn't
-                // removed in the filter iterate through the children
                 if ($node->parentNode !== null && $node->hasChildNodes()) {
                     yield from $node->walk($filter);
                 }
@@ -72,9 +70,6 @@ trait ParentNode {
                 $next = $node->nextSibling;
                 $result = ($filter === null) ? Node::WALK_ACCEPT : $filter($node);
 
-                var_export($result);
-                echo "\n";
-
                 switch ($result) {
                     case Node::WALK_ACCEPT:
                         yield $node;
@@ -88,8 +83,6 @@ trait ParentNode {
                     default: return;
                 }
 
-                // If the filter returns true (accept) or false (skip) and the node wasn't
-                // removed in the filter iterate through the children
                 if ($node->parentNode !== null && $node->hasChildNodes()) {
                     yield from $this->walkInner($node, $filter);
                 }

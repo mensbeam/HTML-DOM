@@ -6,7 +6,7 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\InnerNode;
+namespace MensBeam\HTML\DOM\Inner;
 
 /**
  * Class which uses reflection to gain access to protected constructors and

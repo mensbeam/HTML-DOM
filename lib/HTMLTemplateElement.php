@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\InnerNode\Reflection;
+use MensBeam\HTML\DOM\Inner\Reflection;
 
 
 class HTMLTemplateElement extends HTMLElement {

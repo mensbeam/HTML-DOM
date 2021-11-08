@@ -40,7 +40,13 @@ abstract class Node {
     public const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
     public const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
+    public const WALK_ACCEPT = 0x01;
+    public const WALK_REJECT = 0x02;
+    public const WALK_KILL = 0x03;
+    public const WALK_SKIP_CHILDREN = 0x04;
+
     protected \DOMNode $innerNode;
+    protected array $bullshitReplacements = [];
 
     private static ?int $rand = null;
 
@@ -294,8 +300,14 @@ abstract class Node {
 
     public function appendChild(Node $node): Node {
         $this->preInsertionValidity($node);
-        $innerNode = $this->getInnerNode($node);
-        $this->innerNode->appendChild($innerNode);
+        $this->innerNode->appendChild($this->getInnerNode($node));
+
+        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
+        foreach ($this->bullshitReplacements as $r) {
+            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
+        }
+        $this->bullshitReplacements = [];
+
         return $node;
     }
 
@@ -452,8 +464,14 @@ abstract class Node {
         # The insertBefore(node, child) method steps are to return the result of
         # pre-inserting node into this before child.
         $this->preInsertionValidity($node, $child);
-        $innerNode = $this->getInnerNode($node);
-        $this->innerNode->insertBefore($innerNode, $this->getInnerNode($child));
+        $this->innerNode->insertBefore($this->getInnerNode($node), $this->getInnerNode($child));
+
+        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
+        foreach ($this->bullshitReplacements as $r) {
+            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
+        }
+        $this->bullshitReplacements = [];
+
         return $node;
     }
 
@@ -655,6 +673,8 @@ abstract class Node {
                         }
                     } while ($n = $n->nextSibling);
                 }
+
+                $this->preInsertionBugFixes($node);
             }
 
             # ↪ DocumentType
@@ -677,11 +697,18 @@ abstract class Node {
 
         // PHP's DOM does fine with the rest of the steps.
         $inner->replaceChild($node, $child);
+
+        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
+        foreach ($this->bullshitReplacements as $r) {
+            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
+        }
+        $this->bullshitReplacements = [];
+
         return $wrapperNode;
     }
 
 
-    protected function cloneInnerNode(\DOMNode $node, ?InnerDocument $document, bool $cloneChildren = false): \DOMNode {
+    protected function cloneInnerNode(\DOMNode $node, ?InnerDocument $document, bool $cloneChildren = false, bool $parsing = false): \DOMNode {
         // This method exists so when cloning or importing documents, fragments, and
         // elements every node doesn't need to be immediately wrapped. It is also
         // helpful when importing after parsing.
@@ -768,11 +795,10 @@ abstract class Node {
                 // Template contents are stored in the wrapper nodes.
                 $copyWrapperContent = $copy->ownerDocument->getWrapperNode($copy)->content;
 
-                // Need to check to see if what is being cloned is a MensBeam inner node or not.
-                // Most of the time this will be the case, but if a document is being parsed
-                // that has template elements it won't be; instead the template element's
-                // children need to be appended to the inner content DOMDocumentFragment.
-                if ($node->ownerDocument instanceof InnerDocument) {
+                // If the cloning is called for as a result of parsing serialized markup the
+                // contents of the node should be appended to the wrapper element's content
+                // document fragment. Otherwise, clone the content document fragment instead.
+                if (!$parsing) {
                     $nodeWrapperContent = $node->ownerDocument->getWrapperNode($node)->content;
                     if ($nodeWrapperContent->hasChildNodes()) {
                         $copyWrapperContent->appendChild($this->cloneWrapperNode($nodeWrapperContent, $document->wrapperNode, true));
@@ -781,7 +807,7 @@ abstract class Node {
                     $copyContent = $this->getInnerNode($copyWrapperContent);
                     $childNodes = $node->childNodes;
                     foreach ($childNodes as $child) {
-                        $copyContent->appendChild($this->cloneInnerNode($child, $document, true));
+                        $copyContent->appendChild($this->cloneInnerNode($child, $document, true, true));
                     }
 
                     // Step #6 isn't necessary now; just return the copy.
@@ -1178,7 +1204,41 @@ abstract class Node {
         return null;
     }
 
-    protected function preInsertionValidity(Node $node, ?Node $child = null) {
+    protected function preInsertionBugFixes(\DOMElement &$element): void {
+        // PHP DOM has a really nasty bug where if a default namespaced element is
+        // inserted to the document and it has non-default namespaced descendants
+        // without prefixes (think a div containing one or many svg elements) PHP DOM
+        // will put a 'default*' prefix on the nodes free of charge. This workaround
+        // below walks through this node and temporarily replaces foreign descendants
+        // with bullshit elements which are then replaced once the node is inserted.
+        if ($element->namespaceURI === null && ($this instanceof DocumentFragment || $this->getRootNode() !== null) && $element->hasChildNodes()) {
+            // XPath doesn't work on elements that are not connected to the document, so we
+            // must instead walk the node to look for root foreign content.
+            $foreign = $this->walkInner($element, function(\DOMNode $n) {
+                if ($n instanceof \DOMElement && ($n->parentNode !== null && $n->parentNode->namespaceURI === null) && $n->namespaceURI !== null && $n->prefix === '') {
+                    return Node::WALK_ACCEPT + Node::WALK_SKIP_CHILDREN;
+                }
+
+                return Node::WALK_REJECT;
+            });
+
+            $this->bullshitReplacements = [];
+            if ($foreign->current() !== null) {
+                $count = 0;
+                $doc = $this->getInnerDocument();
+                foreach ($foreign as $f) {
+                    $replacement = $doc->createElement('php-dom-sucks-' . $count++);
+                    $f->parentNode->replaceChild($replacement, $f);
+                    $this->bullshitReplacements[] = [
+                        'replaced' => $f,
+                        'replacement' => $replacement
+                    ];
+                }
+            }
+        }
+    }
+
+    protected function preInsertionValidity(Node $node, ?Node $child = null): void {
         $parent = $this->innerNode;
         $node = $this->getInnerNode($node);
         if ($child !== null) {
@@ -1326,6 +1386,10 @@ abstract class Node {
                     }
                 }
             }
+        }
+
+        if ($node instanceof \DOMElement) {
+            $this->preInsertionBugFixes($node);
         }
     }
 

@@ -25,7 +25,7 @@ trait ParentNode {
      */
     public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
         $node = (!$this instanceof DocumentFragment) ? $this->getInnerNode($node) : null;
-        if (!$includeReferenceNode) {
+        if (!$this instanceof DocumentFragment && !$includeReferenceNode) {
             $node = $node->firstChild;
         }
 
@@ -35,16 +35,63 @@ trait ParentNode {
             do {
                 $next = $node->nextSibling;
                 $wrapperNode = $doc->getWrapperNode($node);
-                $result = ($filter === null) ? true : $filter($wrapperNode);
+                $result = ($filter === null) ? Node::WALK_FILTER_ACCEPT : $filter($wrapperNode);
 
-                if ($result === true) {
-                    yield $wrapperNode;
+                switch ($result) {
+                    case Node::WALK_FILTER_ACCEPT:
+                        yield $wrapperNode;
+                    break;
+                    case Node::WALK_FILTER_ACCEPT + Node::WALK_FILTER_SKIP_CHILDREN:
+                        yield $wrapperNode;
+                    case Node::WALK_FILTER_REJECT + Node::WALK_FILTER_SKIP_CHILDREN:
+                    continue 2;
+                    case Node::WALK_FILTER_REJECT:
+                    break;
+                    default: return;
                 }
 
                 // If the filter returns true (accept) or false (skip) and the node wasn't
                 // removed in the filter iterate through the children
-                if ($result !== null && $node->parentNode !== null && $node->hasChildNodes()) {
+                if ($node->parentNode !== null && $node->hasChildNodes()) {
                     yield from $node->walk($filter);
+                }
+            } while ($node = $next);
+        }
+    }
+
+
+    protected function walkInner(\DOMNode $node, ?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
+        if (!$node instanceof DocumentFragment && !$includeReferenceNode) {
+            $node = $node->firstChild;
+        }
+
+        if ($node !== null) {
+            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
+
+            do {
+                $next = $node->nextSibling;
+                $result = ($filter === null) ? Node::WALK_ACCEPT : $filter($node);
+
+                var_export($result);
+                echo "\n";
+
+                switch ($result) {
+                    case Node::WALK_ACCEPT:
+                        yield $node;
+                    break;
+                    case Node::WALK_ACCEPT + Node::WALK_SKIP_CHILDREN:
+                        yield $node;
+                    case Node::WALK_REJECT + Node::WALK_SKIP_CHILDREN:
+                    continue 2;
+                    case Node::WALK_REJECT:
+                    break;
+                    default: return;
+                }
+
+                // If the filter returns true (accept) or false (skip) and the node wasn't
+                // removed in the filter iterate through the children
+                if ($node->parentNode !== null && $node->hasChildNodes()) {
+                    yield from $this->walkInner($node, $filter);
                 }
             } while ($node = $next);
         }

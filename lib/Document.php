@@ -369,24 +369,29 @@ class Document extends Node {
             throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
 
-        $config = null;
+        $config = new ParserConfig();
+        // Preserve processing instructions when parsing. This violates the parsing
+        // specification, but since this library is not a browser it should be able to
+        // read and print processing instructions.
+        $config->processingInstructions = true;
+
         if ($charset !== null) {
-            $config = new ParserConfig();
             $config->encodingFallback = Charset::fromCharset($charset);
-            // Preserve processing instructions when parsing. This violates the parsing
-            // specification, but since this library is not a browser it should be able to
-            // read and print processing instructions.
-            $config->processingInstructions = true;
         }
 
-        $source = Parser::parse($source, null, $config);
+        $source = Parser::parseInto($source, $this->innerNode, null, $config);
         $this->_characterSet = $source->encoding;
         $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
 
-        $source = $source->document;
-        $childNodes = $source->childNodes;
-        foreach ($source->childNodes as $child) {
-            $this->innerNode->appendChild($this->cloneInnerNode($child, $this->innerNode, true));
+        // If there are any templates in the document they must be cloned and replaced
+        // so their contents may be stored in the HTMLTemplateElement's content document
+        // fragment.
+        $templates = (new \DOMXPath($this->innerNode))->query('//template[not(ancestor::template)]');
+        // Iterate in reverse to prevent the live nodelist from doing anything screwy
+        for ($templatesCount = count($templates), $i = $templatesCount - 1; $i >= 0; $i--) {
+            $t = $templates->item($i);
+            $clone = $this->cloneInnerNode($t, $this->innerNode, true, true);
+            $t->parentNode->replaceChild($clone, $t);
         }
     }
 

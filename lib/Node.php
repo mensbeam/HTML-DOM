@@ -19,6 +19,14 @@ use MensBeam\HTML\DOM\Inner\{
 abstract class Node {
     use MagicProperties, NameCoercion;
 
+    // Namespace constants
+    public const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+    public const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+    public const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+    public const XLINK_NAMESPACE = 'http://www.w3.org/1999/xlink';
+    public const XML_NAMESPACE = 'http://www.w3.org/XML/1998/namespace';
+    public const XMLNS_NAMESPACE = 'http://www.w3.org/2000/xmlns/';
+
     public const ELEMENT_NODE = 1;
     public const ATTRIBUTE_NODE = 2;
     public const TEXT_NODE = 3;
@@ -359,12 +367,12 @@ abstract class Node {
                     foreach ($attributes as $attr) {
                         # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
                         if ($attr === $attr1) {
-                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | Node::DOCUMENT_POSITION_PRECEDING;
+                            return self::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | self::DOCUMENT_POSITION_PRECEDING;
                         }
 
                         # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
                         if ($attr === $attr2) {
-                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | Node::DOCUMENT_POSITION_FOLLOWING;
+                            return self::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | self::DOCUMENT_POSITION_FOLLOWING;
                         }
                     }
                 }
@@ -395,33 +403,33 @@ abstract class Node {
         } while ($n = $n->parentNode);
 
         if ($node1 === null || $node2 === null || $root1 !== $root2) {
-            return Node::DOCUMENT_POSITION_DISCONNECTED | Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
+            return self::DOCUMENT_POSITION_DISCONNECTED | self::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | ((self::$rand === 0) ? self::DOCUMENT_POSITION_PRECEDING : self::DOCUMENT_POSITION_FOLLOWING);
         }
 
         # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINS to
         #    DOCUMENT_POSITION_PRECEDING.
         if (($node1 === $node2 && $attr2 !== null) || ($attr1 === null && $this->containsInner($innerNode1, $innerNode2))) {
-            return Node::DOCUMENT_POSITION_CONTAINS | Node::DOCUMENT_POSITION_PRECEDING;
+            return self::DOCUMENT_POSITION_CONTAINS | self::DOCUMENT_POSITION_PRECEDING;
         }
 
         # 8. If node1 is a descendant of node2 and attr2 is null, or node1 is node2 and attr1
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINED_BY to
         #    DOCUMENT_POSITION_FOLLOWING.
         if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $this->containsInner($innerNode2, $innerNode1))) {
-            return Node::DOCUMENT_POSITION_CONTAINED_BY | Node::DOCUMENT_POSITION_FOLLOWING;
+            return self::DOCUMENT_POSITION_CONTAINED_BY | self::DOCUMENT_POSITION_FOLLOWING;
         }
 
         # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
         $n = $innerNode2;
         while ($n = $n->previousSibling) {
             if ($n === $innerNode1) {
-                return Node::DOCUMENT_POSITION_PRECEDING;
+                return self::DOCUMENT_POSITION_PRECEDING;
             }
         }
 
         # 10. Return DOCUMENT_POSITION_FOLLOWING.
-        return Node::DOCUMENT_POSITION_FOLLOWING;
+        return self::DOCUMENT_POSITION_FOLLOWING;
     }
 
     public function contains(?Node $other): bool {
@@ -1064,7 +1072,7 @@ abstract class Node {
         if ($node instanceof \DOMElement) {
             // Work around PHP DOM HTML namespace bug
             if ($node->namespaceURI === null && !$node->ownerDocument->getWrapperNode($node->ownerDocument) instanceof XMLDocument) {
-                $namespace = Parser::HTML_NAMESPACE;
+                $namespace = self::HTML_NAMESPACE;
             } else {
                 $namespace = $node->namespaceURI;
             }
@@ -1095,7 +1103,7 @@ abstract class Node {
                     // our lives miserable, so if we followed the specification as written we could
                     // get an incorrect answer. So, also check to see if the local name is not
                     // 'xmlns', too.
-                    if (($attr->namespaceURI === Parser::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === Parser::XMLNS_NAMESPACE && ($attr->prefix === null || $attr->prefix === '' || $attr->prefix === 'xmlns') && $attr->localName === 'xmlns')) {
+                    if (($attr->namespaceURI === self::XMLNS_NAMESPACE && $attr->prefix === 'xmlns' && $attr->localName === $prefix) || ($prefix === null && $attr->namespaceURI === self::XMLNS_NAMESPACE && ($attr->prefix === null || $attr->prefix === '' || $attr->prefix === 'xmlns') && $attr->localName === 'xmlns')) {
                         return ($attr->value !== '') ? $attr->value : null;
                     }
                 }
@@ -1213,10 +1221,10 @@ abstract class Node {
             // fashioned way by walking the DOM.
             $foreign = $this->walkInner($element, function(\DOMNode $n) {
                 if ($n instanceof \DOMElement && ($n->parentNode !== null && $n->parentNode->namespaceURI === null) && $n->namespaceURI !== null && $n->prefix === '') {
-                    return Node::WALK_ACCEPT | Node::WALK_SKIP_CHILDREN;
+                    return self::WALK_ACCEPT | self::WALK_SKIP_CHILDREN;
                 }
 
-                return Node::WALK_REJECT;
+                return self::WALK_REJECT;
             });
 
             $this->bullshitReplacements = [];

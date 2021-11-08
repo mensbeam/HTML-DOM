@@ -16,7 +16,6 @@ use MensBeam\HTML\DOM\{
     Text,
     XMLDocument
 };
-use MensBeam\HTML\Parser;
 
 
 /** @covers \MensBeam\HTML\DOM\DocumentOrElement */
@@ -83,10 +82,10 @@ class TestDocumentOrElement extends \PHPUnit\Framework\TestCase {
     public function testMethod_getElementsByTagNameNS() {
         $d = new Document('<!DOCTYPE html><html><body><div><div><span></span></div></div><div></div><span></span><span></span><svg></svg></body></html>');
         $svg = $d->body->lastChild;
-        $svg->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'div'));
+        $svg->appendChild($d->createElementNS(Node::SVG_NAMESPACE, 'div'));
 
         // HTML namespace
-        $div = $d->getElementsByTagNameNS(Parser::HTML_NAMESPACE, 'div');
+        $div = $d->getElementsByTagNameNS(Node::HTML_NAMESPACE, 'div');
         $this->assertEquals(3, $div->length);
 
         // Null namespace
@@ -106,7 +105,7 @@ class TestDocumentOrElement extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(4, $div->length);
 
         // Wildcard local name
-        $svg = $d->getElementsByTagNameNS(Parser::SVG_NAMESPACE, '*');
+        $svg = $d->getElementsByTagNameNS(Node::SVG_NAMESPACE, '*');
         $this->assertEquals(2, $svg->length);
     }
 
@@ -115,11 +114,11 @@ class TestDocumentOrElement extends \PHPUnit\Framework\TestCase {
         return [
             [ function() {
                 $d = new Document();
-                $d->createElementNS(Parser::HTML_NAMESPACE, 'this will fail');
+                $d->createElementNS(Node::HTML_NAMESPACE, 'this will fail');
             }, DOMException::INVALID_CHARACTER ],
             [ function() {
                 $d = new Document();
-                $d->createAttributeNS(Parser::HTML_NAMESPACE, 'xmlns');
+                $d->createAttributeNS(Node::HTML_NAMESPACE, 'xmlns');
             }, DOMException::NAMESPACE_ERROR ]
         ];
     }

@@ -11,7 +11,6 @@ use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     Reflection
 };
-use MensBeam\HTML\Parser;
 use MensBeam\HTML\Parser\Data;
 
 
@@ -121,7 +120,7 @@ trait DocumentOrElement {
         if (!$wrapperDoc instanceof XMLDocument) {
             if ($namespace === null) {
                 return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, new \DOMNodeList());
-            } elseif ($namespace === Parser::HTML_NAMESPACE) {
+            } elseif ($namespace === self::HTML_NAMESPACE) {
                 $namespace = null;
             }
         }
@@ -187,9 +186,9 @@ trait DocumentOrElement {
         #      "xmlns", then throw a "NamespaceError" DOMException.
         if (
             ($prefix !== null && $namespace === null) ||
-            ($prefix === 'xml' && $namespace !== Parser::XML_NAMESPACE) ||
-            (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespace !== Parser::XMLNS_NAMESPACE) ||
-            ($namespace === Parser::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
+            ($prefix === 'xml' && $namespace !== self::XML_NAMESPACE) ||
+            (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespace !== self::XMLNS_NAMESPACE) ||
+            ($namespace === self::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
         ) {
             throw new DOMException(DOMException::NAMESPACE_ERROR);
         }
@@ -197,7 +196,7 @@ trait DocumentOrElement {
         # 10. Return namespace, prefix, and localName.
         return [
             // Internally HTML namespaced elements in HTML documents use null because of a PHP DOM bug.
-            'namespace' => (!$this->getInnerDocument() instanceof XMLDocument && $namespace === Parser::HTML_NAMESPACE) ? null : $namespace,
+            'namespace' => (!$this->getInnerDocument() instanceof XMLDocument && $namespace === self::HTML_NAMESPACE) ? null : $namespace,
             'prefix' => $prefix,
             'localName' => $localName
         ];

@@ -11,7 +11,6 @@ use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     Reflection
 };
-use MensBeam\HTML\DOM\Parser;
 
 
 class DOMImplementation {
@@ -55,12 +54,12 @@ class DOMImplementation {
         # 7. document’s content type is determined by namespace:
         switch ($namespace) {
             # ↪ HTML namespace
-            case Parser::HTML_NAMESPACE:
+            case self::HTML_NAMESPACE:
                 # application/xhtml+xml
                 $contentType = 'application/xhtml+xml';
             break;
             # ↪ SVG namespace
-            case Parser::SVG_NAMESPACE:
+            case self::SVG_NAMESPACE:
                 # image/svg+xml
                 $contentType = 'image/svg+xml';
             break;
@@ -85,7 +84,7 @@ class DOMImplementation {
         if (!preg_match(InnerDocument::QNAME_PRODUCTION_REGEX, $qualifiedName)) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
-        
+
         # 2. Return a new doctype, with qualifiedName as its name, publicId as its
         #    public ID, and systemId as its system ID, and with its node document set to
         #    the associated document of this.

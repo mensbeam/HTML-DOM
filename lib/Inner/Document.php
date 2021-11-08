@@ -14,7 +14,6 @@ use MensBeam\HTML\DOM\{
     Node as WrapperNode,
     XMLDocument as WrapperXMLDocument
 };
-use MensBeam\HTML\Parser;
 
 
 class Document extends \DOMDocument {
@@ -85,9 +84,9 @@ class Document extends \DOMDocument {
                 } else {
                     $className = 'HTMLElement';
                 }
-            } elseif ($namespace === Parser::SVG_NAMESPACE) {
+            } elseif ($namespace === WrapperNode::SVG_NAMESPACE) {
                 $className = 'SVGElement';
-            } elseif ($namespace === Parser::MATHML_NAMESPACE) {
+            } elseif ($namespace === WrapperNode::MATHML_NAMESPACE) {
                 $className = 'MathMLElement';
             } else {
                 $className = 'Element';

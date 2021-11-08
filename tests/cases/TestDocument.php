@@ -16,8 +16,7 @@ use MensBeam\HTML\DOM\{
     Text,
     XMLDocument
 };
-use MensBeam\HTML\Parser,
-    org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStream;
 
 
 /** @covers \MensBeam\HTML\DOM\Document */

@@ -46,7 +46,7 @@ class Element extends Node {
         // but print out the HTML namespace instead.
         $namespace = $this->innerNode->namespaceURI;
         $doc = $this->ownerDocument;
-        return (!$doc instanceof XMLDocument && $namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
+        return (!$doc instanceof XMLDocument && $namespace === null) ? self::HTML_NAMESPACE : $namespace;
     }
 
     protected function __get_prefix(): ?string {
@@ -92,7 +92,7 @@ class Element extends Node {
         # 1. If element is in the HTML namespace and its node document is an HTML document,
         #    then set qualifiedName to qualifiedName in ASCII lowercase.
         // Document will always be an HTML document
-        if (!$this instanceof XMLDocument && $this->namespaceURI === Parser::HTML_NAMESPACE) {
+        if (!$this instanceof XMLDocument && $this->namespaceURI === self::HTML_NAMESPACE) {
             $qualifiedName = strtolower($qualifiedName);
         }
 
@@ -130,7 +130,7 @@ class Element extends Node {
         #
         # 1. If this is in the HTML namespace and its node document is an HTML document,
         #    then set qualifiedName to qualifiedName in ASCII lowercase.
-        if (!$this->ownerDocument instanceof XMLDocument && $this->namespaceURI === Parser::HTML_NAMESPACE) {
+        if (!$this->ownerDocument instanceof XMLDocument && $this->namespaceURI === self::HTML_NAMESPACE) {
             $qualifiedName = strtolower($qualifiedName);
         }
 
@@ -220,7 +220,7 @@ class Element extends Node {
         // when we can because it's faster.
         // NOTE: We create attribute nodes so that xmlns attributes don't get lost;
         // otherwise they cannot be serialized
-        if ($namespace === Parser::XMLNS_NAMESPACE) {
+        if ($namespace === self::XMLNS_NAMESPACE) {
             // Xmlns attributes have special bugs just for them. How lucky! Xmlns attribute
             // nodes won't stick and can actually cause segmentation faults if created on a
             // no longer existing document element, appended to another element, and then

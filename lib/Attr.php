@@ -26,7 +26,7 @@ class Attr extends Node {
 
     protected function __get_namespaceURI(): ?string {
         $namespace = $this->innerNode->namespaceURI;
-        return (!$this->ownerDocument instanceof XMLDocument && $namespace === null) ? Parser::HTML_NAMESPACE : $namespace;
+        return (!$this->ownerDocument instanceof XMLDocument && $namespace === null) ? Node::HTML_NAMESPACE : $namespace;
     }
 
     protected function __get_ownerElement(): Element {

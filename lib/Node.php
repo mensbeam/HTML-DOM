@@ -300,13 +300,7 @@ abstract class Node {
     public function appendChild(Node $node): Node {
         $this->preInsertionValidity($node);
         $this->innerNode->appendChild($this->getInnerNode($node));
-
-        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
-        foreach ($this->bullshitReplacements as $r) {
-            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
-        }
-        $this->bullshitReplacements = [];
-
+        $this->postInsertionBugFixes();
         return $node;
     }
 
@@ -465,13 +459,7 @@ abstract class Node {
         # pre-inserting node into this before child.
         $this->preInsertionValidity($node, $child);
         $this->innerNode->insertBefore($this->getInnerNode($node), $this->getInnerNode($child));
-
-        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
-        foreach ($this->bullshitReplacements as $r) {
-            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
-        }
-        $this->bullshitReplacements = [];
-
+        $this->postInsertionBugFixes();
         return $node;
     }
 
@@ -697,15 +685,8 @@ abstract class Node {
             $this->preInsertionBugFixes($node);
         }
 
-        // PHP's DOM does fine with the rest of the steps.
         $inner->replaceChild($node, $child);
-
-        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
-        foreach ($this->bullshitReplacements as $r) {
-            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
-        }
-        $this->bullshitReplacements = [];
-
+        $this->postInsertionBugFixes();
         return $wrapperNode;
     }
 
@@ -715,15 +696,12 @@ abstract class Node {
         // Node::preInsertionBugFixes so that when appending cloned inner nodes while
         // cloning the bug may be fixed there too. This is needed especially for
         // templates.
-        $this->preInsertionBugFixes($node);
+        if ($node instanceof \DOMElement) {
+            $this->preInsertionBugFixes($node);
+        }
         $parent->appendChild($node);
 
-        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
-        foreach ($this->bullshitReplacements as $r) {
-            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
-        }
-        $this->bullshitReplacements = [];
-
+        $this->postInsertionBugFixes();
         return $node;
     }
 
@@ -1231,8 +1209,8 @@ abstract class Node {
         // below walks through this node and temporarily replaces foreign descendants
         // with bullshit elements which are then replaced once the node is inserted.
         if ($element->namespaceURI === null && ($this instanceof DocumentFragment || $this->getRootNode() !== null) && $element->hasChildNodes()) {
-            // XPath doesn't work on elements that are not connected to the document, so we
-            // must instead walk the node to look for root foreign content.
+            // XPath can't match just unprefixed elements, so we have to do this the old
+            // fashioned way by walking the DOM.
             $foreign = $this->walkInner($element, function(\DOMNode $n) {
                 if ($n instanceof \DOMElement && ($n->parentNode !== null && $n->parentNode->namespaceURI === null) && $n->namespaceURI !== null && $n->prefix === '') {
                     return Node::WALK_ACCEPT | Node::WALK_SKIP_CHILDREN;
@@ -1412,6 +1390,15 @@ abstract class Node {
             $this->preInsertionBugFixes($node);
         }
     }
+
+    protected function postInsertionBugFixes(): void {
+        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
+        foreach ($this->bullshitReplacements as $r) {
+            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
+        }
+        $this->bullshitReplacements = [];
+    }
+
 
     public function __toString() {
         return $this->ownerDocument->serialize($this);

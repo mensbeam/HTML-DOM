@@ -103,7 +103,7 @@ trait DocumentOrElement {
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $this->innerNode->getElementsByTagNameNS(null, $qualifiedName));
     }
 
-    public function getElementsByTagNameNS(?string $namespace = null, string $localName): HTMLCollection {
+    public function getElementsByTagNameNS(?string $namespace, string $localName): HTMLCollection {
         $doc = $this->getInnerDocument();
         $wrapperDoc = ($this instanceof Document) ? $this : $this->ownerDocument;
 
@@ -128,7 +128,6 @@ trait DocumentOrElement {
 
         # 2. If both namespace and localName are U+002A (*), then return a HTMLCollection
         #    rooted at root, whose filter matches descendant elements.
-        // Let's do this with XPath.
         if ($namespace === '*' && $localName === '*') {
             return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query('.//*', $this->innerNode));
         }
@@ -142,10 +141,6 @@ trait DocumentOrElement {
         # 4. If localName is U+002A (*), then return a HTMLCollection rooted at root, whose
         #    filter matches descendant elements whose namespace is namespace.
         if ($localName === '*') {
-            if ($namespace === null) {
-                $namespace = '';
-            }
-
             return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query(".//*[namespace-uri()='$namespace']", $this->innerNode));
         }
 

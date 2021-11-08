@@ -55,13 +55,18 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\ParentNode::walkInner
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -92,7 +97,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $text = $d->createTextNode('ook');
         $frag = $d->createDocumentFragment();
         $frag->appendChild($d->createTextNode('ook'));
-        $d3 = new Document('<!DOCTYPE html><html><template>Ook</template></html>');
+        $d3 = new Document('<!DOCTYPE html><html><template>Ook <div><svg></svg></div></template></html>');
 
         $nodes = [
             // Attribute node
@@ -147,7 +152,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::containsInner
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
@@ -235,9 +239,13 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -270,12 +278,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::__toString
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -299,9 +309,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
         $this->assertSame('<body>ook<div></div></body>', (string)$d->body);
 
-        $t = $d->body->insertBefore($d->createElement('template'), $ook);
+        $t = $d->createElement('template');
+        $t->content->appendChild($d->createTextNode('ook'));
+        $t = $d->body->insertBefore($t, $ook);
 
-        $this->assertSame('<body><template></template>ook<div></div></body>', (string)$d->body);
+        $this->assertSame('<body><template>ook</template>ook<div></div></body>', (string)$d->body);
     }
 
     /**
@@ -320,8 +332,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -366,18 +381,19 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
 
     /**
+     * @covers \MensBeam\HTML\DOM\Node::isSameNode
+     *
      * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_body
-     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace
-     * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
@@ -402,7 +418,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::isDefaultNamespace
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
      * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Comment::__construct
      * @covers \MensBeam\HTML\DOM\Document::__construct
@@ -413,8 +428,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
      * @covers \MensBeam\HTML\DOM\Document::createElement
      * @covers \MensBeam\HTML\DOM\Document::createElementNS
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DocumentType::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
@@ -427,7 +442,9 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
@@ -502,7 +519,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Node::lookupPrefix
      *
-     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
      * @covers \MensBeam\HTML\DOM\Attr::__get_ownerElement
      * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Comment::__construct
@@ -530,7 +546,9 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespacePrefix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
@@ -592,8 +610,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
@@ -629,10 +650,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -759,29 +784,47 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-     /**
-      * @dataProvider provideMethod_preInsertionValidity_errors
-      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-      *
-      * @covers \MensBeam\HTML\DOM\Comment::__construct
-      * @covers \MensBeam\HTML\DOM\Document::__construct
-      * @covers \MensBeam\HTML\DOM\Document::createComment
-      * @covers \MensBeam\HTML\DOM\Document::createElement
-      * @covers \MensBeam\HTML\DOM\DOMException::__construct
-      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-      * @covers \MensBeam\HTML\DOM\Element::__construct
-      * @covers \MensBeam\HTML\DOM\Node::__construct
-      * @covers \MensBeam\HTML\DOM\Node::appendChild
-      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
-      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-      */
+    /**
+     * @dataProvider provideMethod_preInsertionValidity_errors
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     *
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::insertBefore
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
     public function testMethod_preInsertionValidity_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
@@ -809,13 +852,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::__toString
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -845,7 +890,8 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertSame('<!--ook--><!DOCTYPE html><html><body>ook</body></html>', (string)$d);
 
         $t = $d->body->replaceChild($d->createElement('template'), $ook);
-        $this->assertSame('<body><template></template></body>', (string)$d->body);
+        $t->content->appendChild($d->createTextNode('ook'));
+        $this->assertSame('<body><template>ook</template></body>', (string)$d->body);
 
         $d->body->replaceChild($d->createElement('br'), $t);
         $this->assertSame('<body><br></body>', (string)$d->body);
@@ -953,28 +999,44 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-     /**
-      * @dataProvider provideMethod_replaceChild_errors
-      * @covers \MensBeam\HTML\DOM\Node::replaceChild
-      *
-      * @covers \MensBeam\HTML\DOM\Comment::__construct
-      * @covers \MensBeam\HTML\DOM\Document::__construct
-      * @covers \MensBeam\HTML\DOM\Document::createComment
-      * @covers \MensBeam\HTML\DOM\Document::createTextNode
-      * @covers \MensBeam\HTML\DOM\DOMException::__construct
-      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-      * @covers \MensBeam\HTML\DOM\Node::__construct
-      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
-      * @covers \MensBeam\HTML\DOM\Text::__construct
-      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-      */
+    /**
+     * @dataProvider provideMethod_replaceChild_errors
+     * @covers \MensBeam\HTML\DOM\Node::replaceChild
+     *
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
     public function testMethod_replaceChild_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
@@ -990,9 +1052,9 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_URL
      * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::getElementsByTagName
      * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\Document::loadFile
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
@@ -1000,11 +1062,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -1043,14 +1108,21 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::createTextNode
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_localName
+     * @covers \MensBeam\HTML\DOM\Element::__get_prefix
+     * @covers \MensBeam\HTML\DOM\Element::__get_tagName
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_lastChild
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeName
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -1091,9 +1163,13 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -1127,8 +1203,10 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
@@ -1162,10 +1240,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -1196,6 +1278,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_previousSibling
+     *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
@@ -1209,10 +1292,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -1257,10 +1344,14 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_lastChild
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -1312,6 +1403,9 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_localName
+     * @covers \MensBeam\HTML\DOM\Element::__get_prefix
+     * @covers \MensBeam\HTML\DOM\Element::__get_tagName
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
@@ -1586,7 +1680,6 @@ class TestNode extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Node::__get_parentElement
-     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      *
      * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Comment::__construct
@@ -1608,8 +1701,12 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
@@ -1693,11 +1790,15 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ProcessingInstruction::__construct
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has

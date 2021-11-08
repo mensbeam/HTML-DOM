@@ -38,11 +38,15 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Node::removeChild
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -165,11 +169,14 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -230,16 +237,16 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-     /**
-      * @dataProvider provideMethod_importNode_errors
-      * @covers \MensBeam\HTML\DOM\Document::importNode
-      *
-      * @covers \MensBeam\HTML\DOM\Document::__construct
-      * @covers \MensBeam\HTML\DOM\DOMException::__construct
-      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-      * @covers \MensBeam\HTML\DOM\Node::__construct
-      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-      */
+    /**
+     * @dataProvider provideMethod_importNode_errors
+     * @covers \MensBeam\HTML\DOM\Document::importNode
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     */
     public function testMethod_importNode_errors(\Closure $closure): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
@@ -257,8 +264,12 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -287,7 +298,6 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
@@ -373,9 +383,14 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
@@ -410,7 +425,6 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
@@ -430,9 +444,6 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
      * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get

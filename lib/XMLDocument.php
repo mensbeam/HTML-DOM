@@ -11,4 +11,13 @@ namespace MensBeam\HTML\DOM;
 
 class XMLDocument extends Document {
     protected string $_contentType = 'application/xml';
+
+
+    public function load(string $source = null, ?string $charset = null): void {
+        if ($this->hasChildNodes()) {
+            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+        }
+
+        $this->innerNode->loadXML($source);
+    }
 }

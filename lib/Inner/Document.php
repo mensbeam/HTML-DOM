@@ -69,7 +69,7 @@ class Document extends \DOMDocument {
         // based upon the node's class name
         if ($node instanceof \DOMAttr) {
             $className = 'Attr';
-        } elseif ($node instanceof \DOMCDATASection) {
+        } elseif ($node instanceof \DOMCdataSection) {
             $className = 'CDATASection';
         } elseif ($node instanceof \DOMComment) {
             $className = 'Comment';

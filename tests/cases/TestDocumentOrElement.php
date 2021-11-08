@@ -82,11 +82,54 @@ class TestDocumentOrElement extends \PHPUnit\Framework\TestCase {
 
     public function testMethod_getElementsByTagNameNS() {
         $d = new Document('<!DOCTYPE html><html><body><div><div><span></span></div></div><div></div><span></span><span></span><svg></svg></body></html>');
+        $svg = $d->body->lastChild;
+        $svg->appendChild($d->createElementNS(Parser::SVG_NAMESPACE, 'div'));
 
+        // HTML namespace
         $div = $d->getElementsByTagNameNS(Parser::HTML_NAMESPACE, 'div');
         $this->assertEquals(3, $div->length);
 
+        // Null namespace
         $div = $d->getElementsByTagNameNS(null, 'div');
         $this->assertEquals(0, $div->length);
+
+        // Empty string namespace
+        $div = $d->getElementsByTagNameNS('', 'div');
+        $this->assertEquals(0, $div->length);
+
+        // Wildcard namespace and local name
+        $all = $d->getElementsByTagNameNS('*', '*');
+        $this->assertEquals(11, $all->length);
+
+        // Wildcard namespace
+        $div = $d->getElementsByTagNameNS('*', 'div');
+        $this->assertEquals(4, $div->length);
+
+        // Wildcard local name
+        $svg = $d->getElementsByTagNameNS(Parser::SVG_NAMESPACE, '*');
+        $this->assertEquals(2, $svg->length);
+    }
+
+
+    public function provideMethod_validateAndExtract_errors(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $d->createElementNS(Parser::HTML_NAMESPACE, 'this will fail');
+            }, DOMException::INVALID_CHARACTER ],
+            [ function() {
+                $d = new Document();
+                $d->createAttributeNS(Parser::HTML_NAMESPACE, 'xmlns');
+            }, DOMException::NAMESPACE_ERROR ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideMethod_validateAndExtract_errors
+     */
+    public function testMethod_validateAndExtract_errors(\Closure $closure, int $errorCode): void {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
     }
 }

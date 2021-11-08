@@ -336,6 +336,7 @@ abstract class Node {
         $node2 = $this;
         $innerNode1 = $this->getInnerNode($other);
         $innerNode2 = $this->innerNode;
+        $doc = $this->getInnerDocument();
 
         # 3. Let attr1 and attr2 be null.
         $attr1 = $attr2 = null;
@@ -364,12 +365,12 @@ abstract class Node {
                     foreach ($attributes as $attr) {
                         # 1. If attr equals attr1, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_PRECEDING.
                         if ($attr === $attr1) {
-                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_PRECEDING;
+                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | Node::DOCUMENT_POSITION_PRECEDING;
                         }
 
                         # 2. If attr equals attr2, then return the result of adding DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC and DOCUMENT_POSITION_FOLLOWING.
                         if ($attr === $attr2) {
-                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + Node::DOCUMENT_POSITION_FOLLOWING;
+                            return Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | Node::DOCUMENT_POSITION_FOLLOWING;
                         }
                     }
                 }
@@ -400,21 +401,21 @@ abstract class Node {
         } while ($n = $n->parentNode);
 
         if ($node1 === null || $node2 === null || $root1 !== $root2) {
-            return Node::DOCUMENT_POSITION_DISCONNECTED + Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC + ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
+            return Node::DOCUMENT_POSITION_DISCONNECTED | Node::DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC | ((self::$rand === 0) ? Node::DOCUMENT_POSITION_PRECEDING : Node::DOCUMENT_POSITION_FOLLOWING);
         }
 
         # 7. If node1 is an ancestor of node2 and attr1 is null, or node1 is node2 and attr2
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINS to
         #    DOCUMENT_POSITION_PRECEDING.
         if (($node1 === $node2 && $attr2 !== null) || ($attr1 === null && $this->containsInner($innerNode1, $innerNode2))) {
-            return Node::DOCUMENT_POSITION_CONTAINS + Node::DOCUMENT_POSITION_PRECEDING;
+            return Node::DOCUMENT_POSITION_CONTAINS | Node::DOCUMENT_POSITION_PRECEDING;
         }
 
         # 8. If node1 is a descendant of node2 and attr2 is null, or node1 is node2 and attr1
         #    is non-null, then return the result of adding DOCUMENT_POSITION_CONTAINED_BY to
         #    DOCUMENT_POSITION_FOLLOWING.
         if (($node1 === $node2 && $attr1 !== null) || ($attr2 === null && $this->containsInner($innerNode2, $innerNode1))) {
-            return Node::DOCUMENT_POSITION_CONTAINED_BY + Node::DOCUMENT_POSITION_FOLLOWING;
+            return Node::DOCUMENT_POSITION_CONTAINED_BY | Node::DOCUMENT_POSITION_FOLLOWING;
         }
 
         # 9. If node1 is preceding node2, then return DOCUMENT_POSITION_PRECEDING.
@@ -672,8 +673,6 @@ abstract class Node {
                         }
                     } while ($n = $n->nextSibling);
                 }
-
-                $this->preInsertionBugFixes($node);
             }
 
             # ↪ DocumentType
@@ -694,6 +693,10 @@ abstract class Node {
             }
         }
 
+        if ($node instanceof \DOMElement) {
+            $this->preInsertionBugFixes($node);
+        }
+
         // PHP's DOM does fine with the rest of the steps.
         $inner->replaceChild($node, $child);
 
@@ -706,6 +709,23 @@ abstract class Node {
         return $wrapperNode;
     }
 
+
+    protected function appendChildInner(\DOMNode $parent, \DOMNode $node): \DOMNode {
+        // This method exists because of the PHP DOM bug outlined in
+        // Node::preInsertionBugFixes so that when appending cloned inner nodes while
+        // cloning the bug may be fixed there too. This is needed especially for
+        // templates.
+        $this->preInsertionBugFixes($node);
+        $parent->appendChild($node);
+
+        // Fixing PHP DOM bug. See Node::preInsertionBugFixes for the explanation.
+        foreach ($this->bullshitReplacements as $r) {
+            $r['replacement']->parentNode->replaceChild($r['replaced'], $r['replacement']);
+        }
+        $this->bullshitReplacements = [];
+
+        return $node;
+    }
 
     protected function cloneInnerNode(\DOMNode $node, ?InnerDocument $document, bool $cloneChildren = false, bool $parsing = false): \DOMNode {
         // This method exists so when cloning or importing documents, fragments, and
@@ -806,7 +826,7 @@ abstract class Node {
                     $copyContent = $this->getInnerNode($copyWrapperContent);
                     $childNodes = $node->childNodes;
                     foreach ($childNodes as $child) {
-                        $copyContent->appendChild($this->cloneInnerNode($child, $document, true, true));
+                        $this->appendChildInner($copyContent, $this->cloneInnerNode($child, $document, true, true));
                     }
 
                     // Step #6 isn't necessary now; just return the copy.
@@ -820,7 +840,7 @@ abstract class Node {
             if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
                 $childNodes = $node->childNodes;
                 foreach ($childNodes as $child) {
-                    $copy->appendChild($this->cloneInnerNode($child, $document, true));
+                    $this->appendChildInner($copy, $this->cloneInnerNode($child, $document, true));
                 }
             }
         }
@@ -1215,7 +1235,7 @@ abstract class Node {
             // must instead walk the node to look for root foreign content.
             $foreign = $this->walkInner($element, function(\DOMNode $n) {
                 if ($n instanceof \DOMElement && ($n->parentNode !== null && $n->parentNode->namespaceURI === null) && $n->namespaceURI !== null && $n->prefix === '') {
-                    return Node::WALK_ACCEPT + Node::WALK_SKIP_CHILDREN;
+                    return Node::WALK_ACCEPT | Node::WALK_SKIP_CHILDREN;
                 }
 
                 return Node::WALK_REJECT;
@@ -1243,6 +1263,7 @@ abstract class Node {
         if ($child !== null) {
             $child = $this->getInnerNode($child);
         }
+        $doc = $this->getInnerDocument();
 
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" Exception.

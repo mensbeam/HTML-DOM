@@ -381,7 +381,7 @@ class Document extends Node {
 
         $source = Parser::parseInto($source, $this->innerNode, null, $config);
         $this->_characterSet = $source->encoding;
-        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->$quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
+        $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
 
         // If there are any templates in the document they must be cloned and replaced
         // so their contents may be stored in the HTMLTemplateElement's content document

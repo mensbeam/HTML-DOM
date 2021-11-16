@@ -45,28 +45,16 @@ class Serializer extends ParserSerializer {
         return false;
     }
 
-    protected static function treatAsBlock(\DOMNode $node): bool {
-        // NOTE: This method is used only when pretty printing. Implementors of userland
-        // PHP DOM solutions with template contents will need to extend this method to
-        // check for any templates and look within their content fragments for "block"
-        // content.
-        if ($node instanceof \DOMDocument || $node instanceof \DOMDocumentFragment) {
-            return true;
-        }
+    protected static function treatAsBlockWithTemplates(\DOMNode $node): bool {
+        $templates = $xpath->query('.//template[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"][not(ancestor::iframe[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::listing[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noembed[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noframes[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noscript[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::plaintext[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::pre[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::style[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::script[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::textarea[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::title[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::xmp[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"])]', $node);
 
-        $xpath = new \DOMXPath($node->ownerDocument);
-        $result = ($xpath->evaluate(self::BLOCK_QUERY, $node) > 0);
+        foreach ($templates as $t) {
+            $content = Reflection::getProtectedProperty($t->ownerDocument->getWrapperNode($t)->content, 'innerNode');
 
-        if (!$result) {
-            $templates = $xpath->query('.//template[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"][not(ancestor::iframe[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::listing[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noembed[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noframes[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noscript[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::plaintext[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::pre[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::style[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::script[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::textarea[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::title[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::xmp[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"])]');
-
-            foreach ($templates as $t) {
-                $content = Reflection::getProtectedProperty($t->ownerDocument->getWrapperNode($t)->content, 'innerNode');
-
-                // This circumvents a PHP XPath bug where it will silently fail to query
-                // nodes within fragments.
-                $clone = $content->cloneNode(true);
-                $span = $content->ownerDocument->createElement('span');
+            // This circumvents a PHP XPath bug where it will silently fail to query
+            // nodes within fragments.
+            $clone = $content->cloneNode(true);
+            $span = $content->ownerDocument->createElement('span');
                 $span->appendChild($clone);
 
                 if ($xpath->evaluate(self::BLOCK_QUERY, $span) > 0) {
@@ -75,7 +63,7 @@ class Serializer extends ParserSerializer {
             }
         }
 
-        return $result;
+        return false;
     }
 
     protected static function treatForeignRootAsBlock(\DOMNode $node): bool {

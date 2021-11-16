@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6ed06e9556bdcc4bbbb5f3f23958e33d",
+    "content-hash": "80f59b5505ffc9b8d7fd2a408538d861",
     "packages": [
         {
             "name": "mensbeam/framework",
@@ -59,11 +59,11 @@
         },
         {
             "name": "mensbeam/html-parser",
-            "version": "dev-master",
+            "version": "dev-pretty-print",
             "source": {
                 "type": "git",
                 "url": "mensbeam-gitea:MensBeam/HTML-Parser.git",
-                "reference": "c5a3d635d542de6acfb704557341d37944a2e688"
+                "reference": "b145e1ebc9c94e3e0a8267345b21067c5b0dc110"
             },
             "require": {
                 "ext-dom": "*",
@@ -77,7 +77,6 @@
             "suggest": {
                 "ext-ctype": "Improved performance"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -130,7 +129,7 @@
                 "parsing",
                 "whatwg"
             ],
-            "time": "2021-11-08T18:34:05+00:00"
+            "time": "2021-11-16T22:47:08+00:00"
         },
         {
             "name": "mensbeam/intl",

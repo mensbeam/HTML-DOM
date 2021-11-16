@@ -16,7 +16,6 @@ use MensBeam\HTML\Parser\{
     Charset,
     Data,
     Config as ParserConfig,
-    Serializer
 };
 
 
@@ -427,7 +426,7 @@ class Document extends Node {
         $this->load($data, $charset);
     }
 
-    public function serialize(?Node $node = null): string {
+    public function serialize(?Node $node = null, array $config = []): string {
         $node = $node ?? $this;
         if ($node !== $this) {
             if ($node->ownerDocument !== $this) {
@@ -439,7 +438,29 @@ class Document extends Node {
             $node = $node->innerNode;
         }
 
-        return Serializer::serialize($node);
+        $parserConfig = new ParserConfig();
+        foreach ($config as $key => $value) {
+            switch ($key) {
+                case 'indentStep':
+                    if (!is_int($value)) {
+                        continue 2;
+                    }
+                break;
+                case 'indentWithSpaces':
+                case 'reformatWhitespace':
+                case 'serializeBooleanAttributeValues':
+                case 'serializeForeignVoidEndTags':
+                    if (!is_bool($value)) {
+                        continue 2;
+                    }
+                break;
+                default: continue 2;
+            }
+
+            $parserConfig->$key = $value;
+        }
+
+        return Serializer::serialize($node, $parserConfig);
     }
 
 

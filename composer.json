@@ -5,7 +5,7 @@
     "require": {
         "php": ">=8.0",
         "ext-dom": "*",
-        "mensbeam/html-parser": "dev-master",
+        "mensbeam/html-parser": "dev-pretty-print",
         "mensbeam/framework": "dev-main",
         "symfony/css-selector": "^5.3"
     },

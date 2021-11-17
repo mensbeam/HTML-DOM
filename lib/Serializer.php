@@ -46,20 +46,13 @@ class Serializer extends ParserSerializer {
     }
 
     protected static function treatAsBlockWithTemplates(\DOMNode $node): bool {
+        $xpath = new \DOMXPath($node->ownerDocument);
         $templates = $xpath->query('.//template[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"][not(ancestor::iframe[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::listing[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noembed[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noframes[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noscript[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::plaintext[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::pre[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::style[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::script[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::textarea[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::title[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::xmp[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"])]', $node);
 
         foreach ($templates as $t) {
             $content = Reflection::getProtectedProperty($t->ownerDocument->getWrapperNode($t)->content, 'innerNode');
-
-            // This circumvents a PHP XPath bug where it will silently fail to query
-            // nodes within fragments.
-            $clone = $content->cloneNode(true);
-            $span = $content->ownerDocument->createElement('span');
-                $span->appendChild($clone);
-
-                if ($xpath->evaluate(self::BLOCK_QUERY, $span) > 0) {
-                    return true;
-                }
+            if ($xpath->evaluate(self::BLOCK_QUERY, $content) > 0) {
+                return true;
             }
         }
 
@@ -70,24 +63,28 @@ class Serializer extends ParserSerializer {
         // NOTE: This method is used only when pretty printing. Implementors of userland
         // PHP DOM solutions with template contents will need to extend this method to
         // be able to moonwalk through document fragment hosts.
+
         $n = $node;
-        while ($n = $n->parentNode) {
-            if ($n instanceof \DOMDocument || ($n instanceof \DOMElement && $n->parentNode === null)) {
-                return true;
-            } elseif ($n instanceof \DOMDocumentFragment) {
+        do {
+            if ($n instanceof \DOMDocumentFragment) {
                 $host = Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($n), 'host');
                 if ($host !== null) {
                     $n = Reflection::getProtectedProperty($host->get(), 'innerNode');
                 } else {
                     return true;
                 }
-            } elseif (($n->parentNode->namespaceURI ?? Parser::HTML_NAMESPACE) === Parser::HTML_NAMESPACE) {
+            } else {
+                if ($n->parentNode !== null && ($n->parentNode->namespaceURI ?? Parser::HTML_NAMESPACE) !== Parser::HTML_NAMESPACE) {
+                    continue;
+                }
+
                 if (self::treatAsBlock($n->parentNode)) {
                     return true;
                 }
-                break;
             }
-        }
+
+            break;
+        } while ($n = $n->parentNode);
 
         return false;
     }

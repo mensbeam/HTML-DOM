@@ -1274,8 +1274,8 @@ abstract class Node {
 
                 if ($parentRoot instanceof \DOMDocumentFragment) {
                     $wrappedParentRoot = $parentRoot->ownerDocument->getWrapperNode($parentRoot);
-                    $parentRootHost = $this->getInnerNode(Reflection::getProtectedProperty($wrappedParentRoot, 'host')->get());
-                    if ($parentRootHost !== null && ($parentRootHost === $node || $this->containsInner($node, $parentRootHost))) {
+                    $parentRootHost = Reflection::getProtectedProperty($wrappedParentRoot, 'host');
+                    if ($parentRootHost !== null && ($parentRootHost === $node || $this->containsInner($node, $this->getInnerNode($parentRootHost->get())))) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }

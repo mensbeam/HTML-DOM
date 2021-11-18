@@ -64,6 +64,21 @@ class Element extends Node {
     }
 
 
+    public function getAttribute(string $qualifiedName): ?string {
+        # The getAttribute(qualifiedName) method steps are:
+        #
+        # 1. Let attr be the result of getting an attribute given qualifiedName and this.
+        $attr = $this->getAttributeNode($qualifiedName);
+        # 2. If attr is null, return null.
+        if ($attr === null) {
+            return null;
+        }
+        # 3. Return attr’s value.
+        // Uncoerce the value if necessary
+        $value = $attr->value;
+        return (!strpos($value, 'U')) ? $value : $this->uncoerceName($value);
+    }
+
     public function getAttributeNames(): array {
         # The getAttributeNames() method steps are to return the qualified names of the
         # attributes in this’s attribute list, in order; otherwise a new list.
@@ -78,8 +93,40 @@ class Element extends Node {
         return $list;
     }
 
-    public function getAttributeNS(string $namespace, string $localName): ?string {
-        return $this->innerNode->getAttributeNS($namespace, $localName);
+    public function getAttributeNodeNS(?string $namespace, string $localName): ?Attr {
+        # The getAttributeNodeNS(namespace, localName) method steps are to return the
+        # result of getting an attribute given namespace, localName, and this.
+        #
+        # To get an attribute by namespace and local name given a namespace, localName,
+        # and element element, run these steps:
+        #
+        # 1. If namespace is the empty string, then set it to null.
+        if ($namespace === '') {
+            $namespace = null;
+        }
+
+        # 2. Return the attribute in element’s attribute list whose namespace is namespace
+        #    and local name is localName, if any; otherwise null.
+        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+        // when we can because it's faster.
+        $value = $this->innerNode->getAttributeNodeNS($namespace, $localName);
+        if (!$value) {
+            // Replace any offending characters with "UHHHHHH" where H are the uppercase
+            // hexadecimal digits of the character's code point
+            $localName = $this->coerceName($localName);
+
+            // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes
+            // sometimes, too... so this will get those as well in those circumstances.
+            $attributes = $this->innerNode->attributes;
+            foreach ($attributes as $a) {
+                if ($a->namespaceURI === $namespace && $a->localName === $localName) {
+                    return $this->innerNode->ownerDocument->getWrapperNode($a);
+                }
+            }
+            return null;
+        }
+
+        return ($value !== false) ? $this->innerNode->ownerDocument->getWrapperNode($value) : null;
     }
 
     public function getAttributeNode(string $qualifiedName): ?Attr {
@@ -116,6 +163,23 @@ class Element extends Node {
         }
 
         return ($attr !== false) ? $this->innerNode->ownerDocument->getWrapperNode($attr) : null;
+    }
+
+    public function getAttributeNS(?string $namespace, string $localName): ?string {
+        # The getAttributeNS(namespace, localName) method steps are:
+        #
+        # 1. Let attr be the result of getting an attribute given namespace, localName,
+        #    and this.
+        $attr = $this->getAttributeNodeNS($namespace, $localName);
+
+        # 2. If attr is null, return null.
+        if ($attr === null) {
+            return null;
+        }
+
+        # 3. Return attr’s value.
+        // Uncoerce the value if necessary
+        return $attr->value;
     }
 
     public function hasAttributes(): bool {

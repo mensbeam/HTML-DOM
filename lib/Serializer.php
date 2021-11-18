@@ -16,18 +16,11 @@ use MensBeam\HTML\Parser\{
 
 
 class Serializer extends ParserSerializer {
-    protected static function getTemplateContent(\DOMElement $node, ?Config $config = null): \DOMNode {
-        // NOTE: PHP's DOM does not support the content property on template elements
-        // natively. This method exists purely so implementors of userland PHP DOM
-        // solutions may extend this method to get template contents how they need them.
+    protected static function getTemplateContent(\DOMElement $node): \DOMNode {
         return Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($node)->content, 'innerNode');
     }
 
     protected static function isPreformattedContent(\DOMNode $node): bool {
-        // NOTE: This method is used only when pretty printing. Implementors of userland
-        // PHP DOM solutions with template contents will need to extend this method to
-        // be able to moonwalk through document fragment hosts.
-
         $n = $node;
         do {
             if ($n instanceof \DOMElement) {

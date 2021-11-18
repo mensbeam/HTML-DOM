@@ -48,10 +48,6 @@ class Document extends \DOMDocument {
     }
 
 
-    public function getInnerNode(WrapperNode $node): ?\DOMNode {
-        return Reflection::getProtectedProperty($node, 'innerNode');
-    }
-
     public function getWrapperNode(\DOMNode $node): ?WrapperNode {
         // If the node is a Document then the wrapperNode is this's wrapperNode
         // property.

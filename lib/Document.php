@@ -438,41 +438,7 @@ class Document extends Node {
             $node = $node->innerNode;
         }
 
-        $parserConfig = new ParserConfig();
-        foreach ($config as $key => $value) {
-            switch ($key) {
-                case 'indentStep':
-                    if (!is_int($value)) {
-                        $type = gettype($value);
-                        if ($type === 'object') {
-                            $type = get_class($value);
-                        }
-                        trigger_error("Value for serializer configuration option \"$key\" must be an integer; $type given", \E_USER_WARNING);
-                        continue 2;
-                    }
-                break;
-                case 'indentWithSpaces':
-                case 'reformatWhitespace':
-                case 'serializeBooleanAttributeValues':
-                case 'serializeForeignVoidEndTags':
-                    if (!is_bool($value)) {
-                        $type = gettype($value);
-                        if ($type === 'object') {
-                            $type = get_class($value);
-                        }
-                        trigger_error("Value for serializer configuration option \"$key\" must be an integer; $type given", \E_USER_WARNING);
-                        continue 2;
-                    }
-                break;
-                default:
-                    trigger_error("\"$key\" is an invalid serializer configuration option", \E_USER_WARNING);
-                    continue 2;
-            }
-
-            $parserConfig->$key = $value;
-        }
-
-        return Serializer::serialize($node, $parserConfig);
+        return Serializer::serialize($node, $config);
     }
 
 

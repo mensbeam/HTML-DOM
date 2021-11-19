@@ -69,14 +69,15 @@ class Element extends Node {
         #
         # 1. Let attr be the result of getting an attribute given qualifiedName and this.
         $attr = $this->getAttributeNode($qualifiedName);
+
         # 2. If attr is null, return null.
         if ($attr === null) {
             return null;
         }
+
         # 3. Return attr’s value.
         // Uncoerce the value if necessary
-        $value = $attr->value;
-        return (!strpos($value, 'U')) ? $value : $this->uncoerceName($value);
+        return $attr->value;
     }
 
     public function getAttributeNames(): array {

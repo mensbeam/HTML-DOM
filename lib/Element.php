@@ -22,6 +22,15 @@ class Element extends Node {
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NamedNodeMap', $this, ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument, $this->innerNode->attributes);
     }
 
+    protected function __get_classList(): DOMTokenList {
+        # The classList getter steps are to return a DOMTokenList object whose
+        # associated element is this and whose associated attribute’s local name is
+        # class. The token set of this particular DOMTokenList object are also known as
+        # the element’s classes.
+        // DOMTokenLists cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\DOMTokenList', $this, 'class');
+    }
+
     protected function __get_className(): string {
         # The className attribute must reflect the "class" content attribute.
         # Return the result of running get an attribute value given this and name.
@@ -338,39 +347,6 @@ class Element extends Node {
         } else {
             $this->innerNode->setAttributeNS($namespace, $qualifiedName, $value);
         }
-
-        /*# 2. Set an attribute value for this using localName, value, and also prefix and
-        #    namespace.
-        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster.
-        // NOTE: We create attribute nodes so that xmlns attributes don't get lost;
-        // otherwise they cannot be serialized
-        if ($namespace === self::XMLNS_NAMESPACE) {
-            // Xmlns attributes have special bugs just for them. How lucky! Xmlns attribute
-            // nodes won't stick and can actually cause segmentation faults if created on a
-            // no longer existing document element, appended to another element, and then
-            // retrieved. So, use the methods used in Document::createAttributeNS to get an
-            // attribute node.
-            $a = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
-
-            $a->value = $this->escapeString($value, true);
-            $this->setAttributeNodeNS($a);
-        } else {
-            try {
-                $this->innerNode->setAttributeNS($namespace, $qualifiedName, $value);
-            } catch (\DOMException $e) {
-                // The attribute name is invalid for XML
-                // Replace any offending characters with "UHHHHHH" where H are the
-                // uppercase hexadecimal digits of the character's code point
-                if ($prefix !== null) {
-                    $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
-                } else {
-                    $qualifiedName = $this->coerceName($qualifiedName);
-                }
-
-                $this->innerNode->setAttributeNS($namespace, $qualifiedName, $value);
-            }
-        }*/
 
         // If you create an id attribute this way it won't be used by PHP in
         // getElementById, so let's fix that.

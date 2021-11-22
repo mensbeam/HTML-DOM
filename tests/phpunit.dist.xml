@@ -18,6 +18,7 @@
     <testsuite name="DOM">
       <file>cases/TestDocument.php</file>
       <file>cases/TestDocumentOrElement.php</file>
+      <file>cases/TestDOMTokenList.php</file>
       <file>cases/TestElement.php</file>
       <file>cases/TestNode.php</file>
     </testsuite>

@@ -25,14 +25,18 @@ class Attr extends Node {
     }
 
     protected function __get_namespaceURI(): ?string {
-        $namespace = $this->innerNode->namespaceURI;
-        return (!$this->ownerDocument instanceof XMLDocument && $namespace === null) ? Node::HTML_NAMESPACE : $namespace;
+        return $this->innerNode->namespaceURI;
     }
 
-    protected function __get_ownerElement(): Element {
+    protected function __get_ownerElement(): ?Element {
         // PHP's DOM does this correctly already.
-        $wrapperNode = $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerElement);
-        return $wrapperNode;
+        $innerOwnerElement = $this->innerNode->ownerElement;
+
+        if ($innerOwnerElement === null) {
+            return null;
+        }
+
+        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerElement);
     }
 
     protected function __get_prefix(): string {

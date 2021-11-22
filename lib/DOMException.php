@@ -18,6 +18,7 @@ class DOMException extends Exception {
     public const NO_MODIFICATION_ALLOWED = 7;
     public const NOT_FOUND = 8;
     public const NOT_SUPPORTED = 9;
+    public const IN_USE_ATTRIBUTE = 10;
     public const SYNTAX_ERROR = 12;
     public const INVALID_MODIFICATION = 13;
     public const NAMESPACE_ERROR = 14;
@@ -35,6 +36,7 @@ class DOMException extends Exception {
               7 => 'Modification not allowed here',
               8 => 'Not found error',
               9 => 'Feature is not supported',
+             10 => 'The attribute is in use',
              12 => 'Syntax error',
              13 => 'Invalid modification error',
              14 => 'Namespace error',

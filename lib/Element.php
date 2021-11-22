@@ -22,16 +22,28 @@ class Element extends Node {
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NamedNodeMap', $this, ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument, $this->innerNode->attributes);
     }
 
+    protected function __get_className(): string {
+        # The className attribute must reflect the "class" content attribute.
+        # Return the result of running get an attribute value given this and name.
+        return $this->getAttribute('class') ?? '';
+    }
+
+    protected function __set_className(string $value): void {
+        # The className attribute must reflect the "class" content attribute.
+        # Set an attribute value for this using name and the given value.
+        $this->setAttribute('class', $value);
+    }
+
     protected function __get_id(): string {
         # The id attribute must reflect the "id" content attribute.
         # Return the result of running get an attribute value given this and name.
         return $this->getAttribute('id') ?? '';
     }
 
-    protected function __set_id(string $value): string {
+    protected function __set_id(string $value): void {
         # The id attribute must reflect the "id" content attribute.
         # Set an attribute value for this using name and the given value.
-        return $this->setAttribute('id', $value);
+        $this->setAttribute('id', $value);
     }
 
     protected function __get_localName(): ?string {
@@ -39,14 +51,13 @@ class Element extends Node {
         return $this->innerNode->localName;
     }
 
-    protected function __get_namespaceURI(): string {
+    protected function __get_namespaceURI(): ?string {
         // PHP's DOM uses null incorrectly for the HTML namespace, and if you attempt to
         // use the HTML namespace anyway it has additional bugs we don't have to work
         // around because of the wrapper classes; So, use the null namespace internally
         // but print out the HTML namespace instead.
         $namespace = $this->innerNode->namespaceURI;
-        $doc = $this->ownerDocument;
-        return (!$doc instanceof XMLDocument && $namespace === null) ? self::HTML_NAMESPACE : $namespace;
+        return (!$this->ownerDocument instanceof XMLDocument && $namespace === null) ? self::HTML_NAMESPACE : $namespace;
     }
 
     protected function __get_prefix(): ?string {
@@ -94,7 +105,39 @@ class Element extends Node {
         return $list;
     }
 
+    public function getAttributeNode(string $qualifiedName): ?Attr {
+        # The getAttributeNode(qualifiedName) method steps are to return the result of
+        # getting an attribute given qualifiedName and this.
+        #
+        # To get an attribute by name given a qualifiedName and element element, run
+        # these steps:
+        #
+        # 1. If element is in the HTML namespace and its node document is an HTML document,
+        #    then set qualifiedName to qualifiedName in ASCII lowercase.
+        if (!$this instanceof XMLDocument && $this->namespaceURI === self::HTML_NAMESPACE) {
+            $qualifiedName = strtolower($qualifiedName);
+        }
+
+        $qualifiedName = $this->coerceName($qualifiedName);
+
+        # 2. Return the first attribute in element’s attribute list whose qualified name is
+        #    qualifiedName; otherwise null.
+        // Manually going through the attributes because PHP DOM has issues, returning
+        // odd "DOMNamespaceNode" objects sometimes instead of the actual attributes...
+        // yeah...
+        $attributes = $this->innerNode->attributes;
+        foreach ($attributes as $attr) {
+            if ($attr->nodeName === $qualifiedName) {
+                return $this->innerNode->ownerDocument->getWrapperNode($attr);
+            }
+        }
+
+        return null;
+    }
+
     public function getAttributeNodeNS(?string $namespace, string $localName): ?Attr {
+        static $count = 0;
+        $count++;
         # The getAttributeNodeNS(namespace, localName) method steps are to return the
         # result of getting an attribute given namespace, localName, and this.
         #
@@ -106,64 +149,21 @@ class Element extends Node {
             $namespace = null;
         }
 
+        $localName = $this->coerceName($localName);
+
         # 2. Return the attribute in element’s attribute list whose namespace is namespace
         #    and local name is localName, if any; otherwise null.
-        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster.
-        $value = $this->innerNode->getAttributeNodeNS($namespace, $localName);
-        if (!$value) {
-            // Replace any offending characters with "UHHHHHH" where H are the uppercase
-            // hexadecimal digits of the character's code point
-            $localName = $this->coerceName($localName);
-
-            // The PHP DOM does not acknowledge the presence of XMLNS-namespace attributes
-            // sometimes, too... so this will get those as well in those circumstances.
-            $attributes = $this->innerNode->attributes;
-            foreach ($attributes as $a) {
-                if ($a->namespaceURI === $namespace && $a->localName === $localName) {
-                    return $this->innerNode->ownerDocument->getWrapperNode($a);
-                }
+        // Manually going through the attributes because PHP DOM has issues, returning
+        // odd "DOMNamespaceNode" objects sometimes instead of the actual attributes...
+        // yeah...
+        $attributes = $this->innerNode->attributes;
+        foreach ($attributes as $attr) {
+            if ($attr->namespaceURI === $namespace && $attr->localName === $localName) {
+                return $this->innerNode->ownerDocument->getWrapperNode($attr);
             }
-            return null;
         }
 
-        return ($value !== false) ? $this->innerNode->ownerDocument->getWrapperNode($value) : null;
-    }
-
-    public function getAttributeNode(string $qualifiedName): ?Attr {
-        # The getAttributeNode(qualifiedName) method steps are to return the result of
-        # getting an attribute given qualifiedName and this.
-        #
-        # To get an attribute by name given a qualifiedName and element element, run
-        # these steps:
-        #
-        # 1. If element is in the HTML namespace and its node document is an HTML document,
-        #    then set qualifiedName to qualifiedName in ASCII lowercase.
-        // Document will always be an HTML document
-        if (!$this instanceof XMLDocument && $this->namespaceURI === self::HTML_NAMESPACE) {
-            $qualifiedName = strtolower($qualifiedName);
-        }
-
-        # 2. Return the first attribute in element’s attribute list whose qualified name is
-        #    qualifiedName; otherwise null.
-        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
-        // when we can because it's faster.
-        $attr = $this->innerNode->getAttributeNode($qualifiedName);
-        if ($attr === false) {
-            // Replace any offending characters with "UHHHHHH" where H are the uppercase
-            // hexadecimal digits of the character's code point
-            $qualifiedName = $this->coerceName($qualifiedName);
-
-            $attributes = $this->innerNode->attributes;
-            foreach ($attributes as $a) {
-                if ($a->nodeName === $qualifiedName) {
-                    return $this->innerNode->ownerDocument->getWrapperNode($a);
-                }
-            }
-            return null;
-        }
-
-        return ($attr !== false) ? $this->innerNode->ownerDocument->getWrapperNode($attr) : null;
+        return null;
     }
 
     public function getAttributeNS(?string $namespace, string $localName): ?string {
@@ -181,13 +181,6 @@ class Element extends Node {
         # 3. Return attr’s value.
         // Uncoerce the value if necessary
         return $attr->value;
-    }
-
-    public function hasAttributes(): bool {
-        # The hasAttributes() method steps are to return false if this’s attribute list
-        # is empty; otherwise true.
-        // PHP's DOM does this correctly already.
-        return $this->innerNode->hasAttributes();
     }
 
     public function hasAttribute(string $qualifiedName): bool {
@@ -215,16 +208,47 @@ class Element extends Node {
         return $value;
     }
 
+    public function hasAttributeNS(?string $namespace, string $localName): bool {
+        # The hasAttributeNS(namespace, localName) method steps are:
+        #
+        # 1. If namespace is the empty string, then set it to null.
+        if ($namespace === '') {
+            $namespace = null;
+        }
+
+        # 2. Return true if this has an attribute whose namespace is namespace and local
+        #    name is localName; otherwise false.
+        # An element has an attribute A if its attribute list contains A.
+        // Going to try to handle this by getting the PHP DOM to do the heavy lifting
+        // when we can because it's faster.
+        $value = $this->innerNode->hasAttributeNS($namespace, $localName);
+        if (!$value) {
+            // PHP DOM does not acknowledge the presence of XMLNS-namespace attributes,
+            // so try it again just in case; getAttributeNode will coerce names if
+            // necessary, too.
+            $value = ($this->getAttributeNodeNS($namespace, $localName) !== null);
+        }
+
+        return $value;
+    }
+
+    public function hasAttributes(): bool {
+        # The hasAttributes() method steps are to return false if this’s attribute list
+        # is empty; otherwise true.
+        // PHP's DOM does this correctly already.
+        return $this->innerNode->hasAttributes();
+    }
+
     public function setAttribute(string $qualifiedName, string $value): void {
         # 1. If qualifiedName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
-        if (preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $qualifiedName) !== 1) {
+        if (!preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $qualifiedName)) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
         # 2. If this is in the HTML namespace and its node document is an HTML document,
         #    then set qualifiedName to qualifiedName in ASCII lowercase.
-        if (!$this instanceof XMLDocument) {
+        if (!$this->ownerDocument instanceof XMLDocument && $this->namespaceURI === Node::HTML_NAMESPACE) {
             $qualifiedName = strtolower($qualifiedName);
         }
 
@@ -253,20 +277,41 @@ class Element extends Node {
     }
 
     public function setAttributeNode(Attr $attr): ?Attr {
-        $innerNode = $this->innerNode;
-        $innerAttr = $this->getInnerNode($attr);
-
         # The setAttributeNode(attr) and setAttributeNodeNS(attr) methods steps are to
         # return the result of setting an attribute given attr and this.
-        $this->innerNode->setAttributeNode($innerAttr);
-
-        // If you create an id attribute it won't be used by PHP in getElementById, so
-        // let's fix that.
-        if ($innerAttr->namespaceURI === null && $innerAttr->localName === 'id') {
-            $innerNode->setIdAttributeNode($attr, true);
+        #
+        # To set an attribute given an attr and element, run these steps:
+        #
+        # 1. If attr’s element is neither null nor element, throw an
+        #    "InUseAttributeError" DOMException.
+        $ownerElement = $attr->ownerElement;
+        if ($ownerElement !== null && $ownerElement !== $this) {
+            throw new DOMException(DOMException::IN_USE_ATTRIBUTE);
         }
 
-        return $attr;
+        // PHP's DOM doesn't do this method correctly. It returns the old node if it is
+        // replaced and null otherwise. It's always supposed to return a node.
+
+        $oldAttr = $this->getAttributeNodeNS($attr->namespaceURI, $attr->localName);
+
+        # 3. If oldAttr is attr, return attr.
+        if ($oldAttr === $attr) {
+            return $attr;
+        }
+
+        # 4. If oldAttr is non-null, then replace oldAttr with attr.
+        if ($oldAttr !== null) {
+            $this->innerNode->setAttributeNode($this->getInnerNode($attr));
+            return $attr;
+        }
+        # 5. Otherwise, append attr to element.
+        else {
+            $this->innerNode->appendChild($this->getInnerNode($attr));
+            return $attr;
+        }
+
+        # 6. Return oldAttr.
+        return $oldAttr;
     }
 
     public function setAttributeNodeNS(Attr $attr): ?Attr {
@@ -277,9 +322,24 @@ class Element extends Node {
         # 1. Let namespace, prefix, and localName be the result of passing namespace and
         #    qualifiedName to validate and extract.
         [ 'namespace' => $namespace, 'prefix' => $prefix, 'localName' => $localName ] = $this->validateAndExtract($qualifiedName, $namespace);
+
+        $prefix = ($prefix === null) ? null : $this->coerceName($prefix);
+        $localName = $this->coerceName($localName);
         $qualifiedName = ($prefix === null || $prefix === '') ? $localName : "{$prefix}:{$localName}";
 
         # 2. Set an attribute value for this using localName, value, and also prefix and
+        #    namespace.
+        // NOTE: We create attribute nodes so that xmlns attributes don't get lost;
+        // otherwise they cannot be serialized
+        if ($namespace === self::XMLNS_NAMESPACE) {
+            $attr = $this->ownerDocument->createAttributeNS($namespace, $qualifiedName);
+            $attr->value = $this->escapeString($value, true);
+            $this->setAttributeNodeNS($attr);
+        } else {
+            $this->innerNode->setAttributeNS($namespace, $qualifiedName, $value);
+        }
+
+        /*# 2. Set an attribute value for this using localName, value, and also prefix and
         #    namespace.
         // Going to try to handle this by getting the PHP DOM to do the heavy lifting
         // when we can because it's faster.
@@ -310,14 +370,12 @@ class Element extends Node {
 
                 $this->innerNode->setAttributeNS($namespace, $qualifiedName, $value);
             }
-        }
+        }*/
 
-        if ($namespace === null) {
-            // If you create an id attribute this way it won't be used by PHP in
-            // getElementById, so let's fix that.
-            if ($qualifiedName === 'id') {
-                $this->innerNode->setIdAttribute($qualifiedName, true);
-            }
+        // If you create an id attribute this way it won't be used by PHP in
+        // getElementById, so let's fix that.
+        if ($namespace === null && $qualifiedName === 'id') {
+            $this->innerNode->setIdAttribute($qualifiedName, true);
         }
     }
 }

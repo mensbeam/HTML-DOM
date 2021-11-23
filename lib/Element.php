@@ -11,7 +11,9 @@ use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     Reflection
 };
-use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser,
+    Symfony\Component\CssSelector\CssSelectorConverter,
+    Symfony\Component\CssSelector\Exception\SyntaxErrorException as SymfonySyntaxErrorException;
 
 
 class Element extends Node {
@@ -83,6 +85,16 @@ class Element extends Node {
         parent::__construct($element);
     }
 
+
+    public function closest(string $selectors): ?Element {
+        # The closest(selectors) method steps are:
+
+        # 1. Let s be the result of parse a selector from selectors. [SELECTORS4]
+        # 2. If s is failure, throw a "SyntaxError" DOMException.
+        # 3. Let elements be this’s inclusive ancestors that are elements, in reverse tree order.
+        # 4. For each element in elements, if match a selector against an element, using s, element, and :scope element this, returns success, return element. [SELECTORS4]
+        # 5. Return null.
+    }
 
     public function getAttribute(string $qualifiedName): ?string {
         # The getAttribute(qualifiedName) method steps are:
@@ -246,6 +258,54 @@ class Element extends Node {
         # is empty; otherwise true.
         // PHP's DOM does this correctly already.
         return $this->innerNode->hasAttributes();
+    }
+
+    public function removeAttribute(string $qualifiedName): void {
+        # The removeAttribute(qualifiedName) method steps are to remove an attribute
+        # given qualifiedName and this, and then return undefined.
+        #
+        # To remove an attribute by name given a qualifiedName and element element, run
+        # these steps:
+
+        # 1. Let attr be the result of getting an attribute given qualifiedName and
+        #    element.
+        # 2. If attr is non-null, then remove attr.
+        # 3. Return attr.
+        // Going to let PHP's DOM do the heavy lifting here instead
+        $this->innerNode->removeAttribute($this->coerceName($qualifiedName));
+    }
+
+    public function removeAttributeNode(Attr $attr): Attr {
+        # The removeAttributeNode(attr) method steps are:
+        # 1. If this’s attribute list does not contain attr, then throw a
+        #    "NotFoundError" DOMException.
+        // PHP's DOM does this already. Will catch its exception and rethrow as HTML-DOM
+        // DOMException.
+
+        # 2. Remove attr.
+        try {
+            $this->innerNode->removeAttributeNode(Reflection::getProtectedProperty($attr, 'innerNode'));
+        } catch (\DOMException $e) {
+            throw new DOMException($e->code);
+        }
+
+        # 3. Return attr.
+        return $attr;
+    }
+
+    public function removeAttributeNS(?string $namespace, string $localName): void {
+        # The removeAttributeNS(namespace, localName) method steps are to remove an
+        # attribute given namespace, localName, and this, and then return undefined.
+        #
+        # To remove an attribute by namespace and local name given a namespace,
+        # localName, and element element, run these steps:
+
+        # 1. Let attr be the result of getting an attribute given namespace, localName,
+        #    and element.
+        # 2. If attr is non-null, then remove attr.
+        # 3. Return attr.
+        // Going to let PHP's DOM do the heavy lifting here instead
+        $this->innerNode->removeAttributeNS($namespace, $this->coerceName($localName));
     }
 
     public function setAttribute(string $qualifiedName, string $value): void {

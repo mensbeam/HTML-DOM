@@ -262,6 +262,140 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
 
     /**
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagNameNS
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_attributes
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testMethod_removeAttribute() {
+        $d = new Document('<!DOCTYPE html><html><head></head><body><svg xmlns="' . Node::SVG_NAMESPACE . '" xmlns:xlink="' . Node::XLINK_NAMESPACE . '" viewBox="0 0 42 42" poop💩="jeff"></svg></body></html>', 'UTF-8');
+        $svg = $d->getElementsByTagNameNS(Node::SVG_NAMESPACE, 'svg')[0];
+
+        // Trying to remove namespaced attribute
+        $svg->removeAttribute('xmlns');
+        $this->assertEquals(4, $svg->attributes->length);
+        // Removing attribute
+        $svg->removeAttribute('viewBox');
+        $this->assertEquals(3, $svg->attributes->length);
+        // Removing coerced attribute
+        $svg->removeAttribute('poop💩');
+        $this->assertEquals(2, $svg->attributes->length);
+    }
+
+
+    public function testMethod_removeAttributeNode() {
+        $d = new Document('<!DOCTYPE html><html><head></head><body><svg xmlns="' . Node::SVG_NAMESPACE . '" xmlns:xlink="' . Node::XLINK_NAMESPACE . '" viewBox="0 0 42 42"></svg></body></html>', 'UTF-8');
+        $svg = $d->getElementsByTagNameNS(Node::SVG_NAMESPACE, 'svg')[0];
+        // Parser per the spec doesn't parse xmlns prefixed attributes except xlink, so let's add one manually instead to test coercion.
+        $svg->setAttributeNS(Node::XMLNS_NAMESPACE, 'xmlns:poop💩', 'https://poop💩.poop');
+
+        $xmlns = $svg->getAttributeNodeNS(Node::XMLNS_NAMESPACE, 'xmlns');
+        $xlink = $svg->getAttributeNodeNS(Node::XMLNS_NAMESPACE, 'xlink');
+        $poop = $svg->getAttributeNodeNS(Node::XMLNS_NAMESPACE, 'poop💩');
+        $viewBox = $svg->getAttributeNode('viewBox');
+
+        $svg->removeAttributeNode($xmlns);
+        $this->assertEquals(3, $svg->attributes->length);
+        $svg->removeAttributeNode($xlink);
+        $this->assertEquals(2, $svg->attributes->length);
+        $svg->removeAttributeNode($poop);
+        $this->assertEquals(1, $svg->attributes->length);
+        $svg->removeAttributeNode($viewBox);
+        $this->assertEquals(0, $svg->attributes->length);
+    }
+
+
+    public function testMethod_removeAttributeNode__errors() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NOT_FOUND);
+        $d = new Document();
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->removeAttributeNode($d->createAttribute('shit'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::removeAttributeNS
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_localName
+     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Attr::__get_ownerElement
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagNameNS
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_attributes
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_removeAttributeNS() {
+        $d = new Document('<!DOCTYPE html><html><head></head><body><svg xmlns="' . Node::SVG_NAMESPACE . '" xmlns:xlink="' . Node::XLINK_NAMESPACE . '" viewBox="0 0 42 42"></svg></body></html>', 'UTF-8');
+        $svg = $d->getElementsByTagNameNS(Node::SVG_NAMESPACE, 'svg')[0];
+        // Parser per the spec doesn't parse xmlns prefixed attributes except xlink, so let's add one manually instead to test coercion.
+        $svg->setAttributeNS(Node::XMLNS_NAMESPACE, 'xmlns:poop💩', 'https://poop💩.poop');
+
+        // Remove null namespaced attribute
+        $svg->removeAttributeNS(null, 'viewBox');
+        $this->assertEquals(3, $svg->attributes->length);
+        // Remove namespaced attribute
+        $svg->removeAttributeNS(Node::XMLNS_NAMESPACE, 'xmlns');
+        $this->assertEquals(2, $svg->attributes->length);
+        // Remove coerced namespaced attribute
+        $svg->removeAttributeNS(Node::XMLNS_NAMESPACE, 'poop💩');
+        $this->assertEquals(1, $svg->attributes->length);
+    }
+
+
+    /**
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct

@@ -26,9 +26,18 @@ class Document extends \DOMDocument {
 
     protected NodeCache $nodeCache;
     protected \WeakReference $_wrapperNode;
+    protected ?\DOMXPath $_xpath = null;
 
     protected function __get_wrapperNode(): WrapperNode {
         return $this->_wrapperNode->get();
+    }
+
+    protected function __get_xpath(): \DOMXPath {
+        if ($this->_xpath === null) {
+            $this->_xpath = new \DOMXPath($this);
+        }
+
+        return $this->_xpath;
     }
 
     private static ?string $parentNamespace = null;

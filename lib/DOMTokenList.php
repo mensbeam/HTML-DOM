@@ -15,11 +15,11 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     use MagicProperties;
 
 
-    protected string $localName;
     protected \WeakReference $element;
-
     protected int $_length = 0;
+    protected string $localName;
     protected int $position = 0;
+    protected array $supportedTokens;
     # A DOMTokenList object has an associated token set (a set), which is initially
     # empty.
     protected array $tokenSet = [];
@@ -47,9 +47,12 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     }
 
 
-    protected function __construct(Element $element, string $attributeLocalName) {
+    protected function __construct(Element $element, string $attributeLocalName, array $supportedTokens = []) {
         # A DOMTokenList object also has an associated element and an attribute’s local
         # name.
+        // Apparently the "attribute's local name" has an associated set of supported
+        // tokens, but the specification is extremely vague on how this is supposed to
+        // be done. Going to have a list of supported tokens as a parameter.
 
         # When a DOMTokenList object is created, then:
         #
@@ -60,6 +63,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         $this->element = \WeakReference::create($element);
         # 2. Let localName be associated attribute’s local name.
         $this->localName = $attributeLocalName;
+        $this->supportedTokens = $supportedTokens;
         # 3. Let value be the result of getting an attribute value given element and
         # localName.
         $element = Reflection::getProtectedProperty($element, 'innerNode');
@@ -106,6 +110,8 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
         # 2. For each token in tokens, append token to this’s token set.
         foreach ($tokens as $token) {
+            # To append to an ordered set: if the set contains the given item, then do
+            # nothing; otherwise, perform the normal list append operation.
             if (!in_array($token, $this->tokenSet)) {
                 $this->tokenSet[] = $token;
                 $this->_length++;
@@ -239,14 +245,27 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         #
         # 1. If the associated attribute’s local name does not define supported tokens,
         # throw a TypeError.
-        # 2. Let lowercase token be a copy of token, in ASCII lowercase.
-        # 3. If lowercase token is present in supported tokens, return true.
-        # 4. Return false.
+        if (count($this->supportedTokens) === 0) {
+            trigger_error('Type error; there are no defined supported tokens', \E_USER_ERROR);
+        }
 
-        // This class is presently only used for Element::classList, and it supports any
-        // valid class name as a token. So, there's nothing to do here at the moment.
-        // Just return true.
-        return true;
+        // This part cannot be covered until there's something in the standard which
+        // defines supported tokens. HTMLMediaElement::controlsList is a non-standard
+        // method which does define supported tokens, but until it is standardized it
+        // won't be added in this implementation.
+
+        // @codeCoverageIgnoreStart
+        # 2. Let lowercase token be a copy of token, in ASCII lowercase.
+        $lowercaseToken = strtolower($token);
+
+        # 3. If lowercase token is present in supported tokens, return true.
+        if (in_array($lowercaseToken, $this->supportedTokens)) {
+            return true;
+        }
+
+        # 4. Return false.
+        return false;
+        // @codeCoverageIgnoreEnd
     }
 
     public function toggle(string $token, ?bool $force = null): bool {

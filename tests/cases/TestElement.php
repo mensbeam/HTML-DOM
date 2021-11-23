@@ -516,14 +516,13 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
-     * 
+     *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
      * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
      * @covers \MensBeam\HTML\DOM\DOMTokenList::__get_length
-     * @covers \MensBeam\HTML\DOM\DOMTokenList::attributeChange
      * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct

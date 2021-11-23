@@ -66,7 +66,26 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         $value = $element->getAttribute($attributeLocalName);
         # 4. Run the attribute change steps for element, localName, value, value, and
         # null.
-        $this->attributeChange($attributeLocalName, $value, $value);
+        # A DOMTokenList object has these attribute change steps for its associated
+        # element:
+        # 1. If localName is associated attribute’s local name, namespace is null, and
+        # value is null, then empty token set.
+        // localName will always be the associated attribute's local name; there's no
+        // namespace here.
+        // Also need to check for empty string here because PHP DOM incorrectly returns
+        // an empty string here
+        if ($value === '' || $value === null) {
+            $this->tokenSet = [];
+            $this->_length = 0;
+        }
+        # 2. Otherwise, if localName is associated attribute’s local name, namespace is
+        # null, then set token set to value, parsed.
+        // localName will always be the associated attribute's local name; there's no
+        // namespace here.
+        else {
+            $this->tokenSet = $this->parseOrderedSet($value);
+            $this->_length = count($this->tokenSet);
+        }
     }
 
 
@@ -135,7 +154,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         return isset($this->tokenSet[$offset]);
     }
 
-    public function offsetGet($offset): string {
+    public function offsetGet($offset): ?string {
         return $this->item($offset);
     }
 
@@ -166,11 +185,13 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
         # For each token in tokens, remove token from this’s token set.
         $changed = false;
-        foreach ($tokens as $token) {
-            if ($key = array_search($token, $this->tokenSet, true)) {
-                unset($this->tokenSet[$key]);
-                $this->_length--;
-                $changed = true;
+        foreach ($this->tokenSet as $key => $value) {
+            foreach ($tokens as $token) {
+                if ($value === $token) {
+                    unset($this->tokenSet[$key]);
+                    $this->_length--;
+                    $changed = true;
+                }
             }
         }
 
@@ -268,24 +289,6 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     }
 
 
-    protected function attributeChange(string $localName, ?string $oldValue = null, ?string $value = null, ?string $namespace = null): void {
-        # A DOMTokenList object has these attribute change steps for its associated
-        # element:
-        #
-        # 1. If localName is associated attribute’s local name, namespace is null, and
-        # value is null, then empty token set.
-        if ($localName === $this->localName && $namespace === null && $value === null) {
-            $this->tokenSet = [];
-            $this->_length = 0;
-        }
-        # 2. Otherwise, if localName is associated attribute’s local name, namespace is
-        # null, then set token set to value, parsed.
-        elseif ($localName === $this->localName && $namespace === null) {
-            $this->tokenSet = $this->parseOrderedSet($value);
-            $this->_length = count($this->tokenSet);
-        }
-    }
-
     protected function parseOrderedSet(string $input): array {
         if ($input === '') {
             return [];
@@ -306,11 +309,12 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
     protected function update(): void {
         # A DOMTokenList object’s update steps are:
-        #
+
+        $element = Reflection::getProtectedProperty($this->element->get(), 'innerNode');
+
         # 1. If the associated element does not have an associated attribute and token
         # set is empty, then return.
-        $element = Reflection::getProtectedProperty($this->element->get(), 'innerNode');
-        if (!$element->hasAttribute('class') && count($this->tokenSet) === 0) {
+        if (!$element->hasAttribute($this->localName) && count($this->tokenSet) === 0) {
             return;
         }
 

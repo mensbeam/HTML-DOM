@@ -82,7 +82,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
      * @covers \MensBeam\HTML\DOM\DOMTokenList::__toString
      * @covers \MensBeam\HTML\DOM\DOMTokenList::add
-     * @covers \MensBeam\HTML\DOM\DOMTokenList::attributeChange
      * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
      * @covers \MensBeam\HTML\DOM\DOMTokenList::update
      * @covers \MensBeam\HTML\DOM\Element::__construct
@@ -116,16 +115,90 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
     public function testMethod_count(): void {
         $d = new Document();
         $e = $d->appendChild($d->createElement('html'));
+        $this->assertEquals(0, count($e->classList));
         $e->classList->add('ook', 'eek', 'ack', 'ookeek');
-        $this->assertSame(4, count($e->classList));
+        $this->assertEquals(4, count($e->classList));
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::item
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__get_length
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__toString
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::add
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::update
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_item(): void {
         $d = new Document();
         $e = $d->appendChild($d->createElement('html'));
         $e->classList->add('ook', 'eek', 'ack', 'ookeek');
         $this->assertNull($e->classList->item(42));
+        $this->assertEquals(4, $e->classList->length);
+    }
+
+    /**
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::offsetSet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::offsetUnset
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__get_length
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__toString
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::add
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::update
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_offsetSet_offsetUnset(): void {
+        $d = new Document();
+        $e = $d->appendChild($d->createElement('html'));
+        $e->classList->add('ook', 'eek', 'ack', 'ookeek');
+        $e->classList[3] = 'ook';
+        unset($e->classList[3]);
+        $this->assertEquals(4, $e->classList->length);
     }
 
 
@@ -143,10 +216,18 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
     public function testMethod_remove(): void {
         $d = new Document();
         $e = $d->appendChild($d->createElement('html'));
+        $e->classList->remove('ook');
         $e->setAttribute('class', 'ook eek ack ookeek');
         $e->classList->remove('ack');
         $this->assertSame('ook eek ookeek', $e->classList->value);
         $this->assertSame('ook eek ookeek', $e->getAttribute('class'));
+
+        $classList = $e->classList;
+        while ($classList->length > 0) {
+            $classList->remove($classList[0]);
+        }
+
+        $this->assertEquals(0, $e->classList->length);
     }
 
 

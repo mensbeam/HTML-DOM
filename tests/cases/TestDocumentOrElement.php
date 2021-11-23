@@ -110,7 +110,7 @@ class TestDocumentOrElement extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideMethod_validateAndExtract_errors(): iterable {
+    public function provideMethod_validateAndExtract__errors(): iterable {
         return [
             [ function() {
                 $d = new Document();
@@ -124,9 +124,9 @@ class TestDocumentOrElement extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideMethod_validateAndExtract_errors
+     * @dataProvider provideMethod_validateAndExtract__errors
      */
-    public function testMethod_validateAndExtract_errors(\Closure $closure, int $errorCode): void {
+    public function testMethod_validateAndExtract__errors(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();

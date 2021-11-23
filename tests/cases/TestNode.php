@@ -677,7 +677,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideMethod_preInsertionValidity_errors(): iterable {
+    public function provideMethod_preInsertionValidity__errors(): iterable {
         return [
             [ function() {
                 $d = new Document();
@@ -783,7 +783,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideMethod_preInsertionValidity_errors
+     * @dataProvider provideMethod_preInsertionValidity__errors
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      *
      * @covers \MensBeam\HTML\DOM\Comment::__construct
@@ -823,7 +823,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
-    public function testMethod_preInsertionValidity_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
+    public function testMethod_preInsertionValidity__errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();
@@ -895,7 +895,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideMethod_replaceChild_errors(): iterable {
+    public function provideMethod_replaceChild__errors(): iterable {
         return [
             [ function() {
                 $d = new Document();
@@ -997,7 +997,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideMethod_replaceChild_errors
+     * @dataProvider provideMethod_replaceChild__errors
      * @covers \MensBeam\HTML\DOM\Node::replaceChild
      *
      * @covers \MensBeam\HTML\DOM\Comment::__construct
@@ -1034,7 +1034,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
-    public function testMethod_replaceChild_errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
+    public function testMethod_replaceChild__errors(\Closure $closure, int $errorCode = DOMException::HIERARCHY_REQUEST_ERROR): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();

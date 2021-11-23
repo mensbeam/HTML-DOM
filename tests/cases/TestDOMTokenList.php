@@ -20,7 +20,7 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\DOMTokenList */
 class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
-    public function provideMethod_add_remove_replace_toggle__errors(): iterable {
+    public function provideMethod_add_remove_replace_toggle___errors(): iterable {
         return [
             [ function() {
                 $d = new Document();
@@ -65,8 +65,31 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-    /** @dataProvider provideMethod_add_remove_replace_toggle__errors */
-    public function testMethod_add_remove_replace_toggle__errors(\Closure $closure, int $errorCode): void {
+    /**
+     * @dataProvider provideMethod_add_remove_replace_toggle___errors
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::add
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::remove
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::replace
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::toggle
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_add_remove_replace_toggle___errors(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();
@@ -112,6 +135,36 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::count
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__toString
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::add
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::update
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_count(): void {
         $d = new Document();
         $e = $d->appendChild($d->createElement('html'));
@@ -202,6 +255,43 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::replace
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__get_value
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__toString
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::update
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_replace(): void {
         $d = new Document();
         $e = $d->appendChild($d->createElement('html'));
@@ -213,6 +303,45 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::remove
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__construct
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__get_length
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__get_value
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::__toString
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::item
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::offsetGet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::parseOrderedSet
+     * @covers \MensBeam\HTML\DOM\DOMTokenList::update
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_classList
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_remove(): void {
         $d = new Document();
         $e = $d->appendChild($d->createElement('html'));
@@ -222,6 +351,7 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
         $this->assertSame('ook eek ookeek', $e->classList->value);
         $this->assertSame('ook eek ookeek', $e->getAttribute('class'));
 
+        // It is wasteful to do it like this of course, but this is only for testing.
         $classList = $e->classList;
         while ($classList->length > 0) {
             $classList->remove($classList[0]);

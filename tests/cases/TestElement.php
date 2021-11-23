@@ -327,7 +327,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
-    public function testMethod_setAttribute_errors() {
+    public function testMethod_setAttribute__errors() {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
         $d = new Document();
@@ -423,7 +423,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
-    public function testMethod_setAttributeNode_errors() {
+    public function testMethod_setAttributeNode__errors() {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::IN_USE_ATTRIBUTE);
         $d = new Document();

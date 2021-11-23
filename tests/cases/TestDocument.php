@@ -84,7 +84,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
-    public function testMethod_adoptNode_errors(): void {
+    public function testMethod_adoptNode__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
         $d = new Document();
@@ -102,7 +102,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
-    public function testMethod_createAttribute_errors(): void {
+    public function testMethod_createAttribute__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
         $d = new Document();
@@ -110,7 +110,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideMethod_createCDATASection_errors(): iterable {
+    public function provideMethod_createCDATASection__errors(): iterable {
         return [
             [ function () {
                 $d = new Document();
@@ -124,7 +124,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideMethod_createCDATASection_errors
+     * @dataProvider provideMethod_createCDATASection__errors
      * @covers \MensBeam\HTML\DOM\Document::createCDATASection
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
@@ -133,7 +133,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
-    public function testMethod_createCDATASection_errors(\Closure $closure, int $errorCode): void {
+    public function testMethod_createCDATASection__errors(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode($errorCode);
         $closure();
@@ -149,7 +149,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
-    public function testMethod_createElement_errors(): void {
+    public function testMethod_createElement__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
         $d = new Document();
@@ -211,7 +211,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
-    public function provideMethod_importNode_errors(): iterable {
+    public function provideMethod_importNode__errors(): iterable {
         return [
             [ function () {
                 $d = new Document();
@@ -237,7 +237,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * @dataProvider provideMethod_importNode_errors
+     * @dataProvider provideMethod_importNode__errors
      * @covers \MensBeam\HTML\DOM\Document::importNode
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
@@ -246,7 +246,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
-    public function testMethod_importNode_errors(\Closure $closure): void {
+    public function testMethod_importNode__errors(\Closure $closure): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
         $closure();
@@ -279,7 +279,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
-    public function testMethod_load_errors(): void {
+    public function testMethod_load__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
         $d = new Document();
@@ -336,7 +336,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      */
-    public function testMethod_loadFile_errors(): void {
+    public function testMethod_loadFile__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::FILE_NOT_FOUND);
         $d = new Document();
@@ -363,7 +363,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
      */
-    public function testMethod_serialize_errors(): void {
+    public function testMethod_serialize__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
         $d = new XMLDocument();

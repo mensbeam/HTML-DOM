@@ -294,6 +294,27 @@ class Element extends Node {
         return $this->innerNode->hasAttributes();
     }
 
+    public function matches(string $selectors): bool {
+        # The matches(selectors) and webkitMatchesSelector(selectors) method steps are:
+
+        # 1. Let s be the result of parse a selector from selectors. [SELECTORS4]
+        try {
+            $converter = new CssSelectorConverter();
+            $s = $converter->toXPath($selectors);
+        } catch (\Exception $e) {
+            # 2. If s is failure, throw a "SyntaxError" DOMException.
+            if ($e instanceof SymfonySyntaxErrorException) {
+                throw new DOMException(DOMException::SYNTAX_ERROR);
+            }
+        }
+
+        # 3. If the result of match a selector against an element, using s, this, and
+        #    :scope element this, returns success, then return true; otherwise, return
+        #    false. [SELECTORS4]
+        $innerNode = $this->innerNode;
+        return ($innerNode->ownerDocument->xpath->query("{$s}[last()]", $innerNode->parentNode)->item(0) === $innerNode);
+    }
+
     public function removeAttribute(string $qualifiedName): void {
         # The removeAttribute(qualifiedName) method steps are to remove an attribute
         # given qualifiedName and this, and then return undefined.

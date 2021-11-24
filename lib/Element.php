@@ -90,10 +90,38 @@ class Element extends Node {
         # The closest(selectors) method steps are:
 
         # 1. Let s be the result of parse a selector from selectors. [SELECTORS4]
-        # 2. If s is failure, throw a "SyntaxError" DOMException.
-        # 3. Let elements be this’s inclusive ancestors that are elements, in reverse tree order.
-        # 4. For each element in elements, if match a selector against an element, using s, element, and :scope element this, returns success, return element. [SELECTORS4]
+        try {
+            $converter = new CssSelectorConverter();
+            $s = $converter->toXPath($selectors);
+        } catch (\Exception $e) {
+            # 2. If s is failure, throw a "SyntaxError" DOMException.
+            if ($e instanceof SymfonySyntaxErrorException) {
+                throw new DOMException(DOMException::SYNTAX_ERROR);
+            }
+        }
+
+        var_export($s);
+        echo "\n";
+
+        # 3. Let elements be this’s inclusive ancestors that are elements, in reverse
+        #    tree order.
+        # 4. For each element in elements, if match a selector against an element,
+        #    using s, element, and :scope element this, returns success, return element.
+        #    [SELECTORS4]
+        $doc = $this->getInnerDocument();
+        $n = $this->innerNode;
+        do {
+            if (!$n instanceof \DOMElement) {
+                break;
+            }
+
+            if ($doc->xpath->query($s, $n)->length > 0) {
+                return $n->ownerDocument->getWrapperNode($n);
+            }
+        } while ($n = $n->parentNode);
+
         # 5. Return null.
+        return null;
     }
 
     public function getAttribute(string $qualifiedName): ?string {

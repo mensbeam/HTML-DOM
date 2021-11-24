@@ -20,6 +20,29 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\Element */
 class TestElement extends \PHPUnit\Framework\TestCase {
+    public function testMethod_closest() {
+        $d = new Document(<<<HTML
+        <!DOCTYPE html>
+        <html>
+         <body>
+          <article id="ookeek">
+           <div id="ook">Ook!
+            <div id="eek">Eek!
+             <div id="ack">Ack</div>
+            </div>
+           </div>
+          </article>
+         </body>
+        </html>
+        HTML, 'UTF-8');
+
+        $e = $d->getElementById('ack');
+        $this->assertSame($d->getElementById('eek'), $e->closest('#eek'));
+        //$this->assertSame($e, $e->closest('div div'));
+        //$this->assertSame($d->getElementById('ook'), $e->closest('article > div'));
+        $this->assertSame($d->getElementById('ookeek'), $e->closest(':not(div)'));
+    }
+
     /**
      * @covers \MensBeam\HTML\DOM\Attr::__get_value
      * @covers \MensBeam\HTML\DOM\Document::__construct

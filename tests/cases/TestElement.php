@@ -20,6 +20,26 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\Element */
 class TestElement extends \PHPUnit\Framework\TestCase {
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::closest
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testMethod_closest() {
         $d = new Document(<<<HTML
         <!DOCTYPE html>
@@ -35,13 +55,49 @@ class TestElement extends \PHPUnit\Framework\TestCase {
          </body>
         </html>
         HTML, 'UTF-8');
-
         $e = $d->getElementById('ack');
+
         $this->assertSame($d->getElementById('eek'), $e->closest('#eek'));
-        //$this->assertSame($e, $e->closest('div div'));
-        //$this->assertSame($d->getElementById('ook'), $e->closest('article > div'));
+        $this->assertSame($e, $e->closest('div div'));
+        $this->assertSame($d->getElementById('ook'), $e->closest('article > div'));
         $this->assertSame($d->getElementById('ookeek'), $e->closest(':not(div)'));
+        $this->assertNull($e->closest('svg'));
     }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::closest 
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_closest__errors() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::SYNTAX_ERROR);
+        $d = new Document();
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->closest('fail?');
+    }
+
 
     /**
      * @covers \MensBeam\HTML\DOM\Attr::__get_value

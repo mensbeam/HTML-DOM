@@ -477,4 +477,8 @@ class Element extends Node {
             $this->innerNode->setIdAttribute($qualifiedName, true);
         }
     }
+
+    public function webkitMatchesSelector(string $selectors): bool {
+        return $this->matches($selectors);
+    }
 }

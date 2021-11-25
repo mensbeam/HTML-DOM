@@ -344,6 +344,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
     /**
      * @covers \MensBeam\HTML\DOM\Element::matches
+     * @covers \MensBeam\HTML\DOM\Element::webkitMatchesSelector
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::load
@@ -361,7 +362,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
      */
-    public function testMethod_matches() {
+    public function testMethod_matches_webkitMatchesSelector() {
         $d = new Document(<<<HTML
         <!DOCTYPE html>
         <html>
@@ -382,7 +383,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($ook->matches('body > ul'));
         $this->assertTrue($eek->matches('.eek'));
         $this->assertTrue($eek->matches('li + li'));
-        $this->assertFalse($ook->matches('li'));
+        $this->assertFalse($ook->webkitMatchesSelector('li'));
     }
 
 

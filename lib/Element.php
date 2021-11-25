@@ -500,7 +500,7 @@ class Element extends Node {
     }
 
 
-    protected function insertAdjacent(Element $element, string $where, Node $node): Node {
+    protected function insertAdjacent(Element $element, string $where, Node $node): ?Node {
         # To insert adjacent, given an element element, string where, and a node node,
         # run the steps associated with the first ASCII case-insensitive match for
         # where:
@@ -518,7 +518,7 @@ class Element extends Node {
             case 'afterbegin':
                 # Return the result of pre-inserting node into element before element’s first
                 # child.
-                return $element->parentNode->insertBefore($node, $element->firstChild);
+                return $element->insertBefore($node, $element->firstChild);
             break;
 
             case 'beforeend':

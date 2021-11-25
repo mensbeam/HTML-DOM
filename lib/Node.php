@@ -466,7 +466,7 @@ abstract class Node {
         # The insertBefore(node, child) method steps are to return the result of
         # pre-inserting node into this before child.
         $this->preInsertionValidity($node, $child);
-        $this->innerNode->insertBefore($this->getInnerNode($node), $this->getInnerNode($child));
+        $this->innerNode->insertBefore($this->getInnerNode($node), ($child !== null) ? $this->getInnerNode($child) : null);
         $this->postInsertionBugFixes();
         return $node;
     }
@@ -986,7 +986,7 @@ abstract class Node {
     }
 
     protected function getInnerNode(?Node $node = null): \DOMNode {
-        if ($node === null || $node === $this) {
+        if ($node === $this) {
             return $this->innerNode;
         }
 

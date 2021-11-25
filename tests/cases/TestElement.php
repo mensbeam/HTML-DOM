@@ -342,6 +342,65 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    public function testMethod_insertAdjacent__errors() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::SYNTAX_ERROR);
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->insertAdjacentText('fail', 'fail');
+    }
+
+
+    public function testMethod_insertAdjacentElement() {
+        $d = new Document('<!DOCTYPE html><html><body><p>Ook</p></body></html>', 'UTF-8');
+        $body = $d->body;
+        $p = $d->getElementsByTagName('p')[0];
+
+        $dd = $d->createElement('div');
+        $dd->appendChild($d->createTextNode('beforebegin'));
+        $p->insertAdjacentElement('beforebegin', $dd);
+        $this->assertSame('<body><div>beforebegin</div><p>Ook</p></body>', (string)$body);
+
+        $dd = $d->createElement('div');
+        $dd->appendChild($d->createTextNode('afterbegin'));
+        $p->insertAdjacentElement('afterbegin', $dd);
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook</p></body>', (string)$body);
+
+        $dd = $d->createElement('div');
+        $dd->appendChild($d->createTextNode('beforeend'));
+        $p->insertAdjacentElement('beforeend', $dd);
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p></body>', (string)$body);
+
+        $dd = $d->createElement('div');
+        $dd->appendChild($d->createTextNode('afterend'));
+        $p->insertAdjacentElement('afterend', $dd);
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div></body>', (string)$body);
+
+        $p = $d->createElement('p');
+        $this->assertNull($p->insertAdjacentElement('beforebegin', $dd));
+        $this->assertNull($p->insertAdjacentElement('afterend', $dd));
+    }
+
+
+    public function testMethod_insertAdjacentText() {
+        $d = new Document('<!DOCTYPE html><html><body><p>Ook</p></body></html>', 'UTF-8');
+        $body = $d->body;
+        $p = $d->getElementsByTagName('p')[0];
+
+        $p->insertAdjacentText('beforebegin', 'beforebegin');
+        $this->assertSame('<body>beforebegin<p>Ook</p></body>', (string)$body);
+
+        $p->insertAdjacentText('afterbegin', 'afterbegin');
+        $this->assertSame('<body>beforebegin<p>afterbeginOok</p></body>', (string)$body);
+
+        $p->insertAdjacentText('beforeend', 'beforeend');
+        $this->assertSame('<body>beforebegin<p>afterbeginOokbeforeend</p></body>', (string)$body);
+
+        $p->insertAdjacentText('afterend', 'afterend');
+        $this->assertSame('<body>beforebegin<p>afterbeginOokbeforeend</p>afterend</body>', (string)$body);
+    }
+
+
     /**
      * @covers \MensBeam\HTML\DOM\Element::matches
      * @covers \MensBeam\HTML\DOM\Element::webkitMatchesSelector

@@ -300,6 +300,23 @@ class Element extends Node {
         return $this->innerNode->hasAttributes();
     }
 
+    public function insertAdjacentElement(string $where, Element $element): ?Element {
+        # The insertAdjacentElement(where, element) method steps are to return the
+        # result of running insert adjacent, give this, where, and element.
+        return $this->insertAdjacent($this, $where, $element);
+    }
+
+    public function insertAdjacentText(string $where, string $data): void {
+        # The insertAdjacentText(where, data) method steps are:
+        #
+        # 1. Let text be a new Text node whose data is data and node document is this’s
+        # node document.
+        $text = $this->ownerDocument->createTextNode($data);
+
+        # 2. Run insert adjacent, given this, where, and text.
+        $this->insertAdjacent($this, $where, $text);
+    }
+
     public function matches(string $selectors): bool {
         # The matches(selectors) and webkitMatchesSelector(selectors) method steps are:
 
@@ -480,5 +497,48 @@ class Element extends Node {
 
     public function webkitMatchesSelector(string $selectors): bool {
         return $this->matches($selectors);
+    }
+
+
+    protected function insertAdjacent(Element $element, string $where, Node $node): Node {
+        # To insert adjacent, given an element element, string where, and a node node,
+        # run the steps associated with the first ASCII case-insensitive match for
+        # where:
+        switch ($where) {
+            case 'beforebegin':
+                # If element’s parent is null, return null.
+                if ($element->parentNode === null) {
+                    return null;
+                }
+
+                # Return the result of pre-inserting node into element’s parent before element.
+                return $element->parentNode->insertBefore($node, $element);
+            break;
+
+            case 'afterbegin':
+                # Return the result of pre-inserting node into element before element’s first
+                # child.
+                return $element->parentNode->insertBefore($node, $element->firstChild);
+            break;
+
+            case 'beforeend':
+                # Return the result of pre-inserting node into element before null.
+                // Isn't this just an appendChild?
+                return $element->appendChild($node);
+            break;
+
+            case 'afterend':
+                # If element’s parent is null, return null.
+                if ($element->parentNode === null) {
+                    return null;
+                }
+
+                # Return the result of pre-inserting node into element’s parent before element’s
+                # next sibling.
+                return $element->parentNode->insertBefore($node, $element->nextSibling);
+            break;
+
+            default: throw new DOMException(DOMException::SYNTAX_ERROR);
+        }
     }
 }

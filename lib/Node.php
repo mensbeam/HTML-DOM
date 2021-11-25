@@ -1217,8 +1217,8 @@ abstract class Node {
         // below walks through this node and temporarily replaces foreign descendants
         // with bullshit elements which are then replaced once the node is inserted.
         if ($element->namespaceURI === null && ($this instanceof DocumentFragment || $this->getRootNode() !== null) && $element->hasChildNodes()) {
-            // XPath can't match just unprefixed elements, so we have to do this the old
-            // fashioned way by walking the DOM.
+            // XPath can't easily match just unprefixed elements, so we have to do this the
+            // old fashioned way by walking the DOM.
             $foreign = $this->walkInner($element, function(\DOMNode $n) {
                 if ($n instanceof \DOMElement && ($n->parentNode !== null && $n->parentNode->namespaceURI === null) && $n->namespaceURI !== null && $n->prefix === '') {
                     return self::WALK_ACCEPT | self::WALK_SKIP_CHILDREN;

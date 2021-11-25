@@ -47,8 +47,10 @@ class TestElement extends \PHPUnit\Framework\TestCase {
          <body>
           <article id="ookeek">
            <div id="ook">Ook!
+            <div id="ookeek">Ookeek</div>
             <div id="eek">Eek!
              <div id="ack">Ack</div>
+             <div id="eekack">Eekack</div>
             </div>
            </div>
           </article>
@@ -66,7 +68,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
 
     /**
-     * @covers \MensBeam\HTML\DOM\Element::closest 
+     * @covers \MensBeam\HTML\DOM\Element::closest
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::createElement
@@ -337,6 +339,84 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $d = new Document('<!DOCTYPE html><html><body><svg xmlns="' . Node::SVG_NAMESPACE . '" xmlns:xlink="' . Node::XLINK_NAMESPACE . '"></svg></body></html>', 'UTF-8');
         $svg = $d->getElementsByTagNameNS(Node::SVG_NAMESPACE, 'svg')[0];
         $this->assertTrue($svg->hasAttributes());
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::matches
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testMethod_matches() {
+        $d = new Document(<<<HTML
+        <!DOCTYPE html>
+        <html>
+         <body>
+          <ul id="ook" class="ook">
+           <li>Ook?</li>
+           <li id="eek" class="eek">Eek!</li>
+           <li id="eek" class="eek">Eek!</li>
+           <li>Ook.</li>
+          </ul>
+         </body>
+        </html>
+        HTML, 'UTF-8');
+        $ook = $d->getElementById('ook');
+        $eek = $d->getElementById('eek');
+
+        $this->assertTrue($ook->matches('.ook'));
+        $this->assertTrue($ook->matches('body > ul'));
+        $this->assertTrue($eek->matches('.eek'));
+        $this->assertTrue($eek->matches('li + li'));
+        $this->assertFalse($ook->matches('li'));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::matches
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_matches__errors() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::SYNTAX_ERROR);
+        $d = new Document();
+        $documentElement = $d->appendChild($d->createElement('html'));
+        $documentElement->matches('fail?');
     }
 
 

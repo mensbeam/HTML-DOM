@@ -118,10 +118,16 @@ class Element extends Node {
                 break;
             }
 
-            // Do it on the parent node because again the generated queries aren't ideal for
-            // this...
-            $result = $xpath->query("{$s}[last()]", $n->parentNode);
+            $result = $xpath->query($s, $n->parentNode);
+            // If there is a match iterate through the results. If $this is one of them
+            // return that, otherwise return the first item.
             if ($result->length > 0) {
+                foreach ($result as $r) {
+                    if ($r === $innerNode) {
+                        return $this;
+                    }
+                }
+
                 return $doc->getWrapperNode($result->item(0));
             }
         } while ($n = $n->parentNode);
@@ -312,7 +318,9 @@ class Element extends Node {
         #    :scope element this, returns success, then return true; otherwise, return
         #    false. [SELECTORS4]
         $innerNode = $this->innerNode;
-        return ($innerNode->ownerDocument->xpath->query("{$s}[last()]", $innerNode->parentNode)->item(0) === $innerNode);
+        // Query the parent as the context node, yes. This is due to how the XPath
+        // queries are generated from Symfony.
+        return ($innerNode->ownerDocument->xpath->query($s, $innerNode->parentNode)->item(0) === $innerNode);
     }
 
     public function removeAttribute(string $qualifiedName): void {

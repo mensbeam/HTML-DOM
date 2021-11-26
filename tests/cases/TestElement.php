@@ -342,6 +342,37 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacent
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacentText
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_insertAdjacent__errors() {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::SYNTAX_ERROR);
@@ -351,6 +382,50 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacentElement
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacent
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_nextSibling
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::__toString
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::insertBefore
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\ParentNode::walkInner
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_insertAdjacentElement() {
         $d = new Document('<!DOCTYPE html><html><body><p>Ook</p></body></html>', 'UTF-8');
         $body = $d->body;
@@ -382,6 +457,46 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacentText
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacent
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_nextSibling
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::__toString
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::insertBefore
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_insertAdjacentText() {
         $d = new Document('<!DOCTYPE html><html><body><p>Ook</p></body></html>', 'UTF-8');
         $body = $d->body;
@@ -523,6 +638,50 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::removeAttributeNode
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_localName
+     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Attr::__get_ownerElement
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagNameNS
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_attributes
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_removeAttributeNode() {
         $d = new Document('<!DOCTYPE html><html><head></head><body><svg xmlns="' . Node::SVG_NAMESPACE . '" xmlns:xlink="' . Node::XLINK_NAMESPACE . '" viewBox="0 0 42 42"></svg></body></html>', 'UTF-8');
         $svg = $d->getElementsByTagNameNS(Node::SVG_NAMESPACE, 'svg')[0];
@@ -545,6 +704,33 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::removeAttributeNode
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createAttribute
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_removeAttributeNode__errors() {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::NOT_FOUND);
@@ -976,6 +1162,45 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
+     * @covers \MensBeam\HTML\DOM\Element::__set_innerHTML
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Serializer::getTemplateContent
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
     public function testProperty_innerHTML() {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
@@ -990,5 +1215,29 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $t = $d->body->appendChild($d->createElement('template'));
         $t->innerHTML = 'ook';
         $this->assertSame('ook', $t->innerHTML);
+    }
+
+
+    public function testProperty_outerHTML() {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $d->body->setAttribute('class', 'ook');
+        $s = $d->body->appendChild($d->createElement('span'));
+        $s->appendChild($d->createTextNode('ook'));
+        $this->assertSame('<body class="ook"><span>ook</span></body>', $d->body->outerHTML);
+
+        $d->body->outerHTML = '<body>eek</body>';
+        $this->assertSame('<body>eek</body>', $d->body->outerHTML);
+
+        $f = $d->createDocumentFragment();
+        $div = $f->appendChild($d->createElement('div'));
+        $div->outerHTML = 'ook';
+        $this->assertSame('ook', (string)$f);
+
+        $div = $d->createElement('div');
+        $div->appendChild($d->createTextNode('ook'));
+        $div->outerHTML = '<div>eek</div>';
+        $this->assertSame('<div>ook</div>', (string)$div);
     }
 }

@@ -128,6 +128,42 @@ class Element extends Node {
         return Serializer::serialize($this->innerNode);
     }
 
+    protected function __set_outerHTML(string $value): void {
+        # On setting, the following steps must be run:
+        #
+        # 1. Let parent be the context object's parent.
+        $parent = $this->parentNode;
+        $innerParent = $this->innerNode->parentNode;
+
+        # 2. If parent is null, terminate these steps. There would be no way to obtain a
+        #    reference to the nodes created even if the remaining steps were run.
+        if ($innerParent === null) {
+            return;
+        }
+
+        # 3. If parent is a Document, throw a "NoModificationAllowedError" DOMException.
+        if ($innerParent instanceof \DOMDocument) {
+            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+        }
+
+        # 4. If parent is a DocumentFragment, let parent be a new Element with:
+        #       • body as its local name,
+        #       • The HTML namespace as its namespace, and
+        #       • The context object's node document as its node document.
+        if ($innerParent instanceof \DOMDocumentFragment) {
+            $innerParent = $this->innerNode->ownerDocument->createElement('body');
+        }
+
+        # 5. Let fragment be the result of invoking the fragment parsing algorithm with
+        #    the new value as markup, and parent as the context element.
+        $innerFragment = Parser::parseFragment($innerParent, Parser::NO_QUIRKS_MODE, $value, 'UTF-8');
+        $fragment = $this->innerNode->ownerDocument->getWrapperNode($innerFragment);
+
+        # 6. Replace the context object with fragment within the context object's
+        #    parent.
+        $parent->replaceChild($fragment, $this);
+    }
+
     protected function __get_prefix(): ?string {
         $prefix = $this->innerNode->prefix;
         return ($prefix !== '') ? $prefix : null;

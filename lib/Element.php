@@ -57,6 +57,53 @@ class Element extends Node {
         $this->setAttribute('id', $value);
     }
 
+    protected function __get_innerHTML(): string {
+        # On getting, return the result of invoking the fragment serializing algorithm
+        # on the context object providing true for the require well-formed flag (this
+        # might throw an exception instead of returning a string).
+        // TODO: If adding better XML support this should require XML well-formed
+        // serialization here.
+        return Serializer::serializeInner($this->innerNode);
+    }
+
+    protected function __set_innerHTML(string $value): void {
+        # On setting, these steps must be run:
+
+        # 1. Let context element be the context object's host if the context object is a
+        #    ShadowRoot object, or the context object otherwise.
+        // There's no scripting in this implementation and therefore no shadow root
+        // object.
+        $context = $this;
+        $innerContext = $this->innerNode;
+
+        # 2. Let fragment be the result of invoking the fragment parsing algorithm with
+        #    the new value as markup, and with context element.
+        $innerFragment = Parser::parseFragment($innerContext, Parser::NO_QUIRKS_MODE, $value, 'UTF-8');
+        $fragment = $innerContext->ownerDocument->getWrapperNode($innerFragment);
+
+        # 3. If the context object is a template element, then let context object be the
+        #    template's template contents (a DocumentFragment).
+        # NOTE: Setting innerHTML on a template element will replace all the nodes in
+        #       its template contents (template.content) rather than its children.
+        if ($this instanceof HTMLTemplateElement) {
+            $context = $this->content;
+            $innerContext = $this->getInnerNode($context);
+        }
+
+        # 4. Replace all with fragment within the context object.
+        while ($innerContext->hasChildNodes()) {
+            $innerContext->removeChild($innerContext->firstChild);
+        }
+
+        if (!$this instanceof HTMLTemplateElement) {
+            $context->appendChild($fragment);
+        } else {
+            while ($innerFragment->hasChildNodes()) {
+                $context->appendChild($fragment->firstChild);
+            }
+        }
+    }
+
     protected function __get_localName(): ?string {
         // PHP's DOM does this correctly already.
         return $this->innerNode->localName;
@@ -69,6 +116,16 @@ class Element extends Node {
         // but print out the HTML namespace instead.
         $namespace = $this->innerNode->namespaceURI;
         return (!$this->ownerDocument instanceof XMLDocument && $namespace === null) ? self::HTML_NAMESPACE : $namespace;
+    }
+
+    protected function __get_outerHTML(): string {
+        # On getting, return the result of invoking the fragment serializing algorithm
+        # on a fictional node whose only child is the context object providing true
+        # for the require well-formed flag (this might throw an exception instead of
+        # returning a string).
+        // TODO: If adding better XML support this should require XML well-formed
+        // serialization here.
+        return Serializer::serialize($this->innerNode);
     }
 
     protected function __get_prefix(): ?string {

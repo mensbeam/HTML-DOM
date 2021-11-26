@@ -974,4 +974,21 @@ class TestElement extends \PHPUnit\Framework\TestCase {
         $documentElement->id = 'ook';
         $this->assertSame('ook', $documentElement->id);
     }
+
+
+    public function testProperty_innerHTML() {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $s = $d->body->appendChild($d->createElement('span'));
+        $s->appendChild($d->createTextNode('ook'));
+        $this->assertSame('<span>ook</span>', $d->body->innerHTML);
+
+        $d->body->innerHTML = '<div id ="ook">eek</div>';
+        $this->assertSame('<div id="ook">eek</div>', $d->body->innerHTML);
+
+        $t = $d->body->appendChild($d->createElement('template'));
+        $t->innerHTML = 'ook';
+        $this->assertSame('ook', $t->innerHTML);
+    }
 }

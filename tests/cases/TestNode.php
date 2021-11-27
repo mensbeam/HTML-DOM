@@ -63,6 +63,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::isEqualInnerNode
      * @covers \MensBeam\HTML\DOM\Node::isEqualNode
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ParentNode::walkInner
@@ -155,6 +156,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Node::removeChild
      * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -1063,6 +1065,7 @@ class TestNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct

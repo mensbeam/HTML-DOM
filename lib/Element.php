@@ -80,6 +80,7 @@ class Element extends Node {
         #    the new value as markup, and with context element.
         $innerFragment = Parser::parseFragment($innerContext, Parser::NO_QUIRKS_MODE, $value, 'UTF-8');
         $fragment = $innerContext->ownerDocument->getWrapperNode($innerFragment);
+        $this->postParsingTemplatesFix($innerFragment);
 
         # 3. If the context object is a template element, then let context object be the
         #    template's template contents (a DocumentFragment).
@@ -158,6 +159,7 @@ class Element extends Node {
         #    the new value as markup, and parent as the context element.
         $innerFragment = Parser::parseFragment($innerParent, Parser::NO_QUIRKS_MODE, $value, 'UTF-8');
         $fragment = $this->innerNode->ownerDocument->getWrapperNode($innerFragment);
+        $this->postParsingTemplatesFix($innerFragment);
 
         # 6. Replace the context object with fragment within the context object's
         #    parent.
@@ -399,6 +401,78 @@ class Element extends Node {
         return $this->insertAdjacent($this, $where, $element);
     }
 
+    public function insertAdjacentHTML(string $where, string $data): void {
+        # The insertAdjacentHTML(position, text) method must run these steps:
+        // This is from the W3C specification which the WHATWG delegates to concerning
+        // innerHTML, outerHTML and this one. Using $where and $data for the parameters
+        // to keep things consistent with the WHATWG specification.
+
+        # 1. Use the first matching item from this list:
+        $where = strtolower($where);
+        switch ($where) {
+            case 'beforebegin':
+            case 'afterend':
+                # Let context be the context object's parent.
+                $context = $this->parentNode;
+                $innerContext = $this->innerNode->parentNode;
+
+                # If context is null or a Document, throw a "NoModificationAllowedError" DOMException.
+                if ($context === null || $context instanceof Document) {
+                    throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+                }
+            break;
+            case 'afterbegin':
+            case 'beforeend':
+                # Let context be the context object.
+                $context = $this;
+                $innerContext = $this->innerNode;
+            break;
+            default: throw new DOMException(DOMException::SYNTAX_ERROR);
+        }
+
+        # 2. If context is not an Element or the following are all true:
+        #       • context's node document is an HTML document,
+        #       • context's local name is "html", and
+        #       • context's namespace is the HTML namespace;
+        if (!$context instanceof Element || ($context->ownerDocument instanceof Document && $context->localName === 'html' && $context->namespaceURI === Node::HTML_NAMESPACE)) {
+            # let context be a new Element with
+            #   • body as its local name,
+            #   • The HTML namespace as its namespace, and
+            #   • The context object's node document as its node document.
+            $context = $context->ownerDocument->createElement('body');
+            $innerContext = $this->getInnerNode($context);
+        }
+
+        # 3. Let fragment be the result of invoking the fragment parsing algorithm with
+        #    text as markup, and context as the context element.
+        $innerFragment = Parser::parseFragment($innerContext, Parser::NO_QUIRKS_MODE, $data, 'UTF-8');
+        $fragment = $innerContext->ownerDocument->getWrapperNode($innerFragment);
+
+        # 4. Use the first matching item from this list:
+        switch ($where) {
+            case 'beforebegin':
+                # Insert fragment into the context object's parent before the context object.
+                $this->parentNode->insertBefore($fragment, $this);
+            break;
+
+            case 'afterbegin':
+                # Insert fragment into the context object before its first child.
+                $this->insertBefore($fragment, $this->firstChild);
+            break;
+
+            case 'beforeend':
+                # Append fragment to the context object.
+                $this->appendChild($fragment);
+            break;
+
+            case 'afterend':
+                # Insert fragment into the context object's parent before the context object's
+                # next sibling.
+                $this->parentNode->insertBefore($fragment, $this->nextSibling);
+            break;
+        }
+    }
+
     public function insertAdjacentText(string $where, string $data): void {
         # The insertAdjacentText(where, data) method steps are:
         #
@@ -597,7 +671,7 @@ class Element extends Node {
         # To insert adjacent, given an element element, string where, and a node node,
         # run the steps associated with the first ASCII case-insensitive match for
         # where:
-        switch ($where) {
+        switch (strtolower($where)) {
             case 'beforebegin':
                 # If element’s parent is null, return null.
                 if ($element->parentNode === null) {

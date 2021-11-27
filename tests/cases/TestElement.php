@@ -30,6 +30,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
@@ -114,6 +115,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -150,6 +152,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
@@ -191,6 +194,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -239,6 +243,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -283,6 +288,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -327,6 +333,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
@@ -412,6 +419,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::insertBefore
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\ParentNode::walkInner
@@ -433,12 +441,12 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
         $dd = $d->createElement('div');
         $dd->appendChild($d->createTextNode('beforebegin'));
-        $p->insertAdjacentElement('beforebegin', $dd);
+        $p->insertAdjacentElement('beForebEgin', $dd);
         $this->assertSame('<body><div>beforebegin</div><p>Ook</p></body>', (string)$body);
 
         $dd = $d->createElement('div');
         $dd->appendChild($d->createTextNode('afterbegin'));
-        $p->insertAdjacentElement('afterbegin', $dd);
+        $p->insertAdjacentElement('AfterbeGin', $dd);
         $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook</p></body>', (string)$body);
 
         $dd = $d->createElement('div');
@@ -448,12 +456,151 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
         $dd = $d->createElement('div');
         $dd->appendChild($d->createTextNode('afterend'));
-        $p->insertAdjacentElement('afterend', $dd);
+        $p->insertAdjacentElement('aFteREND', $dd);
         $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div></body>', (string)$body);
+
+        $t = $d->createElement('template');
+        $t->content->appendChild($d->createTextNode('beforebegin'));
+        $p->insertAdjacentElement('beForebEgin', $t);
+        $this->assertSame('<body><div>beforebegin</div><template>beforebegin</template><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div></body>', (string)$body);
 
         $p = $d->createElement('p');
         $this->assertNull($p->insertAdjacentElement('beforebegin', $dd));
         $this->assertNull($p->insertAdjacentElement('afterend', $dd));
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacentHTML
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_localName
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_lastChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_nextSibling
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::__toString
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::insertBefore
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Serializer::getTemplateContent
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
+    public function testMethod_insertAdjacentHTML() {
+        $d = new Document('<!DOCTYPE html><html><body><p>Ook</p><template>Ook!</template></body></html>', 'UTF-8');
+        $body = $d->body;
+        $p = $d->getElementsByTagName('p')[0];
+        $t = $d->getElementsByTagName('template')[0];
+
+        $p->insertAdjacentHTML('beForebEgin', '<div>beforebegin</div>');
+        $this->assertSame('<body><div>beforebegin</div><p>Ook</p><template>Ook!</template></body>', (string)$body);
+
+        $p->insertAdjacentHTML('AfterbeGin', '<div>afterbegin</div>');
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook</p><template>Ook!</template></body>', (string)$body);
+
+        $p->insertAdjacentHTML('beforeend', '<div>beforeend</div>');
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><template>Ook!</template></body>', (string)$body);
+
+        $p->insertAdjacentHTML('aFteREND', '<div>afterend</div>');
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div><template>Ook!</template></body>', (string)$body);
+
+        $t->insertAdjacentHTML('beforebegin', '<div>beforebegin</div>');
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div><div>beforebegin</div><template>Ook!</template></body>', (string)$body);
+
+        // Yes, this is correct. There are no special handling instructions for
+        // templates in this.
+        $t->insertAdjacentHTML('afterbegin', '<div>afterbegin</div>');
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div><div>beforebegin</div><template>Ook!</template></body>', (string)$body);
+
+        $t->content->appendChild($d->createElement('div'));
+        $t->content->lastChild->insertAdjacentHTML('beforebegin', '<div>beforebegin</div>');
+        $this->assertSame('<body><div>beforebegin</div><p><div>afterbegin</div>Ook<div>beforeend</div></p><div>afterend</div><div>beforebegin</div><template>Ook!<div>beforebegin</div><div></div></template></body>', (string)$body);
+    }
+
+
+    public function provideMethod_insertAdjacentHTML__errors(): iterable {
+        return [
+            [ function() {
+                $d = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $documentElement->insertAdjacentHTML('beforebegin', 'Ook!');
+            }, DOMException::NO_MODIFICATION_ALLOWED ],
+
+            [ function() {
+                $d = new Document();
+                $documentElement = $d->appendChild($d->createElement('html'));
+                $documentElement->insertAdjacentHTML('fail', 'fail');
+            }, DOMException::SYNTAX_ERROR ]
+        ];
+    }
+
+    /**
+     * @dataProvider provideMethod_insertAdjacentHTML__errors
+     * @covers \MensBeam\HTML\DOM\Element::insertAdjacentHTML
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_insertAdjacentHTML__errors(\Closure $closure, int $errorCode) {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode($errorCode);
+        $closure();
     }
 
 
@@ -485,6 +632,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::insertBefore
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -526,6 +674,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
@@ -614,6 +763,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
@@ -672,6 +822,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -772,6 +923,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -1036,6 +1188,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
@@ -1066,6 +1219,7 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get

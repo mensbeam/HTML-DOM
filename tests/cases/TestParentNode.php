@@ -42,6 +42,7 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\ParentNode::scopeMatchSelector
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode

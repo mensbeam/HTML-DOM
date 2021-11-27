@@ -382,16 +382,7 @@ class Document extends Node {
         $this->_characterSet = $source->encoding;
         $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
 
-        // If there are any templates in the document they must be cloned and replaced
-        // so their contents may be stored in the HTMLTemplateElement's content document
-        // fragment.
-        $templates = (new \DOMXPath($this->innerNode))->query('//template[not(ancestor::template)]');
-        // Iterate in reverse to prevent the live nodelist from doing anything screwy
-        for ($templatesCount = count($templates), $i = $templatesCount - 1; $i >= 0; $i--) {
-            $t = $templates->item($i);
-            $clone = $this->cloneInnerNode($t, $this->innerNode, true, true);
-            $t->parentNode->replaceChild($clone, $t);
-        }
+        $this->postParsingTemplatesFix($this->innerNode);
     }
 
     public function loadFile(string $filename, ?string $charset = null): void {

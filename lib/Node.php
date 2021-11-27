@@ -1209,6 +1209,20 @@ abstract class Node {
         return null;
     }
 
+    protected function postParsingTemplatesFix(\DOMNode $contextNode): void {
+        // If there are any templates in the document they must be cloned and replaced
+        // so their contents may be stored in the HTMLTemplateElement's content document
+        // fragment.
+        $doc = $this->getInnerDocument();
+        $templates = (new \DOMXPath($doc))->query('//template[not(ancestor::template)]', $contextNode);
+        // Iterate in reverse to prevent the live nodelist from doing anything screwy
+        for ($templatesCount = count($templates), $i = $templatesCount - 1; $i >= 0; $i--) {
+            $t = $templates->item($i);
+            $clone = $this->cloneInnerNode($t, $doc, true, true);
+            $t->parentNode->replaceChild($clone, $t);
+        }
+    }
+
     protected function preInsertionBugFixes(\DOMElement &$element): void {
         // PHP DOM has a really nasty bug where if a default namespaced element is
         // inserted to the document and it has non-default namespaced descendants

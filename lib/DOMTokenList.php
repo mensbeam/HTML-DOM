@@ -7,7 +7,8 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties,
+use MensBeam\HTML\Parser\Data,
+    MensBeam\Framework\MagicProperties,
     MensBeam\HTML\DOM\Inner\Reflection;
 
 
@@ -23,8 +24,6 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     # A DOMTokenList object has an associated token set (a set), which is initially
     # empty.
     protected array $tokenSet = [];
-
-    private const ASCII_WHITESPACE_REGEX = '/[\t\n\x0c\r ]+/';
 
 
     protected function __get_length(): int {
@@ -103,7 +102,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
             # 2. If token contains any ASCII whitespace, then throw an
             # "InvalidCharacterError" DOMException.
-            if (preg_match(self::ASCII_WHITESPACE_REGEX, $token)) {
+            if (preg_match(Data::WHITESPACE_REGEX, $token)) {
                 throw new DOMException(DOMException::INVALID_CHARACTER);
             }
         }
@@ -184,7 +183,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
             # 2. If token contains any ASCII whitespace, then throw an
             # "InvalidCharacterError" DOMException.
-            if (preg_match(self::ASCII_WHITESPACE_REGEX, $token)) {
+            if (preg_match(Data::WHITESPACE_REGEX, $token)) {
                 throw new DOMException(DOMException::INVALID_CHARACTER);
             }
         }
@@ -218,7 +217,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
         # 2. If either token or newToken contains any ASCII whitespace, then throw an
         # "InvalidCharacterError" DOMException.
-        if (preg_match(self::ASCII_WHITESPACE_REGEX, $token) || preg_match(self::ASCII_WHITESPACE_REGEX, $newToken)) {
+        if (preg_match(Data::WHITESPACE_REGEX, $token) || preg_match(Data::WHITESPACE_REGEX, $newToken)) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
@@ -276,7 +275,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
 
         # 2. If token contains any ASCII whitespace, then throw an
         # "InvalidCharacterError" DOMException.
-        if (preg_match(self::ASCII_WHITESPACE_REGEX, $token)) {
+        if (preg_match(Data::WHITESPACE_REGEX, $token)) {
             throw new DOMException(DOMException::INVALID_CHARACTER);
         }
 
@@ -317,7 +316,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         #
         # 1. Let inputTokens be the result of splitting input on ASCII whitespace.
         // There isn't a Set object in php, so make sure all the tokens are unique.
-        $inputTokens = array_unique(preg_split(self::ASCII_WHITESPACE_REGEX, $input));
+        $inputTokens = array_unique(preg_split(Data::WHITESPACE_REGEX, $input));
 
         # 2. Let tokens be a new ordered set.
         # 3. For each token in inputTokens, append token to tokens.

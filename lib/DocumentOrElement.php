@@ -68,7 +68,7 @@ trait DocumentOrElement {
         }
         $query = substr($query, 0, -4) . ']';
 
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query($query, $innerNode));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query($query, $innerNode));
     }
 
     public function getElementsByTagName(string $qualifiedName): HTMLCollection {
@@ -81,7 +81,7 @@ trait DocumentOrElement {
         # 1. If qualifiedName is U+002A (*), then return a HTMLCollection rooted at
         #   root, whose filter matches only descendant elements.
         if ($qualifiedName === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query('.//*', $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->innerNode));
         }
 
         # 2. Otherwise, if root’s node document is an HTML document, return a
@@ -94,7 +94,7 @@ trait DocumentOrElement {
         if (!$wrapperDoc instanceof XMLDocument) {
             // Because of a PHP DOM bug all HTML namespaced elements use null internally as
             // their namespace.
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query('.//' . strtolower($qualifiedName) . "[namespace-uri()=''] | .//{$qualifiedName}[not(namespace-uri()='')]", $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//' . strtolower($qualifiedName) . "[namespace-uri()=''] | .//{$qualifiedName}[not(namespace-uri()='')]", $this->innerNode));
         }
 
         # 3. Otherwise, return a HTMLCollection rooted at root, whose filter matches
@@ -128,19 +128,19 @@ trait DocumentOrElement {
         # 2. If both namespace and localName are U+002A (*), then return a HTMLCollection
         #    rooted at root, whose filter matches descendant elements.
         if ($namespace === '*' && $localName === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query('.//*', $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->innerNode));
         }
 
         # 3. If namespace is U+002A (*), then return a HTMLCollection rooted at root, whose
         #    filter matches descendant elements whose local name is localName.
         if ($namespace === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query(".//*[local-name()='$localName']", $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query(".//*[local-name()='$localName']", $this->innerNode));
         }
 
         # 4. If localName is U+002A (*), then return a HTMLCollection rooted at root, whose
         #    filter matches descendant elements whose namespace is namespace.
         if ($localName === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, (new \DOMXPath($doc))->query(".//*[namespace-uri()='$namespace']", $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query(".//*[namespace-uri()='$namespace']", $this->innerNode));
         }
 
         # 5. Return a HTMLCollection rooted at root, whose filter matches descendant
@@ -196,7 +196,7 @@ trait DocumentOrElement {
         # 10. Return namespace, prefix, and localName.
         return [
             // Internally HTML namespaced elements in HTML documents use null because of a PHP DOM bug.
-            'namespace' => (!$this->getInnerDocument() instanceof XMLDocument && $namespace === self::HTML_NAMESPACE) ? null : $namespace,
+            'namespace' => (!$this instanceof XMLDocument && $namespace === self::HTML_NAMESPACE) ? null : $namespace,
             'prefix' => $prefix,
             'localName' => $localName
         ];

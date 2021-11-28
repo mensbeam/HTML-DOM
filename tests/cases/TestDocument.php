@@ -11,6 +11,7 @@ namespace MensBeam\HTML\DOM\TestCase;
 use MensBeam\HTML\DOM\{
     Document,
     DOMException,
+    DOMImplementation,
     Element,
     Node,
     Text,
@@ -483,5 +484,32 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         $d->loadFile('https://google.com');
         $this->assertSame('https://google.com', $d->documentURI);
+    }
+
+
+    public function testProperty_title() {
+        $d = new Document();
+        $this->assertSame('', $d->title);
+        $d->title = 'fail';
+        $this->assertSame('', $d->title);
+
+        $d = (new DOMImplementation)->createDocument(Node::SVG_NAMESPACE, 'svg');
+        $this->assertSame('', $d->title);
+
+        $d->title = 'Ook';
+        $this->assertSame('Ook', $d->title);
+        $d->title = '   Ee  k  ';
+        $this->assertSame('Ee k', $d->title);
+
+        $d = new Document();
+        $de = $d->appendChild($d->createElement('html'));
+        $d->title = 'Ook';
+        $this->assertSame('', $d->title);
+
+        $de->appendChild($d->createElement('head'));
+        $d->title = 'Ook';
+        $this->assertSame('Ook', $d->title);
+        $d->title = 'Eek';
+        $this->assertSame('Eek', $d->title);
     }
 }

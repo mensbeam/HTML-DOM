@@ -89,6 +89,129 @@ class Document extends Node {
         return $this->_characterSet;
     }
 
+    protected function __get_title(): string {
+        # The title attribute must, on getting, run the following algorithm:
+        # 1. If the document element is an SVG svg element, then let value be the child text
+        #    content of the first SVG title element that is a child of the document element.
+        $value = '';
+        $documentElement = $this->innerNode->documentElement;
+        if ($documentElement === null) {
+            return '';
+        }
+
+        if ($documentElement->namespaceURI === Node::SVG_NAMESPACE && $documentElement->tagName === 'svg') {
+            $children = $documentElement->childNodes;
+            foreach ($children as $child) {
+                if ($child instanceof \DOMElement && $child->namespaceURI === Node::SVG_NAMESPACE && $child->tagName === 'title') {
+                    $value = $child->textContent ?? '';
+                    break;
+                }
+            }
+        }
+        # 2. Otherwise, let value be the child text content of the title element, or the
+        #    empty string if the title element is null.
+        else {
+            # The title element of a document is the first title element in the document (in
+            # tree order), if there is one, or null otherwise.
+            $title = $this->innerNode->getElementsByTagName('title');
+            if ($title->length > 0) {
+                $value = $title->item(0)->textContent ?? '';
+            }
+        }
+
+        # 3. Strip and collapse ASCII whitespace in value.
+        # 4. Return value.
+        return ($value !== '') ? trim(preg_replace(Data::WHITESPACE_REGEX, ' ', $value), Data::WHITESPACE) : '';
+    }
+
+    protected function __set_title(string $value): void {
+        # On setting, the steps corresponding to the first matching condition in the following list must be run:
+        #
+        # If the document element is an SVG svg element
+        $documentElement = $this->innerNode->documentElement;
+        if ($documentElement === null) {
+            return;
+        }
+
+        # If the document element is an SVG svg element
+        if ($documentElement->namespaceURI === Node::SVG_NAMESPACE && $documentElement->tagName === 'svg') {
+            # 1. If there is an SVG title element that is a child of the document element,
+            # let element be the first such element.
+            $element = null;
+            $children = $documentElement->childNodes;
+            foreach ($children as $child) {
+                if ($child instanceof \DOMElement && $child->namespaceURI === Node::SVG_NAMESPACE && $child->tagName === 'title') {
+                    $element = $child;
+                    break;
+                }
+            }
+            # 2. Otherwise:
+            if ($element === null) {
+                # 1. Let element be the result of creating an element given the document element's
+                #    node document, title, and the SVG namespace.
+                $element = $this->innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
+
+                # 2. Insert element as the first child of the document element.
+                $this->innerNode->documentElement->appendChild($element);
+            }
+
+            # 3. String replace all with the given value within element.
+            // This is basically what textContent will do for us...
+            $element->textContent = $value;
+        }
+        # If the document element is in the HTML namespace
+        elseif ($this->documentElement->namespaceURI === Node::HTML_NAMESPACE) {
+            # 1. If the title element is null and the head element is null, then return.
+
+            # The title element of a document is the first title element in the document (in
+            # tree order), if there is one, or null otherwise.
+            $title = null;
+            $element = null;
+            $titles = $this->innerNode->getElementsByTagName('title');
+            if ($titles->length > 0) {
+                $title = $titles->item(0);
+            }
+
+            # The head element of a document is the first head element that is a child of
+            # the html element, if there is one, or null otherwise.
+            $head = null;
+            $children = $documentElement->childNodes;
+            foreach ($children as $child) {
+                if ($child instanceof \DOMElement && $child->namespaceURI === null && $child->tagName === 'head') {
+                    $head = $child;
+                    break;
+                }
+            }
+
+            if ($title === null && $head === null) {
+                return;
+            }
+
+            # 2. If the title element is non-null, let element be the title element.
+            if ($title !== null) {
+                $element = $title;
+            }
+            # 3. Otherwise:
+            else {
+                # 1. Let element be the result of creating an element given the document
+                #   element's node document, title, and the HTML namespace.
+                $element = $this->innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
+
+                # 2. Append element to the head element.
+                $head->appendChild($element);
+            }
+
+            # 4. String replace all with the given value within element.
+            // This is basically what textContent will do for us...
+            if ($element !== null) {
+                $element->textContent = $value;
+            }
+        }
+
+        # Otherwise
+        # Do nothing.
+    }
+
     protected function __get_URL(): string {
         return $this->_URL;
     }
@@ -301,7 +424,7 @@ class Document extends Node {
         return $this->innerNode->getWrapperNode($element);
     }
 
-    public function createElementNS(string $namespace, string $qualifiedName): Element {
+    public function createElementNS(?string $namespace, string $qualifiedName): Element {
         # The internal createElementNS steps, given document, namespace, qualifiedName,
         # and options, are as follows:
         // DEVIATION: The options parameter is at present only used for custom elements.

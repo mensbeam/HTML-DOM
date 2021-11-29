@@ -19,7 +19,7 @@ use MensBeam\HTML\Parser\{
 };
 
 
-class Document extends Node {
+class Document extends Node implements \ArrayAccess {
     use DocumentOrElement, NonElementParentNode, ParentNode;
 
     protected string $_characterSet = 'UTF-8';
@@ -621,6 +621,105 @@ class Document extends Node {
         }
 
         $this->load($data, $charset);
+    }
+
+    public function offsetExists(mixed $offset): bool {
+        // There is no equivalent to this in the way it is typically implemented in
+        // JavaScript, so to keep things the way PHP developers expect (that ArrayAccess
+        // implementations work with isset) this will check to see if a valid named
+        // element exists.
+
+        // Because PHP is dumb and won't let us implement ArrayAccess with a more
+        // specific type than its interface...
+        if (!is_string($offset)) {
+            trigger_error('Type error; ' . __CLASS__ . ' keys may only be strings', \E_USER_ERROR);
+        }
+
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        return ($this->innerNode->xpath->query(".//*[(name()='form' or name()='iframe' or name()='img') and namespace-uri()='$namespace' and @name='$offset'] | .//img[namespace-uri()='$namespace' and @id='$offset' and @name and not(@name='')] | .//embed[namespace-uri()='$namespace' and @name='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])] | .//object[namespace-uri()='$namespace' and @id='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])]")->length > 0);
+    }
+
+    public function offsetGet(mixed $offset): Element|HTMLCollection|null {
+        // Because PHP is dumb and won't let us implement ArrayAccess with a more
+        // specific type than its interface...
+        if (!is_string($offset)) {
+            trigger_error('Type error; ' . __CLASS__ . ' keys may only be strings', \E_USER_ERROR);
+        }
+
+        // In JavaScript this part of the Document interface is implemented as
+        // properties. This is impractical in PHP because the said properties can
+        // contain characters which aren't valid PHP properties. So, this will be
+        // implemented as an ArrayAccess implementation instead.
+
+        # The Document interface supports named properties. The supported property names
+        # of a Document object document at any moment consist of the following, in tree
+        # order according to the element that contributed them, ignoring later
+        # duplicates, and with values from id attributes coming before values from name
+        # attributes when the same element contributes both:
+
+        # • the value of the name content attribute for all exposed embed, form, iframe,
+        #   img, and exposed object elements that have a non-empty name content attribute
+        #   and are in a document tree with document as their root;
+        # • the value of the id content attribute for all img elements that have both a
+        #   non-empty id content attribute and a non-empty name content attribute, and are
+        #   in a document tree with document as their root.
+
+        # To determine the value of a named property name for a Document, the user agent
+        # must return the value obtained using the following steps:
+        #
+        # 1. Let elements be the list of named elements with the name name that are in a
+        #    document tree with the Document as their root.
+
+        # Named elements with the name name, for the purposes of the above algorithm,
+        # are those that are either:
+        # • Exposed embed, form, iframe, img, or exposed object elements that have a name
+        #   content attribute whose value is name, or
+        # • Exposed object elements that have an id content attribute whose value is name,
+        #   or
+        # • img elements that have an id content attribute whose value is name, and that
+        #   have a non-empty name content attribute present also.
+
+        # An embed or object element is said to be exposed if it has no exposed object
+        # ancestor, and, for object elements, is additionally either not showing its
+        # fallback content or has no object or embed descendants.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        $elements = $this->innerNode->xpath->query(".//*[(name()='form' or name()='iframe' or name()='img') and namespace-uri()='$namespace' and @name='$offset'] | .//img[namespace-uri()='$namespace' and @id='$offset' and @name and not(@name='')] | .//embed[namespace-uri()='$namespace' and @name='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])] | .//object[namespace-uri()='$namespace' and @id='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])]");
+
+        # NOTE: There will be at least one such element, by definition.
+        // This algorithm seems to expect user agents to keep up with a list of named
+        // elements as elements are manipulated... I think? It is very vague on this
+        // subject. There will of course be an instance where there's no such element --
+        // if there's no valid named element in the document. Browsers return undefined
+        // if there's no matching name, so let's return null here as PHP does not have
+        // undefined.
+        if ($elements->length === 0) {
+            return null;
+        }
+
+        # 2. If elements has only one element, and that element is an iframe element, and
+        #    that iframe element's nested browsing context is not null, then return the
+        #    WindowProxy object of the element's nested browsing context.
+        // No. This is stupid.
+
+        # 3. Otherwise, if elements has only one element, return that element.
+        if ($elements->length === 1) {
+            return $this->innerNode->getWrapperNode($elements->item(0));
+        }
+
+        # 4. Otherwise return an HTMLCollection rooted at the Document node, whose
+        #    filter matches only named elements with the name name.
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $elements);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void {
+        // The specification is vague as to what to do here. Browsers silently fail, so
+        // that's what we're going to do.
+    }
+
+    public function offsetUnset(mixed $offset): void {
+        // The specification is vague as to what to do here. Browsers silently fail, so
+        // that's what we're going to do.
     }
 
     public function serialize(?Node $node = null, array $config = []): string {

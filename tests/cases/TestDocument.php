@@ -158,6 +158,12 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
     }
 
 
+    public function testMethod_getElementsByName() {
+        $d = new Document('<!DOCTYPE html><html><body><div name="ook"></div><div name="ook"></div><svg><g name="ook"></g></svg></body></html>');
+        $this->assertEquals(2, $d->getElementsByName('ook')->length);
+    }
+
+
     /**
      * @covers \MensBeam\HTML\DOM\Document::importNode
      *
@@ -484,6 +490,48 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         $d->loadFile('https://google.com');
         $this->assertSame('https://google.com', $d->documentURI);
+    }
+
+
+    public function testProperty_embeds() {
+        $d = new Document('<!DOCTYPE html><html><body><embed></embed><embed></embed><embed></embed><div><div><div><embed></embed></div></div></div></body></html>');
+        $this->assertEquals(4, $d->embeds->length);
+        $this->assertEquals(4, $d->plugins->length);
+    }
+
+
+    public function testProperty_forms() {
+        $d = new Document('<!DOCTYPE html><html><body><form></form><form></form><form></form><div><div><div><form></form></div></div></div><template><form></form></template></body></html>');
+        $this->assertEquals(4, $d->forms->length);
+    }
+
+
+    public function testProperty_head() {
+        $d = new Document();
+        $this->assertNull($d->head);
+
+        $de = $d->appendChild($d->createElement('html'));
+        $head = $de->appendChild($d->createElement('head'));
+
+        $this->assertSame($head, $d->head);
+    }
+
+
+    public function testProperty_images() {
+        $d = new Document('<!DOCTYPE html><html><body><img><img><img><div><div><div><img></div></div></div><template><img></template></body></html>');
+        $this->assertEquals(4, $d->images->length);
+    }
+
+
+    public function testProperty_links() {
+        $d = new Document('<!DOCTYPE html><html><body><a href=""></a><a href=""></a><a href=""></a><div><div><div><area href=""></area></div></div></div><template><a href=""></a></template></body></html>');
+        $this->assertEquals(4, $d->links->length);
+    }
+
+
+    public function testProperty_scripts() {
+        $d = new Document('<!DOCTYPE html><html><body><script></script><script></script><script></script><div><div><div><script></script></div></div></div><template><script></script></template></body></html>');
+        $this->assertEquals(4, $d->scripts->length);
     }
 
 

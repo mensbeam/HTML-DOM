@@ -81,12 +81,82 @@ class Document extends Node {
         return $this->_URL;
     }
 
+    protected function __get_embeds(): HTMLCollection {
+        # The embeds attribute must return an HTMLCollection rooted at the Document
+        # node, whose filter matches only embed elements.
+        // Because of how namespaces are handled internally they're null when a HTML document.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//embed[namespace-uri()='$namespace']"));
+    }
+
+    protected function __get_forms(): HTMLCollection {
+        # The forms attribute must return an HTMLCollection rooted at the Document node,
+        # whose filter matches only form elements.
+        // Because of how namespaces are handled internally they're null when a HTML document.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//form[namespace-uri()='$namespace']"));
+    }
+
+    protected function __get_head(): ?Element {
+        # The head element of a document is the first head element that is a child of
+        # the html element, if there is one, or null otherwise.
+        # The head attribute, on getting, must return the head element of the document
+        # (a head element or null).
+        $documentElement = $this->innerNode->documentElement;
+        if ($documentElement !== null) {
+            $children = $documentElement->childNodes;
+            foreach ($children as $child) {
+                if ($child instanceof \DOMElement && $child->namespaceURI === null && $child->tagName === 'head') {
+                    return $this->innerNode->getWrapperNode($child);
+                    break;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function __get_images(): HTMLCollection {
+        # The images attribute must return an HTMLCollection rooted at the Document
+        # node, whose filter matches only img elements.
+        // Because of how namespaces are handled internally they're null when a HTML document.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//img[namespace-uri()='$namespace']"));
+    }
+
     protected function __get_implementation(): DOMImplementation {
         return $this->_implementation;
     }
 
     protected function __get_inputEncoding(): string {
         return $this->_characterSet;
+    }
+
+    protected function __get_links(): HTMLCollection {
+        # The links attribute must return an HTMLCollection rooted at the Document node,
+        # whose filter matches only a elements with href attributes and area elements
+        # with href attributes.
+        // Because of how namespaces are handled internally they're null when a HTML document.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @href][name()='a' or name()='area']"));
+    }
+
+    protected function __get_plugins(): HTMLCollection {
+        # The plugins attribute must return the same object as that returned by the
+        # embeds attribute.
+        return $this->__get_embeds();
+    }
+
+    protected function __get_scripts(): HTMLCollection {
+        # The scripts attribute must return an HTMLCollection rooted at the Document node, whose filter matches only script elements.
+        // Because of how namespaces are handled internally they're null when a HTML document.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//script[namespace-uri()='$namespace']"));
     }
 
     protected function __get_title(): string {
@@ -469,6 +539,19 @@ class Document extends Node {
 
     public function createTextNode(string $data): Text {
         return $this->innerNode->getWrapperNode($this->innerNode->createTextNode($data));
+    }
+
+    public function getElementsByName(string $elementName): NodeList {
+        # The getElementsByName(elementName) method steps are to return a live NodeList
+        # containing all the HTML elements in that document that have a name attribute
+        # whose value is identical to the elementName argument, in tree order. When the
+        # method is invoked on a Document object again with the same argument, the user
+        # agent may return the same as the object returned by the earlier call. In other
+        # cases, a new NodeList object must be returned.
+        // Because of how namespaces are handled internally they're null when a HTML document.
+        $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
+        // NodeLists cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', $this->innerNode, $this->innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @name='$elementName']"));
     }
 
     public function importNode(Node|\DOMNode $node, bool $deep = false): Node {

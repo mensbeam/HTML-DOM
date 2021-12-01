@@ -36,7 +36,7 @@
         "psr-4": {
             "MensBeam\\HTML\\DOM\\": [
                 "lib/",
-                "lib/traits"
+                "lib/HTMLElement"
             ]
         }
     },

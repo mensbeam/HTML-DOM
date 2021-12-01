@@ -22,6 +22,7 @@ class Document extends \DOMDocument {
     // Used for validation. Not sure where to put them where they wouldn't be
     // exposed unnecessarily to the public API.
     public const NAME_PRODUCTION_REGEX = '/^[:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][:A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
+    public const POTENTIAL_CUSTOM_ELEMENT_NAME_REGEX = '/^[a-z][a-z0-9-\._\x{B7}\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{203F}-\x{2040}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}]*-[a-z0-9-\._\x{B7}\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{203F}-\x{2040}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}]*$/Su';
     public const QNAME_PRODUCTION_REGEX = '/^([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*:)?[A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]*$/Su';
 
     protected NodeCache $nodeCache;
@@ -84,10 +85,54 @@ class Document extends \DOMDocument {
         } elseif ($node instanceof \DOMElement) {
             $namespace = $node->namespaceURI;
             if ($namespace === null) {
-                if ($node->nodeName === 'template') {
-                    $className = 'HTMLTemplateElement';
-                } else {
+                # The element interface for an element with name name in the HTML namespace is
+                # determined as follows:
+
+                $name = $node->nodeName;
+
+                # If name is applet, bgsound, blink, isindex, keygen, multicol, nextid, or
+                # spacer, then return HTMLUnknownElement.
+                if (in_array($name, [ 'applet', 'bgsound', 'blink', 'isindex', 'keygen', 'multicol', 'nextid', 'spacer' ])) {
+                    $className = 'HTMLUnknownElement';
+                }
+                # If name is acronym, basefont, big, center, nobr, noembed, noframes, plaintext, rb, rtc, strike, or tt, then return HTMLElement.
+                elseif (in_array($name, [ 'acronym', 'basefont', 'big', 'center', 'nobr', 'noembed', 'noframes', 'plaintext', 'rb', 'rtc', 'strike', 'tt' ])) {
                     $className = 'HTMLElement';
+                }
+                # If name is listing or xmp, then return HTMLPreElement.
+                elseif (in_array($name, [ 'listing', 'xmp' ])) {
+                    $className = 'HTMLPreElement';
+                }
+                # Otherwise, if this specification defines an interface appropriate for the element type corresponding to the local name name, then return that interface.
+                # If other applicable specifications define an appropriate interface for name, then return the interface they define.
+                elseif ($name === 'pre') {
+                    $className = 'HTMLPreElement';
+                } elseif ($name === 'template') {
+                    $className = 'HTMLTemplateElement';
+                }
+                // This is done until we do element classes
+                elseif (in_array($name, [ 'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio', 'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'i', 'iframe', 'img', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'link', 'main', 'map', 'mark', 'marquee', 'math', 'menu', 'menuitem', 'meta', 'meter', 'nav', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture', 'portal', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'shadow', 'slot', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup', 'svg', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'var', 'video', 'wbr' ])) {
+                    $className = 'HTMLElement';
+                }
+                # If name is a valid custom element name, then return HTMLElement.
+                # A valid custom element name is a sequence of characters name that meets all of
+                # the following requirements:
+                # • name must match the PotentialCustomElementName production:
+                # • name must not be any of the following:
+                #      • annotation-xml
+                #      • color-profile
+                #      • font-face
+                #      • font-face-src
+                #      • font-face-uri
+                #      • font-face-format
+                #      • font-face-name
+                #      • missing-glyph
+                elseif (preg_match(self::POTENTIAL_CUSTOM_ELEMENT_NAME_REGEX, $name) && !in_array($name, [ 'annotation-xml', 'color-profile', 'font-face', 'font-face-src', 'font-face-uri', 'font-face-format', 'font-face-name', 'missing-glyph' ])) {
+                    $className = 'HTMLElement';
+                }
+                # Return HTMLUnknownElement.
+                else {
+                    $className = 'HTMLUnknownElement';
                 }
             } elseif ($namespace === WrapperNode::SVG_NAMESPACE) {
                 $className = 'SVGElement';

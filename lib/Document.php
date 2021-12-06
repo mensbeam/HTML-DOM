@@ -110,7 +110,6 @@ class Document extends Node implements \ArrayAccess {
             foreach ($children as $child) {
                 if ($child instanceof \DOMElement && $child->namespaceURI === null && $child->tagName === 'head') {
                     return $this->innerNode->getWrapperNode($child);
-                    break;
                 }
             }
         }

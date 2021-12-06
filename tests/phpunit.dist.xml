@@ -16,11 +16,13 @@
   </coverage>
   <testsuites>
     <testsuite name="DOM">
+      <file>cases/TestAttr.php</file>
       <file>cases/TestDocument.php</file>
       <file>cases/TestDocumentOrElement.php</file>
       <file>cases/TestDOMImplementation.php</file>
       <file>cases/TestDOMTokenList.php</file>
       <file>cases/TestElement.php</file>
+      <file>cases/TestInnerDocument.php</file>
       <file>cases/TestNode.php</file>
       <file>cases/TestParentNode.php</file>
     </testsuite>

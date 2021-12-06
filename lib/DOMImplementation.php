@@ -35,7 +35,7 @@ class DOMImplementation {
     }
 
 
-    public function createDocument(?string $namespace = null, string $qualifiedName, ?DocumentType $doctype = null): XMLDocument {
+    public function createDocument(?string $namespace, string $qualifiedName, ?DocumentType $doctype = null): XMLDocument {
         # The createDocument(namespace, qualifiedName, doctype) method steps are:
         #
         # 1. Let document be a new XMLDocument.

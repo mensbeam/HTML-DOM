@@ -105,6 +105,33 @@ class Element extends Node {
         }
     }
 
+    protected function __get_innerText(): ?string {
+        # The innerText and outerText getter steps are:
+        # 1. If this is not being rendered or if the user agent is a non-CSS user agent,
+        #    then return this's descendant text content.
+        // This is a non-CSS user agent. Nothing else to do here.
+        return $this->__get_textContent();
+    }
+
+    protected function __set_innerText(string $value): void {
+        # The innerText setter steps are:
+        # 1. Let fragment be the rendered text fragment for the given value given this's node
+        #    document.
+        $fragment = $this->getRenderedTextFragment($value);
+
+        # 2. Replace all with fragment within this.
+        $innerNode = $this->innerNode;
+        $children = $innerNode->childNodes();
+        while ($innerNode->hasChildNodes()) {
+            $innerNode->removeChild($this->innerNode->firstChild);
+        }
+
+        // Check for child nodes before appending to prevent a stupid warning.
+        if ($fragment->hasChildNodes()) {
+            $innerNode->appendChild($fragment);
+        }
+    }
+
     protected function __get_localName(): ?string {
         // PHP's DOM does this correctly already.
         return $this->innerNode->localName;
@@ -666,6 +693,58 @@ class Element extends Node {
         return $this->matches($selectors);
     }
 
+
+    protected function getRenderedTextFragment(string $input): \DOMDocumentFragment {
+        # The rendered text fragment for a string input given a Document document is the
+        # result of running the following steps:
+
+        $fragment = $this->innerNode->createDocumentFragment();
+
+        # 1. Let position be a position variable for input, initially pointing at the
+        #    start of input.
+        $position = 0;
+
+        # 2. Let text be the empty string.
+        $text = '';
+
+        # 3. While position is not past the end of input:
+        $strlen = strlen($input);
+        while ($position < $strlen) {
+            # 1. Collect a sequence of code points that are not U+000A LF or U+000D CR from input
+            #    given position, and set text to the result.
+            $chr = substr($input, $position, 1);
+            $p = $position;
+            while (!in_array($input[$p], [ "\n", "\r" ])) {
+                $text .= $input[$p];
+                $p++;
+            }
+
+            # 2. If text is not the empty string, then append a new Text node whose data is
+            #    text and node document is document to fragment.
+            if ($text !== '') {
+                $fragment->appendChild($this->innerNode->ownerDocument->createTextNode($text));
+            }
+
+            # 3. While position is not past the end of input, and the code point at position
+            # is either U+000A LF or U+000D CR:
+            while ($position < $strlen && in_array($input[$position], [ "\n", "\r" ])) {
+                # 1. If the code point at position is U+000D CR and the next code point is
+                #    U+000A LF, then advance position to the next code point in input.
+                if ($input[$position] === "\r" && isset($input[$position + 1]) && $input[$position + 1] === "\n") {
+                    $position++;
+                }
+
+                # 2. Advance position to the next code point in input.
+                $position++;
+
+                # 3. Append the result of creating an element given document, br, and the HTML
+                #    namespace to fragment.
+                $fragment->appendChild($this->innerNode->ownerDocument->createElement('br'));
+            }
+        }
+
+        return $fragment;
+    }
 
     protected function insertAdjacent(Element $element, string $where, Node $node): ?Node {
         # To insert adjacent, given an element element, string where, and a node node,

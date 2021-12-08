@@ -1373,6 +1373,57 @@ class TestElement extends \PHPUnit\Framework\TestCase {
 
 
     /**
+     * @covers \MensBeam\HTML\DOM\Element::__get_innerText
+     * @covers \MensBeam\HTML\DOM\Element::__set_innerText
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
+     * @covers \MensBeam\HTML\DOM\Element::getRenderedTextFragment
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_textContent
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testProperty_innerText() {
+        $d = new Document();
+        $d->appendChild($d->createElement('html'));
+        $d->documentElement->appendChild($d->createElement('body'));
+        $s = $d->body->appendChild($d->createElement('span'));
+        $s->appendChild($d->createTextNode('ook'));
+        $this->assertSame('<span>ook</span>', $d->body->innerHTML);
+
+        $d->body->innerText = <<<TEXT
+        ook
+
+            eek ook
+        TEXT;
+        $this->assertSame('ookook    eek ook', $d->body->innerText);
+        $this->assertSame('ook<br><br>ook    eek ook', $d->body->innerHTML);
+    }
+
+
+    /**
      * @covers \MensBeam\HTML\DOM\Element::__get_outerHTML
      * @covers \MensBeam\HTML\DOM\Element::__set_outerHTML
      *

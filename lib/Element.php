@@ -121,9 +121,9 @@ class Element extends Node {
 
         # 2. Replace all with fragment within this.
         $innerNode = $this->innerNode;
-        $children = $innerNode->childNodes();
+        $children = $innerNode->childNodes;
         while ($innerNode->hasChildNodes()) {
-            $innerNode->removeChild($this->innerNode->firstChild);
+            $innerNode->removeChild($innerNode->firstChild);
         }
 
         // Check for child nodes before appending to prevent a stupid warning.
@@ -697,8 +697,8 @@ class Element extends Node {
     protected function getRenderedTextFragment(string $input): \DOMDocumentFragment {
         # The rendered text fragment for a string input given a Document document is the
         # result of running the following steps:
-
-        $fragment = $this->innerNode->createDocumentFragment();
+        $innerNode = $this->innerNode;
+        $fragment = $innerNode->ownerDocument->createDocumentFragment();
 
         # 1. Let position be a position variable for input, initially pointing at the
         #    start of input.
@@ -712,21 +712,19 @@ class Element extends Node {
         while ($position < $strlen) {
             # 1. Collect a sequence of code points that are not U+000A LF or U+000D CR from input
             #    given position, and set text to the result.
-            $chr = substr($input, $position, 1);
-            $p = $position;
-            while (!in_array($input[$p], [ "\n", "\r" ])) {
-                $text .= $input[$p];
-                $p++;
+            while (isset($input[$position]) && !in_array($input[$position], [ "\n", "\r" ])) {
+                $text .= $input[$position];
+                $position++;
             }
 
             # 2. If text is not the empty string, then append a new Text node whose data is
             #    text and node document is document to fragment.
             if ($text !== '') {
-                $fragment->appendChild($this->innerNode->ownerDocument->createTextNode($text));
+                $fragment->appendChild($innerNode->ownerDocument->createTextNode($text));
             }
 
             # 3. While position is not past the end of input, and the code point at position
-            # is either U+000A LF or U+000D CR:
+            #    is either U+000A LF or U+000D CR:
             while ($position < $strlen && in_array($input[$position], [ "\n", "\r" ])) {
                 # 1. If the code point at position is U+000D CR and the next code point is
                 #    U+000A LF, then advance position to the next code point in input.
@@ -739,7 +737,7 @@ class Element extends Node {
 
                 # 3. Append the result of creating an element given document, br, and the HTML
                 #    namespace to fragment.
-                $fragment->appendChild($this->innerNode->ownerDocument->createElement('br'));
+                $fragment->appendChild($innerNode->ownerDocument->createElement('br'));
             }
         }
 

@@ -53,7 +53,8 @@ class Document extends \DOMDocument {
         $this->_wrapperNode = \WeakReference::create($wrapperNode);
 
         if (self::$parentNamespace === null) {
-            self::$parentNamespace = substr(__NAMESPACE__, 0, strrpos(__NAMESPACE__, '\\'));
+            // This line is covered, but pcov declares it not covered for some reason...
+            self::$parentNamespace = substr(__NAMESPACE__, 0, strrpos(__NAMESPACE__, '\\')); // @codeCoverageIgnore
         }
     }
 

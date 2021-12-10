@@ -1375,7 +1375,12 @@ class TestElement extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\Element::__get_innerText
      * @covers \MensBeam\HTML\DOM\Element::__set_innerText
+     * @covers \MensBeam\HTML\DOM\Element::__get_outerText
+     * @covers \MensBeam\HTML\DOM\Element::__set_outerText
      *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::__get_length
+     * @covers \MensBeam\HTML\DOM\Collection::count
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
      * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
@@ -1386,6 +1391,8 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
      * @covers \MensBeam\HTML\DOM\Element::getRenderedTextFragment
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_childNodes
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
      * @covers \MensBeam\HTML\DOM\Node::__get_textContent
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
@@ -1405,21 +1412,58 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
-    public function testProperty_innerText() {
+    public function testProperty_innerText_outerText() {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
         $d->documentElement->appendChild($d->createElement('body'));
-        $s = $d->body->appendChild($d->createElement('span'));
+        $body = $d->body;
+        $body->appendChild($d->createTextNode('ook '));
+        $s = $body->appendChild($d->createElement('span'));
         $s->appendChild($d->createTextNode('ook'));
-        $this->assertSame('<span>ook</span>', $d->body->innerHTML);
+        $body->appendChild($d->createTextNode(' eek'));
+        $this->assertSame('ook <span>ook</span> eek', $body->innerHTML);
 
-        $d->body->innerText = <<<TEXT
-        ook
-
+        $s->innerText = <<<TEXT
+        ook\r\n
             eek ook
         TEXT;
-        $this->assertSame('ookook    eek ook', $d->body->innerText);
-        $this->assertSame('ook<br><br>ook    eek ook', $d->body->innerHTML);
+        $this->assertSame('ook ookook    eek ook eek', $body->innerText);
+        $this->assertSame('ook<br><br>ook    eek ook', $s->innerHTML);
+
+        $s->outerText = 'ack';
+        $this->assertSame('ook ack eek', $body->outerText);
+        $this->assertEquals(1, $body->childNodes->length);
+
+        $s = $body->appendChild($d->createElement('span'));
+        $s->outerText = '';
+        $this->assertSame('ook ack eek', $body->outerText);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Element::__set_outerText
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testProperty_outerText__errors() {
+        $this->expectException(DOMException::class);
+        $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
+        $d = new Document();
+        $h = $d->createElement('html');
+        $h->outerText = 'fail';
     }
 
 

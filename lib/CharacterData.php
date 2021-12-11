@@ -27,13 +27,12 @@ abstract class CharacterData extends Node {
 
 
     public function appendData(string $data) {
-        // PHP's DOM does this correctly already.
-        return $this->innerNode->appendData($data);
+        $this->innerNode->data .= $data;
     }
 
     public function deleteData(int $offset, int $count) {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->deleteData($data);
+        return $this->innerNode->deleteData($offset, $count);
     }
 
     public function insertData(int $offset, string $data) {

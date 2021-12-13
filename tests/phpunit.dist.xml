@@ -18,6 +18,7 @@
     <testsuite name="DOM">
       <file>cases/TestAttr.php</file>
       <file>cases/TestCharacterData.php</file>
+      <file>cases/TestChildNode.php</file>
       <file>cases/TestDocument.php</file>
       <file>cases/TestDocumentOrElement.php</file>
       <file>cases/TestDOMImplementation.php</file>

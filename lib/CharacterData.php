@@ -10,6 +10,8 @@ namespace MensBeam\HTML\DOM;
 
 
 abstract class CharacterData extends Node {
+    use ChildNode;
+
     protected function __get_data(): string {
         // PHP's DOM does this correctly already.
         return $this->innerNode->data;

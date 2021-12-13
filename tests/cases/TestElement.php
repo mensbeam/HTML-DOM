@@ -422,10 +422,10 @@ class TestElement extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\ParentNode::walkInner
      * @covers \MensBeam\HTML\DOM\Text::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
      * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
      * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has

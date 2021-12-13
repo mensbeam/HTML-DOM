@@ -16,6 +16,64 @@ use Symfony\Component\CssSelector\CssSelectorConverter,
 
 
 trait ParentNode {
+    protected function __get_childElementCount(): int {
+        return $this->innerNode->childElementCount;
+    }
+
+    protected function __get_children(): HTMLCollection {
+        $doc = $this->getInnerDocument();
+        // HTMLCollections cannot be created from their constructors normally.
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->innerNode));
+    }
+
+    protected function __get_firstElementChild(): ?Element {
+        $result = $this->innerNode->firstElementChild;
+        return ($result !== null) ? $this->getInnerDocument()->getWrapperNode($result) : null;
+    }
+
+    protected function __get_lastElementChild(): ?Element {
+        $result = $this->innerNode->lastElementChild;
+        return ($result !== null) ? $this->getInnerDocument()->getWrapperNode($result) : null;
+    }
+
+
+    public function append(Node|string ...$nodes): void {
+        # The append(nodes) method steps are:
+        # 1. Let node be the result of converting nodes into a node given nodes and this’s
+        #    node document.
+        $node = $this->convertNodesToNode($nodes);
+
+        # 2. Append node to this.
+        $this->appendChild($node);
+    }
+
+    public function prepend(Node|string ...$nodes): void {
+        # The prepend(nodes) method steps are:
+        # 1. Let node be the result of converting nodes into a node given nodes and this’s
+        #    node document.
+        $node = $this->convertNodesToNode($nodes);
+
+        # 2. Pre-insert node into this before this’s first child.
+        $this->insertBefore($node, $this->firstChild);
+    }
+
+    public function replaceChildren(Node|string ...$nodes): void {
+        # The prepend(nodes) method steps are:
+        # 1. Let node be the result of converting nodes into a node given nodes and this’s
+        #    node document.
+        $node = $this->convertNodesToNode($nodes);
+
+        # 2. Ensure pre-insertion validity of node into this before null.
+        $this->preInsertionValidity($node);
+
+        # 3. Replace all with node within this.
+        while ($this->innerNode->hasChildNodes()) {
+            $this->innerNode->removeChild($this->innerNode->firstChild);
+        }
+
+        $this->appendChild($node);
+    }
+
     public function querySelector(string $selectors): ?Element {
         # The querySelector(selectors) method steps are to return the first result of
         # running scope-match a selectors string selectors against this, if the result
@@ -42,11 +100,11 @@ trait ParentNode {
      */
     public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
         if ($this instanceof DocumentFragment || (!$this instanceof DocumentFragment && !$includeReferenceNode)) {
-            $node = $node->firstChild;
+            $node = $this->innerNode->firstChild;
         }
 
         if ($node !== null) {
-            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
+            $doc = $this->getInnerDocument();
 
             do {
                 $next = $node->nextSibling;
@@ -63,11 +121,11 @@ trait ParentNode {
                     continue 2;
                     case Node::WALK_REJECT:
                     break;
-                    default: return;
+                    default: throw new DOMException(DOMException::SYNTAX_ERROR);
                 }
 
                 if ($node->parentNode !== null && $node->hasChildNodes()) {
-                    yield from $node->walk($filter);
+                    yield from $wrapperNode->walk($filter);
                 }
             } while ($node = $next);
         }
@@ -98,37 +156,5 @@ trait ParentNode {
         #    using scoping root node. [SELECTORS4].
         $nodeList = $this->getInnerDocument()->xpath->query($s, $this->innerNode);
         return $nodeList;
-    }
-
-    protected function walkInner(\DOMNode $node, ?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
-        if (!$node instanceof DocumentFragment && !$includeReferenceNode) {
-            $node = $node->firstChild;
-        }
-
-        if ($node !== null) {
-            $doc = (!$node instanceof InnerDocument) ? $node->ownerDocument : $node;
-
-            do {
-                $next = $node->nextSibling;
-                $result = ($filter === null) ? Node::WALK_ACCEPT : $filter($node);
-
-                switch ($result) {
-                    case Node::WALK_ACCEPT:
-                        yield $node;
-                    break;
-                    case Node::WALK_ACCEPT | Node::WALK_SKIP_CHILDREN:
-                        yield $node;
-                    case Node::WALK_REJECT | Node::WALK_SKIP_CHILDREN:
-                    continue 2;
-                    case Node::WALK_REJECT:
-                    break;
-                    default: return;
-                }
-
-                if ($node->parentNode !== null && $node->hasChildNodes()) {
-                    yield from $this->walkInner($node, $filter);
-                }
-            } while ($node = $next);
-        }
     }
 }

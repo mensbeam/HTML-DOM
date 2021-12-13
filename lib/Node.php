@@ -981,6 +981,33 @@ abstract class Node {
         return false;
     }
 
+    protected function convertNodesToNode(array $nodes): Node {
+        # To convert nodes into a node, given nodes and document, run these steps:
+        # 1. Let node be null.
+        # 2. Replace each string in nodes with a new Text node whose data is the string
+        #    and node document is document.
+        # 3. If nodes contains one node, then set node to nodes[0].
+        # 4. Otherwise, set node to a new DocumentFragment node whose node document is
+        #    document, and then append each node in nodes, if any, to it.
+        // The spec would have us iterate through the provided nodes and then iterate
+        // through them again to append. Let's optimize this a wee bit, shall we?
+        $doc = (!$this instanceof Document) ? $this->ownerDocument : $this;
+        $node = (count($nodes) !== 1) ? $doc->createDocumentFragment() : null;
+        foreach ($nodes as $k => $n) {
+            if (is_string($n)) {
+                $n = $doc->createTextNode($n);
+            }
+
+            if ($node !== null) {
+                $node->appendChild($n);
+            } else {
+                $node = $n;
+            }
+        }
+
+        return $node;
+    }
+
     protected function getInnerDocument(): InnerDocument {
         return ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
     }
@@ -1231,18 +1258,9 @@ abstract class Node {
         // below walks through this node and temporarily replaces foreign descendants
         // with bullshit elements which are then replaced once the node is inserted.
         if ($element->namespaceURI === null && ($this instanceof DocumentFragment || $this->getRootNode() !== null) && $element->hasChildNodes()) {
-            // XPath can't easily match just unprefixed elements, so we have to do this the
-            // old fashioned way by walking the DOM.
-            $foreign = $this->walkInner($element, function(\DOMNode $n) {
-                if ($n instanceof \DOMElement && ($n->parentNode !== null && $n->parentNode->namespaceURI === null) && $n->namespaceURI !== null && $n->prefix === '') {
-                    return self::WALK_ACCEPT | self::WALK_SKIP_CHILDREN;
-                }
-
-                return self::WALK_REJECT;
-            });
-
+            $foreign = $element->ownerDocument->xpath->query('.//*[parent::*[namespace-uri()=""] and not(namespace-uri()="") and name()=local-name()]', $element);
             $this->bullshitReplacements = [];
-            if ($foreign->current() !== null) {
+            if ($foreign->length > 0) {
                 $count = 0;
                 $doc = $this->getInnerDocument();
                 foreach ($foreign as $f) {

@@ -17,7 +17,8 @@ use MensBeam\HTML\Parser,
 
 
 class Element extends Node {
-    use ChildNode, DocumentOrElement, ParentNode;
+    use ChildNode, DocumentOrElement, NonDocumentTypeChildNode, ParentNode;
+
 
     protected function __get_attributes(): NamedNodeMap {
         // NamedNodeMaps cannot be created from their constructors normally.

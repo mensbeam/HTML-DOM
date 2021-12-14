@@ -18,6 +18,49 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\ChildNode */
 class TestChildNode extends \PHPUnit\Framework\TestCase {
+    /**
+     * @covers \MensBeam\HTML\DOM\ChildNode::after
+     * @covers \MensBeam\HTML\DOM\ChildNode::before
+     * @covers \MensBeam\HTML\DOM\ChildNode::replaceWith
+     *
+     * @covers \MensBeam\HTML\DOM\Comment::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createComment
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::__toString
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::containsInner
+     * @covers \MensBeam\HTML\DOM\Node::convertNodesToNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::insertBefore
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Node::replaceChild
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
     public function testMethod_after_before_replaceWith(): void {
         $d = new Document();
         $d->appendChild($d->createElement('html'));
@@ -63,5 +106,41 @@ class TestChildNode extends \PHPUnit\Framework\TestCase {
         // Parent within node
         $o->replaceWith('poo', $o, $e);
         $this->assertSame('<body><span></span>eekackpooookeek<div></div><span></span>eek<div></div></body>', (string)$body);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\ChildNode::remove
+     * 
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Node::removeChild
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_remove(): void {
+        $d = new Document('<!DOCTYPE html><html><body></body></html>');
+        $body = $d->body;
+        $body->remove();
+        $this->assertNull($d->body);
+
+        // Test removal of an element without a parent.
+        $body->remove();
     }
 }

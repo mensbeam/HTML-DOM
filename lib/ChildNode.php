@@ -94,9 +94,21 @@ trait ChildNode {
         $parent->insertBefore($node, $viablePreviousSibling);
     }
 
+    public function remove(): void {
+        # The remove() method steps are:
+        # 1. If this’s parent is null, then return.
+        if ($this->parentNode === null) {
+            return;
+        }
+
+        # 2. Remove this.
+        $this->parentNode->removeChild($this);
+    }
+
     public function replaceWith(Node|string ...$nodes): void {
         // Before exists in PHP DOM, but it can insert incorrect nodes because of PHP
         // DOM's incorrect (for HTML) pre-insertion validation.
+
         # The replaceWith(nodes) method steps are:
         #
         # 1. Let parent be this’s parent.

@@ -27,6 +27,8 @@ class TestNonDocumentTypeChildNode extends \PHPUnit\Framework\TestCase {
         $br2 = $body->appendChild($d->createElement('br'));
 
         $this->assertSame($br2, $br->nextElementSibling);
+        $this->assertNull($br2->nextElementSibling);
         $this->assertSame($br, $ook->previousElementSibling);
+        $this->assertNull($br->previousElementSibling);
     }
 }

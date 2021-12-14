@@ -18,9 +18,10 @@ class Attr extends Node {
     }
 
     protected function __get_name(): string {
-        // PHP's DOM does this correctly already.
+        // PHP's DOM incorrectly returns the local name instead of the qualified name
+        // per the specification.
         // Need to uncoerce string if necessary.
-        $name = $this->innerNode->name;
+        $name = $this->innerNode->nodeName;
         return (!str_contains(needle: 'U', haystack: $name)) ? $name : $this->uncoerceName($name);
     }
 

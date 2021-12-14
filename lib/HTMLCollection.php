@@ -45,4 +45,8 @@ class HTMLCollection extends Collection {
     public function offsetGet($offset): ?Element {
         return (is_int($offset)) ? $this->item($offset) : $this->namedItem($offset);
     }
+
+    public function offsetExists($offset): bool {
+        return (((is_int($offset)) ? $this->item($offset) : $this->namedItem($offset)) !== null);
+    }
 }

@@ -19,12 +19,14 @@
       <file>cases/TestAttr.php</file>
       <file>cases/TestCharacterData.php</file>
       <file>cases/TestChildNode.php</file>
+      <file>cases/TestCollection.php</file>
       <file>cases/TestDocument.php</file>
       <file>cases/TestDocumentOrElement.php</file>
       <file>cases/TestDOMImplementation.php</file>
       <file>cases/TestDOMTokenList.php</file>
       <file>cases/TestElement.php</file>
       <file>cases/TestInnerDocument.php</file>
+      <file>cases/TestNamedNodeMap.php</file>
       <file>cases/TestNode.php</file>
       <file>cases/TestNonDocumentTypeChildNode.php</file>
       <file>cases/TestParentNode.php</file>

@@ -27,7 +27,7 @@ class TestAttr extends \PHPUnit\Framework\TestCase {
         // Coerced name
         $this->assertSame('poop💩', $body->getAttributeNode('poop💩')->name);
         // Foreign attribute name
-        $this->assertSame('xlink', $svg->getAttributeNodeNS(Node::XMLNS_NAMESPACE, 'xlink')->name);
+        $this->assertSame('xmlns:xlink', $svg->getAttributeNodeNS(Node::XMLNS_NAMESPACE, 'xlink')->name);
     }
 
     public function testProperty_prefix(): void {

@@ -75,11 +75,23 @@ class NamedNodeMap extends Collection {
         $innerDocument = $innerElement->ownerDocument;
         $attributes = $innerElement->attributes;
         if ($attributes->length > 0) {
-            $coercedOffset = $this->coerceName($offset);
+            if (strpos(needle: ':', haystack: $offset) !== false) {
+                $coercedOffset = implode(':', array_map([$this, 'coerceName'], explode(':', $offset, 2)));
+            } else {
+                $coercedOffset = $this->coerceName($offset);
+            }
+
+            $document = $this->element->ownerDocument;
 
             foreach ($attributes as $attr) {
                 $name = $attr->nodeName;
-                if ($this->element->namespaceURI === Node::HTML_NAMESPACE && $name !== strtolower($name)) {
+
+                // Coercion causes uppercase characters to be used, causing this part of the
+                // specification's instructions to fail. Circumvent this by checking for the
+                // presence of a coerced name.
+                if ($this->element->namespaceURI === Node::HTML_NAMESPACE && !$document instanceof XMLDocument && !preg_match('/U[0-9A-F]{6}/', $name) && $name !== strtolower($name)) {
+                    // This can only be reached if an attribute is created on an XML document,
+                    // imported into an HTML document, and then appended to an element.
                     continue;
                 }
 
@@ -105,7 +117,10 @@ class NamedNodeMap extends Collection {
         #
         # 1. Let attr be the result of removing an attribute given namespace, localName,
         # and element.
-        $attr = $this->element->removeAttributeNode($namespace, $localName);
+        // Going to get the attribute node instead here. The result at the end will be
+        // the same.
+
+        $attr = $this->element->getAttributeNodeNS($namespace, $localName);
 
         # 2. If attr is null, then throw a "NotFoundError" DOMException.
         if ($attr === null) {
@@ -113,16 +128,16 @@ class NamedNodeMap extends Collection {
         }
 
         # 3. Return attr.
-        return $attr;
+        return $this->element->removeAttributeNode($attr);
     }
 
-    public function setNamedItem(string $attr): ?Attr {
+    public function setNamedItem(Attr $attr): ?Attr {
         # The setNamedItem(attr) and setNamedItemNS(attr) method steps are to return the
         # result of setting an attribute given attr and element.
         return $this->element->setAttributeNode($attr);
     }
 
-    public function setNamedItemNS(string $attr): ?Attr {
+    public function setNamedItemNS(Attr $attr): ?Attr {
         # The setNamedItem(attr) and setNamedItemNS(attr) method steps are to return the
         # result of setting an attribute given attr and element.
         return $this->element->setAttributeNode($attr);

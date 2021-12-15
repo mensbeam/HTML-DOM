@@ -25,6 +25,7 @@
       <file>cases/TestDOMImplementation.php</file>
       <file>cases/TestDOMTokenList.php</file>
       <file>cases/TestElement.php</file>
+      <file>cases/TestHTMLCollection.php</file>
       <file>cases/TestInnerDocument.php</file>
       <file>cases/TestNamedNodeMap.php</file>
       <file>cases/TestNode.php</file>

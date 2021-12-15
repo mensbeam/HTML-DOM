@@ -43,10 +43,43 @@ class HTMLCollection extends Collection {
     }
 
     public function offsetGet($offset): ?Element {
-        return (is_int($offset)) ? $this->item($offset) : $this->namedItem($offset);
+        if (is_int($offset)) {
+            return $this->item($offset);
+        }
+
+        # The supported property names are the values from the list returned by these
+        # steps:
+        # 1. Let result be an empty list.
+        # 2. For each element represented by the collection, in tree order:
+        #    1. If element has an ID which is not in result, append element’s ID to
+        #       result.
+        #    2. If element is in the HTML namespace and has a name attribute whose value is
+        #       neither the empty string nor is in result, append element’s name attribute value
+        #       to result.
+        # 3. Return result.
+        // The spec is extremely vague as to what to do here, but it seems to expect
+        // this to be some sort of live private property that the class will poll to
+        // check for valid property names when trying to access them. This is
+        // inefficient. Going to do basically the same thing but not return a list of
+        // every one. It will just search the list instead using the same process.
+
+        $document = $this->innerDocument->wrapperNode;
+        foreach ($this->innerCollection as $node) {
+            if ($node->getAttribute('id') === $offset) {
+                return $this->innerDocument->getWrapperNode($node);
+            }
+        }
+
+        foreach ($this->innerCollection as $node) {
+            if (!$document instanceof XMLDocument && $node->namespaceURI === null && $node->getAttribute('name') === $offset) {
+                return $this->innerDocument->getWrapperNode($node);
+            }
+        }
+
+        return null;
     }
 
     public function offsetExists($offset): bool {
-        return (((is_int($offset)) ? $this->item($offset) : $this->namedItem($offset)) !== null);
+        return ($this->offsetGet($offset) !== null);
     }
 }

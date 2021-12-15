@@ -56,8 +56,6 @@ class NamedNodeMap extends Collection {
 
         # A NamedNodeMap object’s supported property names are the return value of running
         # these steps:
-        # 1. Let names be the qualified names of the attributes in this NamedNodeMap object’s
-        #    attribute list, with duplicates omitted, in order.
         // The spec is extremely vague as to what to do here, but it seems to expect
         // this to be some sort of live private property that the class will poll to
         // check for valid property names when trying to access them. This is
@@ -65,6 +63,8 @@ class NamedNodeMap extends Collection {
         // every one. It will just search the element's attribute list instead using the
         // same process.
 
+        # 1. Let names be the qualified names of the attributes in this NamedNodeMap object’s
+        #    attribute list, with duplicates omitted, in order.
         # 2. If this NamedNodeMap object’s element is in the HTML namespace and its node
         #    document is an HTML document, then for each name in names:
         #    1. Let lowercaseName be name, in ASCII lowercase.
@@ -105,7 +105,7 @@ class NamedNodeMap extends Collection {
     }
 
     public function offsetExists($offset): bool {
-        return (((is_int($offset)) ? $this->item($offset) : $this->getNamedItem($offset)) !== null);
+        return ($this->offsetGet($offset) !== null);
     }
 
     public function removeNamedItem(string $qualifiedName): ?Attr {

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
+    NodeCache,
     Reflection
 };
 use MensBeam\HTML\Parser;
@@ -22,6 +23,8 @@ use MensBeam\HTML\Parser\{
 class Document extends Node implements \ArrayAccess {
     use DocumentOrElement, NonElementParentNode, ParentNode;
 
+
+    protected static ?NodeCache $cache = null;
     protected string $_characterSet = 'UTF-8';
     protected string $_compatMode = 'CSS1Compat';
     protected string $_contentType = 'text/html';
@@ -295,6 +298,16 @@ class Document extends Node implements \ArrayAccess {
         } elseif ($charset !== 'UTF-8') {
             $this->_characterSet = Charset::fromCharset((string)$charset) ?? 'UTF-8';
         }
+
+        // This cache is used to prevent "must not be accessed before initialization"
+        // errors because of PHP's garbage... garbage collection.
+        if (self::$cache === null) {
+            // Pcov for some reason doesn't mark this line as being covered when it clearly
+            // is...
+            self::$cache = new NodeCache(); //@codeCoverageIgnore
+        }
+
+        self::$cache->set($this, $this->innerNode);
     }
 
 

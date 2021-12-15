@@ -31,6 +31,10 @@
       <file>cases/TestNode.php</file>
       <file>cases/TestNonDocumentTypeChildNode.php</file>
       <file>cases/TestParentNode.php</file>
+      <file>cases/TestProcessingInstruction.php</file>
     </testsuite>
+    <!--<testsuite name="Serializer">
+      <file>cases/TestSerializer.php</file>
+    </testsuite>-->
   </testsuites>
 </phpunit>

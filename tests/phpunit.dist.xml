@@ -33,8 +33,8 @@
       <file>cases/TestParentNode.php</file>
       <file>cases/TestProcessingInstruction.php</file>
     </testsuite>
-    <!--<testsuite name="Serializer">
+    <testsuite name="Serializer">
       <file>cases/TestSerializer.php</file>
-    </testsuite>-->
+    </testsuite>
   </testsuites>
 </phpunit>

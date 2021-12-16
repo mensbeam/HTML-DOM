@@ -16,6 +16,10 @@ use MensBeam\HTML\Parser\{
 
 
 class Serializer extends ParserSerializer {
+    protected static function fragmentHasHost(\DOMDocumentFragment $fragment): bool {
+        return (Reflection::getProtectedProperty($fragment->ownerDocument->getWrapperNode($fragment), 'host') !== null);
+    }
+
     protected static function getTemplateContent(\DOMElement $node): \DOMNode {
         return Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($node)->content, 'innerNode');
     }
@@ -39,12 +43,16 @@ class Serializer extends ParserSerializer {
     }
 
     protected static function treatAsBlockWithTemplates(\DOMNode $node): bool {
-        $xpath = $node->ownerDocument->xpath;
-        $templates = $xpath->query('.//template[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"][not(ancestor::iframe[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::listing[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noembed[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noframes[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noscript[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::plaintext[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::pre[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::style[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::script[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::textarea[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::title[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::xmp[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"])]', $node);
+        $parent = $node->parentNode ?? $node;
+        $document = $node->ownerDocument;
+        $xpath = $document->xpath;
+        $templates = $xpath->query('.//template[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"][not(ancestor::iframe[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::listing[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noembed[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noframes[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noscript[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::plaintext[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::pre[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::style[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::script[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::textarea[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::title[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::xmp[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"])]', $parent);
 
         foreach ($templates as $t) {
-            $content = Reflection::getProtectedProperty($t->ownerDocument->getWrapperNode($t)->content, 'innerNode');
-            if ($xpath->evaluate(self::BLOCK_QUERY, $content) > 0) {
+            $content = static::getTemplateContent($t);
+            $result = ($xpath->evaluate(self::BLOCK_QUERY, $content) > 0);
+
+            if ($result || static::treatAsBlockWithTemplates($content)) {
                 return true;
             }
         }
@@ -56,24 +64,14 @@ class Serializer extends ParserSerializer {
         // NOTE: This method is used only when pretty printing. Implementors of userland
         // PHP DOM solutions with template contents will need to extend this method to
         // be able to moonwalk through document fragment hosts.
-
         $n = $node;
         do {
-            if ($n instanceof \DOMDocumentFragment) {
-                $host = Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($n), 'host');
-                if ($host !== null) {
-                    $n = Reflection::getProtectedProperty($host->get(), 'innerNode');
-                } else {
-                    return true;
-                }
-            } else {
-                if ($n->parentNode !== null && ($n->parentNode->namespaceURI ?? Parser::HTML_NAMESPACE) !== Parser::HTML_NAMESPACE) {
-                    continue;
-                }
+            if ($n->parentNode !== null && ($n->parentNode->namespaceURI ?? Parser::HTML_NAMESPACE) !== Parser::HTML_NAMESPACE) {
+                continue;
+            }
 
-                if (self::treatAsBlock($n->parentNode)) {
-                    return true;
-                }
+            if (self::treatAsBlock($n->parentNode)) {
+                return true;
             }
 
             break;

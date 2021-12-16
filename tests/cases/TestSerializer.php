@@ -18,6 +18,46 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\Serializer */
 class TestSerializer extends \PHPUnit\Framework\TestCase {
+    /**
+     * @covers \MensBeam\HTML\DOM\Serializer::isPreformattedContent
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::createElement
+     * @covers \MensBeam\HTML\DOM\Document::createTextNode
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
+     * @covers \MensBeam\HTML\DOM\Serializer::getTemplateContent
+     * @covers \MensBeam\HTML\DOM\Text::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
+
     public function testMethod_isPreformattedContent(): void {
         $d = new Document('<pre><code></code></pre>');
         $this->assertSame(<<<HTML
@@ -45,6 +85,45 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\Serializer::treatAsBlockWithTemplates
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Serializer::fragmentHasHost
+     * @covers \MensBeam\HTML\DOM\Serializer::getTemplateContent
+     * @covers \MensBeam\HTML\DOM\Serializer::isPreformattedContent
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
     public function testMethod_treatAsBlockWithTemplates(): void {
         $d = new Document('<span>ook</span><template><div>ook</div></template>');
 
@@ -130,7 +209,54 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
         ];
     }
 
-    /** @dataProvider provideMethod_treatForeignRootAsBlock */
+
+    /**
+     * @dataProvider provideMethod_treatForeignRootAsBlock
+     * @covers \MensBeam\HTML\DOM\Serializer::treatForeignRootAsBlock
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\Document::serialize
+     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagNameNS
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
+     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
+     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
+     * @covers \MensBeam\HTML\DOM\Node::getRootNode
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Serializer::fragmentHasHost
+     * @covers \MensBeam\HTML\DOM\Serializer::isPreformattedContent
+     * @covers \MensBeam\HTML\DOM\Serializer::treatAsBlockWithTemplates
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
+     */
     public function testMethod_treatForeignRootAsBlock(\Closure $closure, string $expected): void {
         $this->assertSame($expected, $closure());
     }

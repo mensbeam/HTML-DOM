@@ -85,7 +85,7 @@ class Document extends \DOMDocument {
             $className = 'DocumentType';
         } elseif ($node instanceof \DOMElement) {
             $namespace = $node->namespaceURI;
-            if ($namespace === null) {
+            if ($namespace === null && !$this->wrapperNode instanceof WrapperXMLDocument) {
                 # The element interface for an element with name name in the HTML namespace is
                 # determined as follows:
 

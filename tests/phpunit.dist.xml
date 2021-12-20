@@ -34,6 +34,8 @@
       <file>cases/TestProcessingInstruction.php</file>
       <file>cases/TestText.php</file>
       <file>cases/TestXMLDocument.php</file>
+      <file>cases/TestXPathEvaluate.php</file>
+      <file>cases/TestXPathEvaluator.php</file>
     </testsuite>
     <testsuite name="Serializer">
       <file>cases/TestSerializer.php</file>

@@ -63,7 +63,7 @@
             "source": {
                 "type": "git",
                 "url": "mensbeam-gitea:MensBeam/HTML-Parser.git",
-                "reference": "b90806860312fad8f6da763656784a8a6cf880b0"
+                "reference": "37f0fa8647ead67e5e9f356efe91df8825094ee8"
             },
             "require": {
                 "ext-dom": "*",
@@ -130,7 +130,7 @@
                 "parsing",
                 "whatwg"
             ],
-            "time": "2021-12-16T15:29:51+00:00"
+            "time": "2021-12-16T20:25:19+00:00"
         },
         {
             "name": "mensbeam/intl",

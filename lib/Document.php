@@ -21,7 +21,7 @@ use MensBeam\HTML\Parser\{
 
 
 class Document extends Node implements \ArrayAccess {
-    use DocumentOrElement, NonElementParentNode, ParentNode;
+    use DocumentOrElement, NonElementParentNode, ParentNode, XPathEvaluatorBase;
 
 
     protected static ?NodeCache $cache = null;
@@ -732,6 +732,14 @@ class Document extends Node implements \ArrayAccess {
     public function offsetUnset(mixed $offset): void {
         // The specification is vague as to what to do here. Browsers silently fail, so
         // that's what we're going to do.
+    }
+
+    public function registerXPathFunctions(string|array|null $restrict = null): void {
+        $this->xpathRegisterPhpFunctions($this, $restrict);
+    }
+
+    public function registerXPathNamespace(string $prefix, string $namespace): bool {
+        return $this->xpathRegisterNamespace($this, $prefix, $namespace);
     }
 
     public function serialize(?Node $node = null, array $config = []): string {

@@ -36,6 +36,7 @@ class Document extends \DOMDocument {
     protected function __get_xpath(): \DOMXPath {
         if ($this->_xpath === null) {
             $this->_xpath = new \DOMXPath($this);
+            $this->_xpath->registerNamespace('xmlns', WrapperNode::XMLNS_NAMESPACE);
         }
 
         return $this->_xpath;

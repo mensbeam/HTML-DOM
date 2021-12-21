@@ -9,4 +9,16 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
-interface XPathNSResolver {}
+class XPathNSResolver {
+    protected Node $nodeResolver;
+
+
+    protected function __construct(Node $nodeResolver) {
+        $this->nodeResolver = $nodeResolver;
+    }
+
+
+    public function lookupNamespaceURI(?string $prefix): ?string {
+        return $this->nodeResolver->lookupNamespaceURI($prefix);
+    }
+}

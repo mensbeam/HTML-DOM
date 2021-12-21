@@ -11,21 +11,34 @@ use MensBeam\HTML\DOM\Inner\Reflection;
 
 
 trait XPathEvaluate {
-    protected function xpathEvaluate(string $expression, Node $contextNode, int $type = XPathResult::ANY_TYPE, ?XPathResult $result = null): XPathResult {
+    protected function xpathErrorHandler(int $errno, string $errstr, string $errfile, int $errline) {
+        $lowerErrstr = strtolower($errstr);
+        if (str_contains(needle: 'invalid expression', haystack: $lowerErrstr)) {
+            throw new XPathException(XPathException::INVALID_EXPRESSION);
+        }
+
+        if (str_contains(needle: 'undefined namespace prefix', haystack: $lowerErrstr)) {
+            throw new XPathException(XPathException::UNRESOLVABLE_NAMESPACE_PREFIX);
+        }
+    } // @codeCoverageIgnore
+
+    protected function xpathEvaluate(string $expression, Node $contextNode, ?XPathNSResolver $resolver = null, int $type = XPathResult::ANY_TYPE, ?XPathResult $result = null): XPathResult {
         $innerContextNode = Reflection::getProtectedProperty($contextNode, 'innerNode');
         $doc = ($innerContextNode instanceof \DOMDocument) ? $innerContextNode : $innerContextNode->ownerDocument;
 
-        set_error_handler(function(int $errno, string $errstr, string $errfile, int $errline) {
-            $lowerErrstr = strtolower($errstr);
-
-            if (str_contains(needle: 'invalid expression', haystack: $lowerErrstr)) {
-                throw new XPathException(XPathException::INVALID_EXPRESSION);
+        if ($resolver !== null && preg_match_all('/([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]+):([A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}][A-Z_a-z\x{C0}-\x{D6}\x{D8}-\x{F6}\x{F8}-\x{2FF}\x{370}-\x{37D}\x{37F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}-\.0-9\x{B7}\x{0300}-\x{036F}\x{203F}-\x{2040}]+)/u', $expression, $m, \PREG_SET_ORDER)) {
+            foreach ($m as $prefix) {
+                $prefix = $prefix[1];
+                if ($namespace = $contextNode->lookupNamespaceURI($prefix)) {
+                    $doc->xpath->registerNamespace($prefix, $namespace);
+                }
             }
+        }
 
-            if (str_contains(needle: 'undefined namespace prefix', haystack: $lowerErrstr)) {
-                throw new XPathException(XPathException::UNDEFINED_NAMESPACE_PREFIX);
-            }
-        });
+        // PHP's DOM XPath incorrectly issues a warnings rather than exceptions when
+        // expressions are incorrect, so we must use a custom error handler here to
+        // "catch" it and throw an exception in its place.
+        set_error_handler([ $this, 'xpathErrorHandler' ]);
         $result = $doc->xpath->evaluate($expression, $innerContextNode);
         restore_error_handler();
 
@@ -128,9 +141,5 @@ trait XPathEvaluate {
 
     protected function xpathRegisterPhpFunctions(Document $document, string|array|null $restrict = null): void {
         Reflection::getProtectedProperty($document, 'innerNode')->xpath->registerPhpFunctions($restrict);
-    }
-
-    protected function xpathRegisterNamespace(Document $document, string $prefix, string $namespace): bool {
-        return Reflection::getProtectedProperty($document, 'innerNode')->xpath->registerNamespace($prefix, $namespace);
     }
 }

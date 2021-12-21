@@ -16,8 +16,4 @@ class XPathEvaluator {
     public function registerXPathFunctions(Document $document, string|array|null $restrict = null): void {
         $this->xpathRegisterPhpFunctions($document, $restrict);
     }
-
-    public function registerXPathNamespace(Document $document, string $prefix, string $namespace): bool {
-        return $this->xpathRegisterNamespace($document, $prefix, $namespace);
-    }
 }

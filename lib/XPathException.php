@@ -13,13 +13,13 @@ use MensBeam\Framework\Exception;
 class XPathException extends Exception {
     public const INVALID_EXPRESSION = 51;
     public const TYPE_ERROR = 52;
-    public const UNDEFINED_NAMESPACE_PREFIX = 53;
+    public const UNRESOLVABLE_NAMESPACE_PREFIX = 53;
 
     public function __construct(int $code, ...$args) {
         self::$messages = array_replace(parent::$messages, [
               51 => 'Invalid expression error',
               52 => 'Expression cannot be converted to the specified type',
-              53 => 'Undefined namespace prefix'
+              53 => 'Unresolvable namespace prefix'
         ]);
 
         parent::__construct($code, ...$args);

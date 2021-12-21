@@ -63,12 +63,12 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
         return $node->ownerDocument->getWrapperNode($node);
     }
 
-    protected function __get_snapshotLength(): bool {
+    protected function __get_snapshotLength(): int {
         if (!in_array($this->_resultType, [ self::ORDERED_NODE_SNAPSHOT_TYPE, self::UNORDERED_NODE_SNAPSHOT_TYPE ])) {
             throw new XPathException(XPathException::TYPE_ERROR);
         }
 
-        return $this->count;
+        return $this->count();
     }
 
     protected function __get_stringValue(): string {
@@ -100,6 +100,10 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
     public function iterateNext(): ?Node {
         if (!in_array($this->_resultType, [ self::ORDERED_NODE_ITERATOR_TYPE, self::UNORDERED_NODE_ITERATOR_TYPE ])) {
             throw new XPathException(XPathException::TYPE_ERROR);
+        }
+
+        if ($this->position + 1 > $this->count()) {
+            return null;
         }
 
         $node = $this->storage[$this->position++];

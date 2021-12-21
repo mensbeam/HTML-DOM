@@ -22,18 +22,40 @@ class TestXPathEvaluate extends \PHPUnit\Framework\TestCase {
     /**
      * @covers \MensBeam\HTML\DOM\XPathEvaluate::xpathEvaluate
      *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_localName
+     * @covers \MensBeam\HTML\DOM\Attr::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Attr::__get_ownerElement
+     * @covers \MensBeam\HTML\DOM\Attr::__set_value
      * @covers \MensBeam\HTML\DOM\Document::__construct
      * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::createAttributeNS
+     * @covers \MensBeam\HTML\DOM\Document::createElementNS
      * @covers \MensBeam\HTML\DOM\Document::load
      * @covers \MensBeam\HTML\DOM\Document::registerXPathFunctions
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
+     * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::locateNamespace
+     * @covers \MensBeam\HTML\DOM\Node::lookupNamespaceURI
+     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
+     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
      * @covers \MensBeam\HTML\DOM\XPathEvaluate::xpathRegisterPhpFunctions
+     * @covers \MensBeam\HTML\DOM\XPathEvaluatorBase::createNSResolver
      * @covers \MensBeam\HTML\DOM\XPathEvaluatorBase::evaluate
+     * @covers \MensBeam\HTML\DOM\XPathNSResolver::__construct
      * @covers \MensBeam\HTML\DOM\XPathResult::__construct
      * @covers \MensBeam\HTML\DOM\XPathResult::__get_booleanValue
      * @covers \MensBeam\HTML\DOM\XPathResult::__get_numberValue
@@ -80,6 +102,10 @@ class TestXPathEvaluate extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(3, count($result));
         $result = $d->evaluate('.//span', $d->body, null, XPathResult::FIRST_ORDERED_NODE_TYPE);
         $this->assertSame($d->body->firstChild, $result->singleNodeValue);
+
+        $d->documentElement->setAttributeNS(Node::XMLNS_NAMESPACE, 'xmlns:poop', 'https://poop.poop');
+        $poop = $d->body->appendChild($d->createElementNS('https://poop.poop', 'poop:poop'));
+        $this->assertSame($poop, $d->evaluate('//poop:poop', $d->body, $d->createNSResolver($d->body), XPathResult::FIRST_ORDERED_NODE_TYPE)->singleNodeValue);
     }
 
 
@@ -132,7 +158,7 @@ class TestXPathEvaluate extends \PHPUnit\Framework\TestCase {
                 $d->evaluate('//svg:svg', $d, null);
             },
             XPathException::class,
-            XPathException::UNDEFINED_NAMESPACE_PREFIX ],
+            XPathException::UNRESOLVABLE_NAMESPACE_PREFIX ],
 
             [ function() {
                 $d = new Document();
@@ -164,34 +190,5 @@ class TestXPathEvaluate extends \PHPUnit\Framework\TestCase {
         $this->expectException($errorClass);
         $this->expectExceptionCode($errorCode);
         $closure();
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\XPathEvaluate::xpathRegisterNamespace
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\Document::registerXPathNamespace
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\XPathEvaluate::xpathEvaluate
-     * @covers \MensBeam\HTML\DOM\XPathEvaluatorBase::evaluate
-     * @covers \MensBeam\HTML\DOM\XPathResult::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     */
-    function testMethod_xpathRegisterNamespace(): void {
-        $d = new Document('<!DOCTYPE html><html><body><svg></svg></body></html>');
-        $d->registerXPathNamespace('svg', Node::SVG_NAMESPACE);
-        $this->assertEquals(1, count($d->evaluate('//svg:svg', $d)));
     }
 }

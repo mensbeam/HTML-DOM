@@ -738,10 +738,6 @@ class Document extends Node implements \ArrayAccess {
         $this->xpathRegisterPhpFunctions($this, $restrict);
     }
 
-    public function registerXPathNamespace(string $prefix, string $namespace): bool {
-        return $this->xpathRegisterNamespace($this, $prefix, $namespace);
-    }
-
     public function serialize(?Node $node = null, array $config = []): string {
         $node = $node ?? $this;
         if ($node !== $this) {

@@ -11,6 +11,10 @@ use MensBeam\Framework\Exception;
 
 
 class DOMException extends Exception {
+    // DEVIATION (kinda): The specification states clearly that using the old
+    // integer values for exceptions has been deprecated, but all the browsers
+    // continue to honor them even if they're not explicitly used. Besides, it's
+    // bonkers to create numerous exception classes for each error type.
     public const INDEX_SIZE_ERROR = 1;
     public const HIERARCHY_REQUEST_ERROR = 3;
     public const WRONG_DOCUMENT = 4;

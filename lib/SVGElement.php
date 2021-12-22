@@ -9,4 +9,6 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
-class SVGElement extends Element {}
+class SVGElement extends Element {
+    use HTMLOrSVGElement;
+}

@@ -56,9 +56,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         # When a DOMTokenList object is created, then:
         #
         # 1. Let element be associated element.
-        // Using a weak reference here to prevent a circular reference. We should be
-        // creating a weak reference to the inner element, but there are memory
-        // management issues concerning PHP's garbage reference counting.
+        // Using a weak reference here to prevent a circular reference.
         $this->element = \WeakReference::create($element);
         # 2. Let localName be associated attribute’s local name.
         $this->localName = $attributeLocalName;

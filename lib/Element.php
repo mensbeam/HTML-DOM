@@ -106,33 +106,6 @@ class Element extends Node {
         }
     }
 
-    protected function __get_innerText(): ?string {
-        # The innerText and outerText getter steps are:
-        # 1. If this is not being rendered or if the user agent is a non-CSS user agent,
-        #    then return this's descendant text content.
-        // This is a non-CSS user agent. Nothing else to do here.
-        return $this->__get_textContent();
-    }
-
-    protected function __set_innerText(string $value): void {
-        # The innerText setter steps are:
-        # 1. Let fragment be the rendered text fragment for the given value given this's node
-        #    document.
-        $fragment = $this->getRenderedTextFragment($value);
-
-        # 2. Replace all with fragment within this.
-        $innerNode = $this->innerNode;
-        $children = $innerNode->childNodes;
-        while ($innerNode->hasChildNodes()) {
-            $innerNode->removeChild($innerNode->firstChild);
-        }
-
-        // Check for child nodes before appending to prevent a stupid warning.
-        if ($fragment->hasChildNodes()) {
-            $innerNode->appendChild($fragment);
-        }
-    }
-
     protected function __get_localName(): ?string {
         // PHP's DOM does this correctly already.
         return $this->innerNode->localName;
@@ -192,77 +165,6 @@ class Element extends Node {
         # 6. Replace the context object with fragment within the context object's
         #    parent.
         $parent->replaceChild($fragment, $this);
-    }
-
-    protected function __get_outerText(): ?string {
-        # The innerText and outerText getter steps are:
-        # 1. If this is not being rendered or if the user agent is a non-CSS user agent,
-        #    then return this's descendant text content.
-        // This is a non-CSS user agent. Nothing else to do here.
-        return $this->__get_textContent();
-    }
-
-    protected function __set_outerText(string $value): void {
-        # The outerText setter steps are:
-        # 1. If this's parent is null, then throw a "NoModificationAllowedError"
-        # DOMException.
-        $innerNode = $this->innerNode;
-        if ($this->parentNode === null) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
-        }
-
-        # 2. Let next be this's next sibling.
-        $next = $innerNode->nextSibling;
-
-        # 3. Let previous be this's previous sibling.
-        $previous = $innerNode->previousSibling;
-
-        # 4. Let fragment be the rendered text fragment for the given value given this's node
-        #    document.
-        $fragment = $this->getRenderedTextFragment($value);
-
-        # 5. Replace this with fragment within this's parent.
-        // Check for child nodes before appending to prevent a stupid warning.
-        if ($fragment->hasChildNodes()) {
-            $innerNode->parentNode->replaceChild($fragment, $innerNode);
-        } else {
-            $innerNode->parentNode->removeChild($innerNode);
-        }
-
-        # 6. If next is non-null and next's previous sibling is a Text node, then merge
-        #    with the next text node given next's previous sibling.
-        if ($next !== null && $next->previousSibling instanceof \DOMText) {
-            # To merge with the next text node given a Text node node:
-            # 1. Let next be node's next sibling.
-            # 2. If next is not a Text node, then return.
-            // Already checked for
-
-            # 3. Replace data with node, node's data's length, 0, and next's data.
-            $next->previousSibling->data .= $next->data;
-
-            # 4. If next's parent is non-null, then remove next.
-            // DEVIATION: There are no mutation events in this implementation, so there's no
-            // reason to check for a parent here.
-            $next->parentNode->removeChild($next);
-        }
-
-        # 7. If previous is a Text node, then merge with the next text node given previous.
-        if ($previous instanceof \DOMText) {
-            # To merge with the next text node given a Text node node:
-            # 1. Let next be node's next sibling.
-            $next = $previous->nextSibling;
-
-            # 2. If next is not a Text node, then return.
-            if ($next instanceof \DOMText) {
-                # 3. Replace data with node, node's data's length, 0, and next's data.
-                $previous->data .= $next->data;
-
-                # 4. If next's parent is non-null, then remove next.
-                // DEVIATION: There are no mutation events in this implementation, so there's no
-                // reason to check for a parent here.
-                $next->parentNode->removeChild($next);
-            }
-        }
     }
 
     protected function __get_prefix(): ?string {

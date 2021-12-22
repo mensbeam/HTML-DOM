@@ -68,6 +68,40 @@ class Document extends Node implements \ArrayAccess {
         return $this->_contentType;
     }
 
+    protected function __get_dir(): string {
+        # The dir IDL attribute on Document objects must reflect the dir content attribute
+        # of the html element, if any, limited to only known values. If there is no such
+        # element, then the attribute must return the empty string and do nothing on
+        # setting.
+
+        # If a reflecting IDL attribute is a DOMString attribute whose content attribute
+        # is an enumerated attribute, and the IDL attribute is limited to only known
+        # values, then, on getting, the IDL attribute must return the keyword value
+        # associated with the state the attribute is in, if any, or the empty string if
+        # the attribute is in a state that has no associated keyword value or if the
+        # attribute is not in a defined state (e.g. the attribute is missing and there
+        # is no missing value default). If there are multiple keyword values for the
+        # state, then return the conforming one. If there are multiple conforming
+        # keyword values, then one will be designated the canonical keyword; choose that
+        # one.
+
+        $documentElement = $this->documentElement;
+        return ($documentElement !== null && $documentElement->namespaceURI === Node::HTML_NAMESPACE && $documentElement->tagName === 'html') ? $documentElement->dir : '';
+    }
+
+    protected function __set_dir(string $value): void {
+        # The dir IDL attribute on Document objects must reflect the dir content attribute
+        # of the html element, if any, limited to only known values. If there is no such
+        # element, then the attribute must return the empty string and do nothing on
+        # setting.
+
+        # On setting, the content attribute must be set to the specified new value.
+        $documentElement = $this->documentElement;
+        if ($documentElement !== null && $documentElement->namespaceURI === Node::HTML_NAMESPACE && $documentElement->tagName === 'html') {
+            $documentElement->dir = $value;
+        }
+    }
+
     protected function __get_doctype(): ?DocumentType {
         // PHP's DOM does this correctly already.
         $doctype = $this->innerNode->doctype;

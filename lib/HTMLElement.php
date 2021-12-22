@@ -12,7 +12,6 @@ namespace MensBeam\HTML\DOM;
 class HTMLElement extends Element {
     use HTMLOrSVGElement;
 
-
     protected function __get_accessKey(): string {
         # The accessKey IDL attribute must reflect the accesskey content attribute.
         return $this->getAttribute('accesskey') ?? '';
@@ -26,64 +25,19 @@ class HTMLElement extends Element {
         # The autocapitalize getter steps are to:
         #
         # 1. Let state be the own autocapitalization hint of this.
-        ## To compute the own autocapitalization hint of an element element, run the
-        ## following steps:
-        ## 1. If the autocapitalize content attribute is present on element, and its
-        ##    value is not the empty string, return the state of the attribute.
-        $value = $this->getAttribute('autocapitalize');
-        if ($value !== null && $value !== '') {
-            $state = $value;
-        }
-
-        ## 2. If element is an autocapitalize-inheriting element and has a non-null form
-        ##    owner, return the own autocapitalization hint of element's form owner.
-        // button fieldset input output select textarea
-        elseif (in_array($this->tagName, [ 'button', 'fieldset', 'input', 'output', 'select', 'textarea' ]))
-
-        ## 3. Return default.
-
+        $state = $this->autoCapitalizationHint($this);
 
         # 2. If state is default, then return the empty string.
+        if ($state === 'off') {
+            return '';
+        }
 
         # 3. If state is none, then return "none".
+        if ($state === 'none') {
 
         # 4. If state is sentences, then return "sentences".
 
         # 5. Return the keyword value corresponding to state.
-    }
-
-    protected function autoCapitalizationHint(HTMLElement $element): string {
-        # To compute the own autocapitalization hint of an element element, run the
-        # following steps:
-        # 1. If the autocapitalize content attribute is present on element, and its
-        #    value is not the empty string, return the state of the attribute.
-        $value = $this->getAttribute('autocapitalize');
-        if ($value !== null && $value !== '') {
-            return $value;
-        }
-
-        # 2. If element is an autocapitalize-inheriting element and has a non-null form
-        #    owner, return the own autocapitalization hint of element's form owner.
-        elseif (in_array($this->tagName, [ 'button', 'fieldset', 'input', 'output', 'select', 'textarea' ])) {
-            # A form-associated element can have a relationship with a form element, which
-            # is called the element's form owner. If a form-associated element is not
-            # associated with a form element, its form owner is said to be null.
-
-            # A form-associated element is, by default, associated with its nearest ancestor
-            # form element (as described below), but, if it is listed, may have a form
-            # attribute specified to override this.
-            
-            $n = $this;
-            while ($n = $this->parentNode) {
-                if ($n instanceof HTMLElement && $n->tagName === 'form') {
-                    return $this->autoCapitalizationHint($n);
-                }
-            }
-        }
-
-        ## 3. Return default.
-        // The default of this user agent is 'off'
-        return 'off';
     }
 
     protected function __get_contentEditable(): string {
@@ -509,5 +463,40 @@ class HTMLElement extends Element {
         # On setting, it must set the content attribute's value to "yes" if the new
         # value is true, and set the content attribute's value to "no" otherwise.
         $this->setAttribute('translate', ($value) ? 'yes' : 'no');
+    }
+
+
+    protected function autoCapitalizationHint(HTMLElement $element): string {
+        # To compute the own autocapitalization hint of an element element, run the
+        # following steps:
+        # 1. If the autocapitalize content attribute is present on element, and its
+        #    value is not the empty string, return the state of the attribute.
+        $value = $this->getAttribute('autocapitalize');
+        if ($value !== null && $value !== '') {
+            return $value;
+        }
+
+        # 2. If element is an autocapitalize-inheriting element and has a non-null form
+        #    owner, return the own autocapitalization hint of element's form owner.
+        elseif (in_array($this->tagName, [ 'button', 'fieldset', 'input', 'output', 'select', 'textarea' ])) {
+            # A form-associated element can have a relationship with a form element, which
+            # is called the element's form owner. If a form-associated element is not
+            # associated with a form element, its form owner is said to be null.
+
+            # A form-associated element is, by default, associated with its nearest ancestor
+            # form element (as described below), but, if it is listed, may have a form
+            # attribute specified to override this.
+
+            $n = $this;
+            while ($n = $this->parentNode) {
+                if ($n instanceof HTMLElement && $n->tagName === 'form') {
+                    return $this->autoCapitalizationHint($n);
+                }
+            }
+        }
+
+        ## 3. Return default.
+        // The default of this user agent is 'off'
+        return 'off';
     }
 }

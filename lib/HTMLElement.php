@@ -25,19 +25,39 @@ class HTMLElement extends Element {
         # The autocapitalize getter steps are to:
         #
         # 1. Let state be the own autocapitalization hint of this.
-        $state = $this->autoCapitalizationHint($this);
+        $state = $this->autoCapitalizationHint($this->innerNode);
 
         # 2. If state is default, then return the empty string.
-        if ($state === 'off') {
-            return '';
-        }
-
         # 3. If state is none, then return "none".
-        if ($state === 'none') {
-
         # 4. If state is sentences, then return "sentences".
-
         # 5. Return the keyword value corresponding to state.
+        // Switch below will handle all of these steps.
+
+        # The autocapitalize attribute is an enumerated attribute whose states are the
+        # possible autocapitalization hints. The autocapitalization hint specified by
+        # the attribute's state combines with other considerations to form the used
+        # autocapitalization hint, which informs the behavior of the user agent. The
+        # keywords for this attribute and their state mappings are as follows:
+        switch ($state) {
+            case 'default':
+                return '';
+            case 'none':
+            case 'sentences':
+            case 'words':
+            case 'characters':
+                return $state;
+            case 'off':
+                return 'none';
+            case 'on':
+            # The invalid value default is the sentences state.
+            default: return 'sentences';
+        }
+    }
+
+    protected function __set_autocapitalize(string $value): void {
+        # The autocapitalize setter steps are to set the autocapitalize content
+        # attribute to the given value.
+        $this->setAttribute('autocapitalize', $value);
     }
 
     protected function __get_contentEditable(): string {
@@ -63,7 +83,7 @@ class HTMLElement extends Element {
         # be set to the string "false", and otherwise the attribute setter must throw a
         # "SyntaxError" DOMException.
 
-        $value = strtolower($this->getAttribute('contenteditable'));
+        $value = strtolower($this->getAttribute('contenteditable') ?? '');
         return ($value === 'true' || $value === 'false') ? $value : 'inherit';
     }
 
@@ -153,7 +173,7 @@ class HTMLElement extends Element {
             }
 
             $data = $this->getAttribute('data');
-            if ($data !== null && in_array(strtolower(substr(strrchr($fileName, '.'), 1)), [ 'apng', 'avif', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp' ])) {
+            if ($data !== null && str_contains(needle: '.', haystack: $data) && in_array(strtolower(substr(strrchr($data, '.'), 1)), [ 'apng', 'avif', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp' ])) {
                 return true;
             }
         }
@@ -196,15 +216,18 @@ class HTMLElement extends Element {
     protected function __get_hidden(): bool {
         # The hidden getter steps are to return true if this's visibility state is
         # "hidden", otherwise false.
+        // There's no visibility state in this implementation because there's nothing to
+        // render. The only way for the visibility state to be off is if the element is
+        // hidden via the hidden attribute.
 
-        $value = ($this->getAttribute('hidden') !== null);
-        if ($value) {
+        if ($this->hasAttribute('hidden')) {
             return true;
         }
 
-        $n = $this;
+        $n = $this->innerNode;
+        $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
-            if (property_exists($n, 'hidden') && ($n->getAttribute('hidden') !== null)) {
+            if ($doc->getWrapperNode($n) instanceof HTMLElement && $n->hasAttribute('hidden')) {
                 return true;
             }
         }
@@ -280,7 +303,7 @@ class HTMLElement extends Element {
         $this->setAttribute('inputmode', $value);
     }
 
-    protected function __get_isContentEditable(): string {
+    protected function __get_isContentEditable(): bool {
         # The isContentEditable IDL attribute, on getting, must return true if the
         # element is either an editing host or editable, and false otherwise.
 
@@ -294,21 +317,24 @@ class HTMLElement extends Element {
         # math element, or it is not an Element and its parent is an HTML element.
 
         $doc = ($this instanceof Document) ? $this : $this->ownerDocument;
-        if ($doc->designMode) {
+        if ($doc->designMode === 'on') {
             return true;
         }
 
-        $value = strtolower($this->getAttribute('contenteditable'));
-        if ($value === 'true') {
-            return true;
-        } elseif ($value === 'false') {
-            return false;
+        $value = $this->getAttribute('contenteditable');
+        if ($value !== null) {
+            $value = strtolower($value);
+            if ($value === 'true') {
+                return true;
+            } elseif ($value === 'false') {
+                return false;
+            }
         }
 
-        if ($doc !== this) {
-            $n = $this;
-            while ($n = $n->parentNode) {
-                if (property_exists($n, 'contentEditable') && $n->contentEditable === 'true') {
+        $n = $this->innerNode;
+        while ($n = $n->parentNode) {
+            if ($n instanceof \DOMElement) {
+                if ($n->getAttribute('contenteditable') === 'true' && $n->ownerDocument->getWrapperNode($n) instanceof HTMLElement) {
                     return true;
                 }
             }
@@ -449,9 +475,10 @@ class HTMLElement extends Element {
             return false;
         }
 
-        $n = $this;
+        $n = $this->innerNode;
+        $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
-            if (property_exists($n, 'translate') && $n->getAttribute('translate') === 'yes') {
+            if ($n->getAttribute('translate') === 'yes' && $doc->getWrapperNode($n) instanceof HTMLElement) {
                 return true;
             }
         }
@@ -466,19 +493,19 @@ class HTMLElement extends Element {
     }
 
 
-    protected function autoCapitalizationHint(HTMLElement $element): string {
+    protected function autoCapitalizationHint(\DOMElement $element): string {
         # To compute the own autocapitalization hint of an element element, run the
         # following steps:
         # 1. If the autocapitalize content attribute is present on element, and its
         #    value is not the empty string, return the state of the attribute.
-        $value = $this->getAttribute('autocapitalize');
+        $value = $element->getAttribute('autocapitalize');
         if ($value !== null && $value !== '') {
             return $value;
         }
 
         # 2. If element is an autocapitalize-inheriting element and has a non-null form
         #    owner, return the own autocapitalization hint of element's form owner.
-        elseif (in_array($this->tagName, [ 'button', 'fieldset', 'input', 'output', 'select', 'textarea' ])) {
+        elseif (in_array($element->tagName, [ 'button', 'fieldset', 'input', 'output', 'select', 'textarea' ])) {
             # A form-associated element can have a relationship with a form element, which
             # is called the element's form owner. If a form-associated element is not
             # associated with a form element, its form owner is said to be null.
@@ -487,16 +514,15 @@ class HTMLElement extends Element {
             # form element (as described below), but, if it is listed, may have a form
             # attribute specified to override this.
 
-            $n = $this;
-            while ($n = $this->parentNode) {
-                if ($n instanceof HTMLElement && $n->tagName === 'form') {
+            $n = $element;
+            while ($n = $n->parentNode) {
+                if ($n->tagName === 'form' && $n->ownerDocument->getWrapperNode($n) instanceof HTMLElement) {
                     return $this->autoCapitalizationHint($n);
                 }
             }
         }
 
         ## 3. Return default.
-        // The default of this user agent is 'off'
-        return 'off';
+        return 'default';
     }
 }

@@ -1367,16 +1367,16 @@
         },
         {
             "name": "scrivo/highlight.php",
-            "version": "v9.18.1.8",
+            "version": "v9.18.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/scrivo/highlight.php.git",
-                "reference": "6d5049cd2578e19a06adbb6ac77879089be1e3f9"
+                "reference": "d45585504777e6194a91dffc7270ca39833787f8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/scrivo/highlight.php/zipball/6d5049cd2578e19a06adbb6ac77879089be1e3f9",
-                "reference": "6d5049cd2578e19a06adbb6ac77879089be1e3f9",
+                "url": "https://api.github.com/repos/scrivo/highlight.php/zipball/d45585504777e6194a91dffc7270ca39833787f8",
+                "reference": "d45585504777e6194a91dffc7270ca39833787f8",
                 "shasum": ""
             },
             "require": {
@@ -1441,7 +1441,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-10-24T00:28:14+00:00"
+            "time": "2021-12-03T06:45:28+00:00"
         },
         {
             "name": "symfony/console",
@@ -2808,5 +2808,5 @@
         "ext-dom": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.2.0"
 }

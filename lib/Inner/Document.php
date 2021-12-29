@@ -61,9 +61,9 @@ class Document extends \DOMDocument {
 
 
     public function getWrapperNode(\DOMNode $node): ?WrapperNode {
-        // If the node is a Document then the wrapperNode is this's wrapperNode
-        // property.
-        if ($node instanceof Document) {
+        // If the node is this document then return the wrapper node; it's already
+        // known.
+        if ($node === $this) {
             return $this->wrapperNode;
         }
 

@@ -28,6 +28,7 @@ class Document extends Node implements \ArrayAccess {
     protected string $_characterSet = 'UTF-8';
     protected string $_compatMode = 'CSS1Compat';
     protected string $_contentType = 'text/html';
+    protected bool $designModeEnabled = false;
     protected DOMImplementation $_implementation;
     protected string $_URL = 'about:blank';
 
@@ -66,6 +67,35 @@ class Document extends Node implements \ArrayAccess {
 
     protected function __get_contentType(): string {
         return $this->_contentType;
+    }
+
+    protected function __get_designMode(): string {
+        # The designMode getter steps are to return "on" if this's design mode enabled
+        # is true; otherwise "off".
+        return ($this->designModeEnabled) ? 'on' : 'off';
+    }
+
+    protected function __set_designMode(string $value): void {
+        # The designMode setter steps are:
+
+        # 1. Let value be the given value, converted to ASCII lowercase.
+        $value = strtolower($value);
+
+        # 2. If value is "on" and this's design mode enabled is false, then:
+        if ($value === 'on' && !$this->designModeEnabled) {
+            # 1. Set this's design mode enabled to true.
+            $this->designModeEnabled = true;
+
+            # 2. Reset this's active range's start and end boundary points to be at the start of this.
+            // Ranges aren't implemented.
+
+            # 3. Run the focusing steps for this's document element, if non-null.
+            // There's nothing to do here; there's no chance for a focusing element.
+        }
+        # 3. If value is "off", then set this's design mode enabled to false.
+        elseif ($value === 'off') {
+            $this->designModeEnabled = false;
+        }
     }
 
     protected function __get_dir(): string {

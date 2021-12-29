@@ -11,9 +11,94 @@ Modern DOM library written in PHP for HTML documents. This library is an attempt
 
 ## Usage ##
 
-Coming soon
+Full documentation for most of the library shouldn't be necessary because it largely follows the specification, but because of how the library is to be used there are a few things that are glaringly different. These will be outlined below.
 
-## Examples ##
+### MensBeam\HTML\DOM\Document ###
+
+```php
+namespace MensBeam\HTML\DOM;
+
+partial class Document {
+    use DocumentOrElement, NonElementParentNode, ParentNode, XPathEvaluatorBase;
+
+    public function __construct(
+        string $source = null,
+        ?string $charset = null
+    );
+
+    public function serialize(
+        ?Node $node = null,
+        array $config = []
+    ): string;
+}
+```
+
+#### MensBeam\HTML\DOM\Document::__construct ####
+
+Creates a new `MensBeam\HTML\DOM\Document` object.
+
+* `source`: A string representing an HTML document to be parsed.
+* `charset`: Character set to be used as the encoding for the document. If a document is parsed its default is 'windows-1251', otherwise 'UTF-8'.
+
+#### MensBeam\HTML\DOM\Document::serialize ####
+
+Converts a node to a string.
+
+* `node`: A node within the document to serialize, defaults to the document itself.
+* `config`: A configuration array with the possible keys and value types being:
+  - `booleanAttributeValues` (`bool|null`): Whether to include the values of boolean attributes on HTML elements during serialization. Per the standard this is `true` by default
+  - `foreignVoidEndTags` (`bool|null`): Whether to print the end tags of foreign void elements rather than self-closing their start tags. Per the standard this is `true` by default
+  - `indentStep` (`int|null`): The number of spaces or tabs (depending on setting of indentStep) to indent at each step. This is `1` by default and has no effect unless `reformatWhitespace` is `true`
+  - `indentWithSpaces` (`bool|null`): Whether to use spaces or tabs to indent. This is `true` by default and has no effect unless `reformatWhitespace` is `true`
+  - `reformatWhitespace` (`bool|null`): Whether to reformat whitespace (pretty-print) or not. This is `false` by default
+
+### MensBeam\HTML\DOM\Node ###
+
+```php
+namespace MensBeam\HTML\DOM;
+
+partial abstract class Node implements \Stringable {
+    // Common namespace constants provided for convenience
+    public const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+    public const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+    public const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+    public const XLINK_NAMESPACE = 'http://www.w3.org/1999/xlink';
+    public const XML_NAMESPACE = 'http://www.w3.org/XML/1998/namespace';
+    public const XMLNS_NAMESPACE = 'http://www.w3.org/2000/xmlns/';
+
+    // Used with MensBeam\HTML\DOM\ParentNode::walk
+    public const WALK_ACCEPT = 0x01;
+    public const WALK_REJECT = 0x02;
+    public const WALK_SKIP_CHILDREN = 0x04;
+    public const WALK_STOP = 0x08;
+}
+```
+
+### MensBeam\HTML\DOM\ParentNode ###
+
+```php
+namespace MensBeam\HTML\DOM;
+
+partial trait ParentNode {
+    public function walk(
+        ?\Closure $filter = null,
+        bool $includeReferenceNode = false
+    ): \Generator;
+}
+```
+
+#### MensBeam\HTML\DOM\ParentNode::walk ####
+
+Applies the callback filter while walking down the DOM tree and yields nodes matching the filter in a generator.
+
+* `filter`: A callback method to filter the DOM tree. Must return only the following values:
+  - `Node::WALK_ACCEPT`: Accept the node.
+  - `Node::WALK_REJECT`: Reject the node.
+  - `Node::WALK_SKIP_CHILDREN`: Skip the node's children.
+  - `Node::WALK_STOP`: Stop the walker.
+* `includeReferenceNode`: Include `$this` when walking down the tree.
+
+### Examples ###
 
 - Creating a new document:
 
@@ -38,6 +123,33 @@ Coming soon
 
   $d = new Document();
   $d->load('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
+  ```
+
+- Serializing a document:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d->serialize();
+  ```
+
+  or:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d;
+  ```
+
+- Serializing a document (pretty printing):
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d->serialize($d, [ 'reformatWhitespace' => true ]);
   ```
 
 ## Limitations & Differences from Specification ##

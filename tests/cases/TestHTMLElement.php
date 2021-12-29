@@ -16,6 +16,35 @@ use MensBeam\HTML\DOM\{
 
 /** @covers \MensBeam\HTML\DOM\HTMLElement */
 class TestHTMLElement extends \PHPUnit\Framework\TestCase {
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_accessKey
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_accessKey
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\NonElementParentNode::getElementById
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_accessKey(): void {
         $d = new Document('<!DOCTYPE html><html><body><a id="ook" href="https://ook.com" accesskey="o"></a></body></html>');
         $ook = $d->getElementById('ook');
@@ -24,6 +53,39 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $this->assertSame('e', $ook->accessKey);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_autocapitalize
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_autocapitalize
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\HTMLElement::autoCapitalizationHint
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_autocapitalize(): void {
         $d = new Document('<!DOCTYPE html><html><body><form><input type="text" autocapitalize="on"></form></body></html>');
         $ook = $d->getElementsByTagName('input')[0];
@@ -41,6 +103,46 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $this->assertSame('sentences', $ook->autocapitalize);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_contentEditable
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_contentEditable
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_isContentEditable
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_body
+     * @covers \MensBeam\HTML\DOM\Document::__get_designMode
+     * @covers \MensBeam\HTML\DOM\Document::__set_designMode
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::hasAttribute
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_contentEditable_isContentEditable(): void {
         $d = new Document('<!DOCTYPE html><html><body><div></div></body></html>');
         $div = $d->getElementsByTagName('div')[0];
@@ -62,8 +164,35 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
 
         $d->designMode = 'on';
         $this->assertTrue($div->isContentEditable);
+        $d->body->contentEditable = 'false';
+        $d->designMode = 'off';
+        $this->assertFalse($div->isContentEditable);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_contentEditable
+     *
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMException::__construct
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_contentEditable__errors(): void {
         $this->expectException(DOMException::class);
         $this->expectExceptionCode(DOMException::SYNTAX_ERROR);
@@ -71,6 +200,36 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $d->documentElement->contentEditable = 'fail';
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_dir
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_dir
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_dir(): void {
         $d = new Document('<!DOCTYPE html><html dir="ltr"></html>');
         $html = $d->documentElement;
@@ -79,6 +238,45 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $this->assertSame('', $html->dir);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_draggable
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_draggable
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_localName
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::__get_prefix
+     * @covers \MensBeam\HTML\DOM\Element::__get_tagName
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::hasAttribute
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_draggable(): void {
         $d = new Document('<!DOCTYPE html><html><body><img src="ook.html"><object data="ook"></object><div></div></body></html>');
         $img = $d->getElementsByTagName('img')[0];
@@ -102,6 +300,36 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($object->draggable);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_enterKeyHint
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_enterKeyHint
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_enterKeyHint(): void {
         $d = new Document('<!DOCTYPE html><html></html>');
         $html = $d->documentElement;
@@ -112,6 +340,41 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $this->assertSame('done', $html->enterKeyHint);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_hidden
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_hidden
+     *
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::hasAttribute
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_hidden(): void {
         $d = new Document('<!DOCTYPE html><html><body><div></div></body></html>');
         $div = $d->getElementsByTagName('div')[0];
@@ -123,6 +386,36 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($div->hidden);
     }
 
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_lang
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_lang
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_lang(): void {
         $d = new Document('<!DOCTYPE html><html></html>');
         $html = $d->documentElement;
@@ -133,6 +426,7 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $html->lang = 'ook';
         $this->assertSame('ook', $html->lang);
     }
+
 
     /**
      * @covers \MensBeam\HTML\DOM\HTMLElement::__get_innerText
@@ -202,6 +496,35 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
     }
 
 
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_inputMode
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_inputMode
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
     public function testProperty_inputMode(): void {
         $d = new Document('<!DOCTYPE html><html></html>');
         $html = $d->documentElement;
@@ -237,5 +560,134 @@ class TestHTMLElement extends \PHPUnit\Framework\TestCase {
         $d = new Document();
         $h = $d->createElement('html');
         $h->outerText = 'fail';
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_spellcheck
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_spellcheck
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testProperty_spellcheck(): void {
+        $d = new Document('<!DOCTYPE html><html></html>');
+        $html = $d->documentElement;
+        $this->assertFalse($html->spellcheck);
+        $html->spellcheck = true;
+        $this->assertTrue($html->spellcheck);
+        $html->spellcheck = false;
+        $this->assertFalse($html->spellcheck);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_title
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_title
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testProperty_title(): void {
+        $d = new Document('<!DOCTYPE html><html></html>');
+        $html = $d->documentElement;
+        $this->assertSame('', $html->title);
+        $html->title = 'ook';
+        $this->assertSame('ook', $html->title);
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_translate
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_translate
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Collection::__construct
+     * @covers \MensBeam\HTML\DOM\Collection::item
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DocumentOrElement::getElementsByTagName
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::removeAttribute
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::item
+     * @covers \MensBeam\HTML\DOM\HTMLCollection::offsetGet
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testProperty_translate(): void {
+        $d = new Document('<!DOCTYPE html><html><div><span>Ook</span></div></html>');
+        $html = $d->documentElement;
+        $span = $d->getElementsByTagName('span')[0];
+
+        $this->assertFalse($span->translate);
+        $span->translate = true;
+        $this->assertTrue($span->translate);
+        $span->removeAttribute('translate');
+        $html->translate = true;
+        $this->assertTrue($span->translate);
+        $span->translate = false;
+        $this->assertFalse($span->translate);
     }
 }

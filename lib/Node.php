@@ -16,7 +16,7 @@ use MensBeam\HTML\DOM\Inner\{
 };
 
 
-abstract class Node {
+abstract class Node implements \Stringable {
     use MagicProperties, NameCoercion;
 
     // Namespace constants

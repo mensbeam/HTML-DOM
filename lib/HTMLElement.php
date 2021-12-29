@@ -437,7 +437,7 @@ class HTMLElement extends Element {
         return ($this->getAttribute('spellcheck') === 'true');
     }
 
-    protected function __set_spellcheck(bool $value): bool {
+    protected function __set_spellcheck(bool $value): void {
         # On setting, if the new value is true, then the element's spellcheck content
         # attribute must be set to the literal string "true", otherwise it must be set
         # to the literal string "false".
@@ -468,7 +468,7 @@ class HTMLElement extends Element {
         # element's translation mode is in the same state as its parent element's, if
         # any, or in the translate-enabled state, if the element is a document element.
 
-        $value = strtolower($this->getAttribute('translate'));
+        $value = strtolower($this->getAttribute('translate') ?? '');
         if ($value === 'yes') {
             return true;
         } elseif ($value === 'no') {
@@ -478,7 +478,10 @@ class HTMLElement extends Element {
         $n = $this->innerNode;
         $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
-            if ($n->getAttribute('translate') === 'yes' && $doc->getWrapperNode($n) instanceof HTMLElement) {
+            // This looks weird but it's faster to check for the method here first because
+            // getting a wrapper node causes a wrapper element to be created if it doesn't
+            // already exist. Don't want to create unnecessary wrappers.
+            if (method_exists($n, 'getAttribute') && $n->getAttribute('translate') === 'yes' && $doc->getWrapperNode($n) instanceof HTMLElement) {
                 return true;
             }
         }

@@ -620,6 +620,48 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
 
     /**
+     * @covers \MensBeam\HTML\DOM\Document::__get_dir
+     * @covers \MensBeam\HTML\DOM\Document::__set_dir
+     *
+     * @covers \MensBeam\HTML\DOM\Attr::__get_value
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
+     * @covers \MensBeam\HTML\DOM\Document::load
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__construct
+     * @covers \MensBeam\HTML\DOM\Element::__get_localName
+     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
+     * @covers \MensBeam\HTML\DOM\Element::__get_prefix
+     * @covers \MensBeam\HTML\DOM\Element::__get_tagName
+     * @covers \MensBeam\HTML\DOM\Element::getAttribute
+     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
+     * @covers \MensBeam\HTML\DOM\Element::setAttribute
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_dir
+     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_dir
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
+     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
+     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
+     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
+     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
+     */
+    public function testProperty_dir(): void {
+        $d = new Document('<!DOCTYPE html><html dir="ltr"></html>');
+        $this->assertSame('ltr', $d->dir);
+        $d->dir = 'bullshit';
+        $this->assertSame('', $d->dir);
+    }
+
+
+    /**
      * @covers \MensBeam\HTML\DOM\Document::__get_doctype
      *
      * @covers \MensBeam\HTML\DOM\Document::__construct

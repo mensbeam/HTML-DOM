@@ -15,10 +15,30 @@ Full documentation for most of the library shouldn't be necessary because it lar
 
 ### MensBeam\HTML\DOM\Document ###
 
+`MensBeam\HTML\DOM\Document` implements `\ArrayAccess`, allowing the class to access named properties via array syntax:
+
 ```php
 namespace MensBeam\HTML\DOM;
 
-partial class Document {
+$d = new Document('<!DOCTYPE html><html><body><img name="ook"><img name="eek"><img id="eek" name="ack"><embed name="eek"><object id="ook"><embed name="eek"><object name="ookeek"></object></object><iframe name="eek"></iframe><object id="eek"></object></body></html>');
+
+echo $d['ook']::class . "\n";
+echo $d['eek']->length . "\n";
+```
+
+Output:
+
+```
+MensBeam\HTML\DOM\HTMLElement
+5
+```
+
+There are limitations as to what is considered a named property. Refer to the [WHATWG HTML DOM extensions specification][f] for more details as to what is allowed to be accessed this way.
+
+```php
+namespace MensBeam\HTML\DOM;
+
+partial class Document extends Node implements \ArrayAccess {
     use DocumentOrElement, NonElementParentNode, ParentNode, XPathEvaluatorBase;
 
     public function __construct(
@@ -42,14 +62,14 @@ partial class Document {
 Creates a new `MensBeam\HTML\DOM\Document` object.
 
 * `source`: A string representing an HTML document to be parsed.
-* `charset`: Character set to be used as the encoding for the document. If a document is parsed its default is 'windows-1251', otherwise 'UTF-8'.
+* `charset`: Character set to be used as the encoding for the document. If a document is parsed from a string its default is 'windows-1251', otherwise 'UTF-8'.
 
 ##### Examples #####
 
 - Creating a new document:
 
   ```php
-  use MensBeam\HTML\DOM;
+  namespace MensBeam\HTML\DOM;
 
   $d = new Document();
   ```
@@ -57,7 +77,7 @@ Creates a new `MensBeam\HTML\DOM\Document` object.
 - Creating a new document from a string:
 
   ```php
-  use MensBeam\HTML\DOM;
+  namespace MensBeam\HTML\DOM;
 
   $d = new Document('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
   ```
@@ -65,10 +85,25 @@ Creates a new `MensBeam\HTML\DOM\Document` object.
   or:
 
   ```php
-  use MensBeam\HTML\DOM;
+  namespace MensBeam\HTML\DOM;
 
   $d = new Document();
   $d->load('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
+  ```
+
+- Specifying a charset:
+
+  ```php
+  namespace MensBeam\HTML\DOM;
+
+  $d = new Document(null, 'GB18030');
+  echo $d->characterSet;
+  ```
+
+  Output:
+
+  ```
+  gb18030
   ```
 
 #### MensBeam\HTML\DOM\Document::registerXPathFunctions ####
@@ -80,7 +115,7 @@ Register PHP functions as XPath functions. Works like `\DOMXPath::registerPhpFun
 ##### Example #####
 
 ```php
-use MensBeam\HTML\DOM;
+namespace MensBeam\HTML\DOM;
 
 $d = new Document('<!DOCTYPE html><html><body><h1>Ook</h1><p class="subtitle1">Eek?</p><p class="subtitle2">Ook?</p></body></html>');
 // Register PHP functions (no restrictions)
@@ -119,7 +154,7 @@ Converts a node to a string.
 - Serializing a document:
 
   ```php
-  use MensBeam\HTML\DOM;
+  namespace MensBeam\HTML\DOM;
 
   $d = new Document('<!DOCTYPE html><html></html>');
   echo $d->serialize();
@@ -128,7 +163,7 @@ Converts a node to a string.
   or:
 
   ```php
-  use MensBeam\HTML\DOM;
+  namespace MensBeam\HTML\DOM;
 
   $d = new Document('<!DOCTYPE html><html></html>');
   echo $d;
@@ -143,7 +178,7 @@ Converts a node to a string.
 - Serializing a document (pretty printing):
 
   ```php
-  use MensBeam\HTML\DOM;
+  namespace MensBeam\HTML\DOM;
 
   $d = new Document('<!DOCTYPE html><html><body><h1>Ook!</h1><p>Ook, eek? Ooooook. Ook.</body></html>');
   echo $d->serialize($d, [ 'reformatWhitespace' => true ]);
@@ -166,7 +201,7 @@ Converts a node to a string.
 
 ### MensBeam\HTML\DOM\Node ###
 
-Common namespace constants are provided in `MensBeam\HTML\DOM\Node` to make using namespaces using the library not so onerous. In addition, constants are provided here to be used with `MensBeam\HTML\DOM\ParentNode::walk`. `MensBeam\HTML\DOM\Node` also implements `\Stringable` which means that any node can be simply converted to a string to serialize it.
+Common namespace constants are provided in `MensBeam\HTML\DOM\Node` to make using namespaces with this library not so onerous. In addition, constants are provided here to be used with `MensBeam\HTML\DOM\ParentNode::walk`. `MensBeam\HTML\DOM\Node` also implements `\Stringable` which means that any node can be simply converted to a string to serialize it.
 
 ```php
 namespace MensBeam\HTML\DOM;
@@ -215,7 +250,7 @@ Applies the callback filter while walking down the DOM tree and yields nodes mat
 ##### Example #####
 
 ```php
-use MensBeam\HTML\DOM;
+namespace MensBeam\HTML\DOM;
 
 $d = new Document(<<<HTML
 <!DOCTYPE html>
@@ -271,7 +306,7 @@ Register PHP functions as XPath functions. Works like `\DOMXPath::registerPhpFun
 ##### Example #####
 
 ```php
-use MensBeam\HTML\DOM;
+namespace MensBeam\HTML\DOM;
 
 $d = new Document('<!DOCTYPE html><html><body><h1>Ook</h1><p class="subtitle1">Eek?</p><p class="subtitle2">Ook?</p></body></html>');
 $e = new XPathEvaluator();
@@ -319,7 +354,7 @@ The primary aim of this library is accuracy. However, due either to limitations 
 11. All of the `Range` APIs will also not be implemented due to the sheer complexity of creating them in userland and how it adds undue difficulty to node manipulation in the "core" DOM. Numerous operations reference in excrutiating detail what to do with Ranges when manipulating nodes and would have to be added here to be compliant or mostly so -- slowing everything else down in the process on an already extremely front-heavy library.
 12. The `DOMParser` and `XMLSerializer` APIs will not be implemented because they are ridiculous and limited in their scope. For instance, `DOMParser::parseFromString` won't set a document's character set to anything but UTF-8. This library needs to be able to print to other encodings due to the nature of how it is used. `Document::__construct` will accept optional `$source` and `$charset` arguments, and there are both `Document::load` and `Document::loadFile` methods for loading DOM from a string or a file respectively.
 13. Aside from `HTMLElement`, `HTMLPreElement`, `HTMLTemplateElement`, `HTMLUnknownElement`, `MathMLElement`, and `SVGElement` none of the specific derived element classes (such as `HTMLAnchorElement` or `SVGSVGElement`) are implemented. The ones listed before are required for the element interface algorithm. The focus on this library will be on the core DOM before moving onto those -- if ever.
-14. This class is meant to be used with HTML, but it will -MOSTLY- as needed work with XML. Loading of XML uses PHP DOM's XML parser which does not completely conform to the XML specification. Writing an actual conforming XML parser is outside of the scope of this library.
+14. This class is meant to be used with HTML, but it will work -MOSTLY- as needed work with XML. Loading of XML uses PHP DOM's XML parser which does not completely conform to the XML specification. Writing an actual conforming XML parser is outside of the scope of this library.
 15. While there is implementation of much of the XPath extensions, there will only be support for XPath 1.0 because that is all PHP DOM's XPath supports.
 16. This library's XPath API is -- like the rest of the library itself -- a wrapper that wraps PHP's implementation but instead works like the specification, so there is no need to manually register namespaces. Namespaces that are associated with prefixes will be looked up when evaluating the expression if a `XPathNSResolver` is specified. However, access to registering PHP functions for use within XPath isn't in the specification but is available through `Document::registerXPathFunctions` and `XPathEvaluator::registerXPathFunctions`.
 17. `XPathEvaluatorBase::evaluate` has a `result` argument where one provides it with an existing result object to use. I can't find any usable documentation on what this is supposed to do, and the specifications on it are vague. So, at present it does nothing until what it needs to do can be deduced.

@@ -86,7 +86,7 @@ $d = new Document('<!DOCTYPE html><html><body><h1>Ook</h1><p class="subtitle1">E
 // Register PHP functions (no restrictions)
 $d->registerXPathFunctions();
 // Call substr function on classes
-$result = $d->evaluate('//*[php:functionString("substr", @class, 0, 8) = "subtitle"]');
+$result = $d->evaluate('//*[php:functionString("substr", @class, 0, 8) = "subtitle"]', $d);
 
 echo "Found " . count($result) . " nodes with classes starting with 'subtitle':\n";
 foreach ($result as $node) {
@@ -166,6 +166,8 @@ Converts a node to a string.
 
 ### MensBeam\HTML\DOM\Node ###
 
+Common namespace constants are provided in `MensBeam\HTML\DOM\Node` to make using namespaces using the library not so onerous. In addition, constants are provided here to be used with `MensBeam\HTML\DOM\ParentNode::walk`. `MensBeam\HTML\DOM\Node` also implements `\Stringable` which means that any node can be simply converted to a string to serialize it.
+
 ```php
 namespace MensBeam\HTML\DOM;
 
@@ -210,6 +212,45 @@ Applies the callback filter while walking down the DOM tree and yields nodes mat
   - `Node::WALK_STOP`: Stop the walker.
 * `includeReferenceNode`: Include `$this` when walking down the tree.
 
+##### Example #####
+
+```php
+use MensBeam\HTML\DOM;
+
+$d = new Document(<<<HTML
+<!DOCTYPE html>
+<html>
+ <body>
+  <div><!--Ook!-->
+   <div>
+    <div>
+     <!--Eek!-->
+    </div>
+   </div>
+  <!--Ack!--></div>
+ </body>
+</html>
+HTML);
+
+$walker = $d->walk(function($n) {
+    return ($n instanceof Comment) ? Node::WALK_ACCEPT : Node::WALK_REJECT;
+});
+
+echo "The following comments were found:\n";
+foreach ($walker as $node) {
+    echo "$node\n";
+}
+```
+
+Output:
+
+```
+The following comments were found:
+<!--Ook!-->
+<!--Eek!-->
+<!--Ack!-->
+```
+
 ### MensBeam\HTML\DOM\XPathEvaluator ###
 
 ```php
@@ -227,13 +268,38 @@ Register PHP functions as XPath functions. Works like `\DOMXPath::registerPhpFun
 * `document`: The document to register the functions on.
 * `restrict`: Use this parameter to only allow certain functions to be called from XPath. This parameter can be either a string (a function name), an array of function names, or null to allow everything.
 
-### MensBeam\HTML\DOM\XPathResult ###
-
-`MensBeam\HTML\DOM\XPathResult` implements `\ArrayAccess`, `\Countable`, and `\Iterator` and will allow for accessing as if it is an array when the result type is `MensBeam\HTML\DOM\XPathResult::ORDERED_NODE_ITERATOR_TYPE`, `MensBeam\HTML\DOM\XPathResult::UNORDERED_NODE_ITERATOR_TYPE`, `MensBeam\HTML\DOM\XPathResult::ORDERED_NODE_SNAPSHOT_TYPE`, or `MensBeam\HTML\DOM\XPathResult::UNORDERED_NODE_SNAPSHOT_TYPE`.
+##### Example #####
 
 ```php
-partial class XPathResult implements \ArrayAccess, \Countable, \Iterator {
+use MensBeam\HTML\DOM;
+
+$d = new Document('<!DOCTYPE html><html><body><h1>Ook</h1><p class="subtitle1">Eek?</p><p class="subtitle2">Ook?</p></body></html>');
+$e = new XPathEvaluator();
+// Register PHP functions (no restrictions)
+$e->registerXPathFunctions($d);
+// Call substr function on classes
+$result = $e->evaluate('//*[php:functionString("substr", @class, 0, 8) = "subtitle"]', $d);
+
+echo "Found " . count($result) . " nodes with classes starting with 'subtitle':\n";
+foreach ($result as $node) {
+    echo "$node\n";
 }
+```
+
+Output:
+
+```
+Found 2 nodes with classes starting with 'subtitle':
+<p class="subtitle1">Eek?</p>
+<p class="subtitle2">Ook?</p>
+```
+
+### MensBeam\HTML\DOM\XPathResult ###
+
+`MensBeam\HTML\DOM\XPathResult` implements `\ArrayAccess`, `\Countable`, and `\Iterator` and will allow for accessing as if it is an array when the result type is `MensBeam\HTML\DOM\XPathResult::ORDERED_NODE_ITERATOR_TYPE`, `MensBeam\HTML\DOM\XPathResult::UNORDERED_NODE_ITERATOR_TYPE`, `MensBeam\HTML\DOM\XPathResult::ORDERED_NODE_SNAPSHOT_TYPE`, or `MensBeam\HTML\DOM\XPathResult::UNORDERED_NODE_SNAPSHOT_TYPE`. This is not in the specification, but not being able to simply iterate over a result is absurd.
+
+```php
+partial class XPathResult implements \ArrayAccess, \Countable, \Iterator {}
 ```
 
 ## Limitations & Differences from Specification ##

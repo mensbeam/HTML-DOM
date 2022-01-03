@@ -42,7 +42,7 @@ partial class Document extends Node implements \ArrayAccess {
     use DocumentOrElement, NonElementParentNode, ParentNode, XPathEvaluatorBase;
 
     public function __construct(
-        string $source = null,
+        ?string $source = null,
         ?string $charset = null
     );
 

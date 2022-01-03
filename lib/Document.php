@@ -353,7 +353,7 @@ class Document extends Node implements \ArrayAccess {
     }
 
 
-    public function __construct(string $source = null, ?string $charset = null) {
+    public function __construct(?string $source = null, ?string $charset = null) {
         parent::__construct(new InnerDocument($this));
         $this->_implementation = new DOMImplementation($this);
 

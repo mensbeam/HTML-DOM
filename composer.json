@@ -5,8 +5,8 @@
     "require": {
         "php": ">=8.0.2",
         "ext-dom": "*",
-        "mensbeam/html-parser": "dev-master",
-        "mensbeam/framework": "dev-main",
+        "mensbeam/html-parser": "^1.2.1",
+        "mensbeam/framework": "^1.0.4",
         "symfony/css-selector": "^5.3"
     },
     "require-dev": {
@@ -50,16 +50,6 @@
             ]
         }
     },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "mensbeam-gitea:MensBeam/Framework.git"
-        },
-        {
-            "type": "git",
-            "url": "mensbeam-gitea:MensBeam/HTML-Parser.git"
-        }
-    ],
     "config": {
         "allow-plugins": {
             "bamarni/composer-bin-plugin": true

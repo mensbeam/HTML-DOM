@@ -26,6 +26,10 @@ partial class Document {
         ?string $charset = null
     );
 
+    public function registerXPathFunctions(
+        string|array|null $restrict = null
+    ): void;
+
     public function serialize(
         ?Node $node = null,
         array $config = []
@@ -40,6 +44,64 @@ Creates a new `MensBeam\HTML\DOM\Document` object.
 * `source`: A string representing an HTML document to be parsed.
 * `charset`: Character set to be used as the encoding for the document. If a document is parsed its default is 'windows-1251', otherwise 'UTF-8'.
 
+##### Examples #####
+
+- Creating a new document:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document();
+  ```
+
+- Creating a new document from a string:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
+  ```
+
+  or:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document();
+  $d->load('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
+  ```
+
+#### MensBeam\HTML\DOM\Document::registerXPathFunctions ####
+
+Register PHP functions as XPath functions. Works like `\DOMXPath::registerPhpFunctions` except that the php namespace does not need to be registered.
+
+* `restrict`: Use this parameter to only allow certain functions to be called from XPath. This parameter can be either a string (a function name), an array of function names, or null to allow everything.
+
+##### Example #####
+
+```php
+use MensBeam\HTML\DOM;
+
+$d = new Document('<!DOCTYPE html><html><body><h1>Ook</h1><p class="subtitle1">Eek?</p><p class="subtitle2">Ook?</p></body></html>');
+// Register PHP functions (no restrictions)
+$d->registerXPathFunctions();
+// Call substr function on classes
+$result = $d->evaluate('//*[php:functionString("substr", @class, 0, 8) = "subtitle"]');
+
+echo "Found " . count($result) . " nodes with classes starting with 'subtitle':\n";
+foreach ($result as $node) {
+    echo "$node\n";
+}
+```
+
+Output:
+
+```
+Found 2 nodes with classes starting with 'subtitle':
+<p class="subtitle1">Eek?</p>
+<p class="subtitle2">Ook?</p>
+```
+
 #### MensBeam\HTML\DOM\Document::serialize ####
 
 Converts a node to a string.
@@ -51,6 +113,56 @@ Converts a node to a string.
   - `indentStep` (`int|null`): The number of spaces or tabs (depending on setting of indentStep) to indent at each step. This is `1` by default and has no effect unless `reformatWhitespace` is `true`
   - `indentWithSpaces` (`bool|null`): Whether to use spaces or tabs to indent. This is `true` by default and has no effect unless `reformatWhitespace` is `true`
   - `reformatWhitespace` (`bool|null`): Whether to reformat whitespace (pretty-print) or not. This is `false` by default
+
+##### Examples #####
+
+- Serializing a document:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d->serialize();
+  ```
+
+  or:
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d;
+  ```
+
+  Output:
+
+  ```html
+  <!DOCTYPE html><html><head></head><body></body></html>
+  ```
+
+- Serializing a document (pretty printing):
+
+  ```php
+  use MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html><body><h1>Ook!</h1><p>Ook, eek? Ooooook. Ook.</body></html>');
+  echo $d->serialize($d, [ 'reformatWhitespace' => true ]);
+  ```
+
+  Output:
+
+  ```html
+  <!DOCTYPE html>
+  <html>
+   <head></head>
+
+   <body>
+    <h1>Ook!</h1>
+
+    <p>Ook, eek? Ooooook. Ook.</p>
+   </body>
+  </html>
+  ```
 
 ### MensBeam\HTML\DOM\Node ###
 
@@ -98,59 +210,31 @@ Applies the callback filter while walking down the DOM tree and yields nodes mat
   - `Node::WALK_STOP`: Stop the walker.
 * `includeReferenceNode`: Include `$this` when walking down the tree.
 
-### Examples ###
+### MensBeam\HTML\DOM\XPathEvaluator ###
 
-- Creating a new document:
+```php
+namespace MensBeam\HTML\DOM;
 
-  ```php
-  use MensBeam\HTML\DOM;
+partial class XPathEvaluator {
+    public function registerXPathFunctions(Document $document, string|array|null $restrict = null): void;
+}
+```
 
-  $d = new Document();
-  ```
+#### MensBeam\HTML\DOM\XPathEvaluator::registerXPathFunctions ####
 
-- Creating a new document from a string:
+Register PHP functions as XPath functions. Works like `\DOMXPath::registerPhpFunctions` except that the php namespace does not need to be registered.
 
-  ```php
-  use MensBeam\HTML\DOM;
+* `document`: The document to register the functions on.
+* `restrict`: Use this parameter to only allow certain functions to be called from XPath. This parameter can be either a string (a function name), an array of function names, or null to allow everything.
 
-  $d = new Document('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
-  ```
+### MensBeam\HTML\DOM\XPathResult ###
 
-  or:
+`MensBeam\HTML\DOM\XPathResult` implements `\ArrayAccess`, `\Countable`, and `\Iterator` and will allow for accessing as if it is an array when the result type is `MensBeam\HTML\DOM\XPathResult::ORDERED_NODE_ITERATOR_TYPE`, `MensBeam\HTML\DOM\XPathResult::UNORDERED_NODE_ITERATOR_TYPE`, `MensBeam\HTML\DOM\XPathResult::ORDERED_NODE_SNAPSHOT_TYPE`, or `MensBeam\HTML\DOM\XPathResult::UNORDERED_NODE_SNAPSHOT_TYPE`.
 
-  ```php
-  use MensBeam\HTML\DOM;
-
-  $d = new Document();
-  $d->load('<!DOCTYPE html><html><head><title>Ook</title></head><body><h1>Ook!</h1></body></html>');
-  ```
-
-- Serializing a document:
-
-  ```php
-  use MensBeam\HTML\DOM;
-
-  $d = new Document('<!DOCTYPE html><html></html>');
-  echo $d->serialize();
-  ```
-
-  or:
-
-  ```php
-  use MensBeam\HTML\DOM;
-
-  $d = new Document('<!DOCTYPE html><html></html>');
-  echo $d;
-  ```
-
-- Serializing a document (pretty printing):
-
-  ```php
-  use MensBeam\HTML\DOM;
-
-  $d = new Document('<!DOCTYPE html><html></html>');
-  echo $d->serialize($d, [ 'reformatWhitespace' => true ]);
-  ```
+```php
+partial class XPathResult implements \ArrayAccess, \Countable, \Iterator {
+}
+```
 
 ## Limitations & Differences from Specification ##
 

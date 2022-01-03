@@ -140,6 +140,8 @@ trait XPathEvaluate {
     }
 
     protected function xpathRegisterPhpFunctions(Document $document, string|array|null $restrict = null): void {
-        Reflection::getProtectedProperty($document, 'innerNode')->xpath->registerPhpFunctions($restrict);
+        $xpath = Reflection::getProtectedProperty($document, 'innerNode')->xpath;
+        $xpath->registerNamespace('php', 'http://php.net/xpath');
+        $xpath->registerPhpFunctions($restrict);
     }
 }

@@ -4,10 +4,19 @@
 [d]: https://dom.spec.whatwg.org
 [e]: #limitations
 [f]: https://html.spec.whatwg.org/multipage/dom.html
+[g]: https://php.net/manual/en/book.dom.php
+[h]: https://www.php.net/manual/en/book.ctype.php
 
 # HTML DOM #
 
 Modern DOM library written in PHP for HTML documents. This library is an attempt to implement the [WHATWG's DOM specification][d] and [WHATWG HTML DOM extensions specification][f] through a userland extension and encapsulation of PHP's built-in DOM. It exists because PHP's DOM is inaccurate, inadequate for use with any HTML, and extremely buggy. This implementation aims to fix as much as possible the inaccuracies of the PHP DOM, add in features necessary for modern HTML development, and circumvent most of the bugs.
+
+## Requirements ##
+
+* PHP 8.0.2 or newer with the following extensions:
+  - [dom][g] extension
+  - [ctype][h] extension (optional, used when parsing)
+* Composer 2.0 or newer
 
 ## Usage ##
 

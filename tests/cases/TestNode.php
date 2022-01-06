@@ -265,6 +265,13 @@ class TestNode extends \PHPUnit\Framework\TestCase {
     }
 
 
+    public function testMethod_getNodePath(): void {
+        $d = new Document('<!DOCTYPE html><html><body><div><span><div></div><div><p><span><div></div><div></div><span></span><p id="ook">ook</p></span></p></div></span></div></body></html>');
+        $ook = $d->getElementById('ook');
+        $this->assertSame('/html/body/div/span/div[2]/p[2]', $ook->getNodePath());
+    }
+
+
     /**
      * @covers \MensBeam\HTML\DOM\Node::insertBefore
      *

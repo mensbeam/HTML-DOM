@@ -436,6 +436,10 @@ abstract class Node implements \Stringable {
         return $this->containsInner($this->innerNode, $this->getInnerNode($other));
     }
 
+    public function getNodePath(): ?string {
+        return $this->innerNode->getNodePath();
+    }
+
     public function getRootNode(): ?Node {
         # The getRootNode(options) method steps are to return this’s shadow-including
         # root if options["composed"] is true; otherwise this’s root.

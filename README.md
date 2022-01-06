@@ -229,8 +229,15 @@ partial abstract class Node implements \Stringable {
     public const WALK_REJECT = 0x02;
     public const WALK_SKIP_CHILDREN = 0x04;
     public const WALK_STOP = 0x08;
+
+
+    public function getNodePath(): ?string;
 }
 ```
+
+#### MensBeam\HTML\DOM\Node::getNodePath ####
+
+Carryover from PHP's DOM. It's a useful method that returns an XPath location path for the node. Returns a string if successful or null on failure.
 
 ### MensBeam\HTML\DOM\ParentNode ###
 

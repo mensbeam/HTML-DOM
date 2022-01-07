@@ -134,7 +134,7 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
         $this->validateStorage();
 
         $node = $this->storage[$this->position];
-        return $node->ownerDocument->getWrapperNode($node);
+        return ($node !== null) ? $node->ownerDocument->getWrapperNode($node) : null;
     }
 
     public function offsetSet($offset, $value): void {

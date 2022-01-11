@@ -379,7 +379,7 @@ partial abstract class Document extends \DOMDocument {
 
 #### Properties ####
 
-*wrapperNode*: A readonly property that returns the wrapper element for the document.
+*wrapperNode*: A readonly property that returns the wrapper document for the document.
 
 #### MensBeam\HTML\DOM\Inner\Document::getWrapperNode ####
 

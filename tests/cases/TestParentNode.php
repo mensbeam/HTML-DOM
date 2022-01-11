@@ -31,11 +31,11 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::convertNodesToNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
@@ -77,11 +77,11 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
      * @covers \MensBeam\HTML\DOM\Node::__construct
      * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::convertNodesToNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::insertBefore
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
@@ -122,11 +122,11 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_innerHTML
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::convertNodesToNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
@@ -291,9 +291,9 @@ class TestParentNode extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes

@@ -37,11 +37,11 @@ class TestDOMImplementation extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__get_prefix
      * @covers \MensBeam\HTML\DOM\Element::__get_tagName
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeName
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -118,11 +118,11 @@ class TestDOMImplementation extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__get_prefix
      * @covers \MensBeam\HTML\DOM\Element::__get_tagName
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeName
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -136,7 +136,6 @@ class TestDOMImplementation extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_createHTMLDocument(): void {

@@ -17,7 +17,7 @@ use MensBeam\HTML\Parser;
 trait NonElementParentNode {
     public function getElementById(string $elementId): ?Element {
         $document = $this->getInnerDocument();
-        $innerElement = $this->innerNode->getElementById($elementId);
+        $innerElement = $this->_innerNode->getElementById($elementId);
         return ($innerElement !== null) ? $document->getWrapperNode($innerElement) : null;
     }
 }

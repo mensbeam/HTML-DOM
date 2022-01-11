@@ -21,7 +21,7 @@ class Serializer extends ParserSerializer {
     }
 
     protected static function getTemplateContent(\DOMElement $node): \DOMNode {
-        return Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($node)->content, 'innerNode');
+        return $node->ownerDocument->getWrapperNode($node)->content->innerNode;
     }
 
     protected static function isPreformattedContent(\DOMNode $node): bool {
@@ -34,7 +34,7 @@ class Serializer extends ParserSerializer {
             } elseif ($n instanceof \DOMDocumentFragment) {
                 $host = Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($n), 'host');
                 if ($host !== null) {
-                    $n = Reflection::getProtectedProperty($host->get(), 'innerNode');
+                    $n = $host->get()->innerNode;
                 }
             }
         } while ($n = $n->parentNode);

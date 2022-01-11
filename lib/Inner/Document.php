@@ -67,6 +67,18 @@ class Document extends \DOMDocument {
             return $this->wrapperNode;
         }
 
+        if ($node instanceof \DOMDocument) {
+            throw new DOMException(DOMException::NOT_SUPPORTED);
+        }
+
+        // There's no way to see whether unappended doctypes are owned by a document in
+        // PHP DOM because of a bug where unappended doctypes have a null owner
+        // document. This is worked around in the wrapper DOM but a problem here when
+        // creating the wrapper node.
+        if (!$node instanceof \DOMDocumentType && $node->ownerDocument !== $this) {
+            throw new DOMException(DOMException::WRONG_DOCUMENT);
+        }
+
         // If the wrapper node already exists then return that.
         if ($wrapperNode = $this->nodeCache->get($node)) {
             return $wrapperNode;

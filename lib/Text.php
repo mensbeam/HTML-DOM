@@ -12,7 +12,7 @@ namespace MensBeam\HTML\DOM;
 class Text extends CharacterData {
     protected function __get_wholeText(): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->wholeText;
+        return $this->_innerNode->wholeText;
     }
 
 
@@ -23,7 +23,7 @@ class Text extends CharacterData {
             throw new DOMException(DOMException::INDEX_SIZE_ERROR);
         }
 
-        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->splitText($offset));
+        return $this->_innerNode->ownerDocument->getWrapperNode($this->_innerNode->splitText($offset));
     }
 
 

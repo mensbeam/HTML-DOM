@@ -101,7 +101,7 @@ class DOMImplementation {
         # 2. Return a new doctype, with qualifiedName as its name, publicId as its
         #    public ID, and systemId as its system ID, and with its node document set to
         #    the associated document of this.
-        $innerDocument = Reflection::getProtectedProperty($this->document->get(), 'innerNode');
+        $innerDocument = $this->document->get()->innerNode;
         // PHP's DOM won't accept an empty string as the qualifiedName, so use a space
         // instead which won't be encountered elsewhere because it violates the QName
         // production; this will be worked around in DocumentType.

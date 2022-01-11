@@ -52,7 +52,7 @@ abstract class Node implements \Stringable {
     public const WALK_SKIP_CHILDREN = 0x04;
     public const WALK_STOP = 0x08;
 
-    protected \DOMNode $innerNode;
+    protected \DOMNode $_innerNode;
     protected array $bullshitReplacements = [];
 
     private static ?int $rand = null;
@@ -63,7 +63,7 @@ abstract class Node implements \Stringable {
         #
         # The document base URL of a Document object is the absolute URL obtained by running these steps:
         $doc = ($this instanceof Document) ? $this : $this->ownerDocument;
-        $base = $this->getInnerNode($doc)->getElementsByTagName('base');
+        $base = $doc->innerNode->getElementsByTagName('base');
         foreach ($base as $b) {
             $href = $b->getAttribute('href');
             # 2. Otherwise, return the frozen base URL of the first base element in the
@@ -90,16 +90,20 @@ abstract class Node implements \Stringable {
     }
 
     protected function __get_childNodes(): NodeList {
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument, $this->innerNode->childNodes);
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', ($this instanceof Document) ? $this->_innerNode : $this->_innerNode->ownerDocument, $this->_innerNode->childNodes);
     }
 
     protected function __get_firstChild(): ?Node {
         // PHP's DOM does this correctly already.
-        if (!$value = $this->innerNode->firstChild) {
+        if (!$value = $this->_innerNode->firstChild) {
             return null;
         }
 
         return $this->getInnerDocument()->getWrapperNode($value);
+    }
+
+    protected function __get_innerNode(): \DOMNode {
+        return $this->_innerNode;
     }
 
     protected function __get_isConnected(): bool {
@@ -111,7 +115,7 @@ abstract class Node implements \Stringable {
 
     protected function __get_lastChild(): ?Node {
         // PHP's DOM does this correctly already.
-        if (!$value = $this->innerNode->lastChild) {
+        if (!$value = $this->_innerNode->lastChild) {
             return null;
         }
 
@@ -120,7 +124,7 @@ abstract class Node implements \Stringable {
 
     protected function __get_previousSibling(): ?Node {
         // PHP's DOM does this correctly already.
-        if (!$value = $this->innerNode->previousSibling) {
+        if (!$value = $this->_innerNode->previousSibling) {
             return null;
         }
 
@@ -129,7 +133,7 @@ abstract class Node implements \Stringable {
 
     protected function __get_nextSibling(): ?Node {
         // PHP's DOM does this correctly already.
-        if (!$value = $this->innerNode->nextSibling) {
+        if (!$value = $this->_innerNode->nextSibling) {
             return null;
         }
 
@@ -150,7 +154,7 @@ abstract class Node implements \Stringable {
         // Attribute nodes and processing instructions need the node name uncoerced if
         // necessary
         elseif ($this instanceof Attr || $this instanceof ProcessingInstruction) {
-            $nodeName = $this->innerNode->nodeName;
+            $nodeName = $this->_innerNode->nodeName;
             return (!str_contains(needle: 'U', haystack: $nodeName)) ? $nodeName : $this->uncoerceName($nodeName);
         }
         // While the DOM itself cannot create a doctype with an empty string as the
@@ -162,12 +166,12 @@ abstract class Node implements \Stringable {
         }
 
         // PHP's DOM handles everything correctly on everything else.
-        return $this->innerNode->nodeName;
+        return $this->_innerNode->nodeName;
     }
 
     protected function __get_nodeType(): int {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->nodeType;
+        return $this->_innerNode->nodeType;
     }
 
     protected function __get_nodeValue(): ?string {
@@ -182,7 +186,7 @@ abstract class Node implements \Stringable {
 
         // PHP's DOM mostly does this correctly with the exception of Element, so let's
         // fall back to PHP's DOM on everything else.
-        return $this->innerNode->nodeValue;
+        return $this->_innerNode->nodeValue;
     }
 
     protected function __set_nodeValue(?string $value) {
@@ -198,18 +202,19 @@ abstract class Node implements \Stringable {
 
         // PHP's DOM mostly does this correctly with the exception of Element, so let's
         // fall back to PHP's DOM on everything else.
-        $this->innerNode->nodeValue = $value;
+        $this->_innerNode->nodeValue = $value;
     }
 
     protected function __get_ownerDocument(): ?Document {
         # The ownerDocument getter steps are to return null, if this is a document;
         # otherwise this’s node document.
-        // PHP's DOM does this correctly already.
-        if ($this instanceof Document || !$ownerDocument = $this->innerNode->ownerDocument) {
+        // PHP's DOM does this correctly on everything but document types. That's taken
+        // care of in DocumentType.
+        if ($this instanceof Document || !$ownerDocument = $this->_innerNode->ownerDocument) {
             return null;
         }
 
-        return $this->innerNode->ownerDocument->getWrapperNode($ownerDocument);
+        return $this->_innerNode->ownerDocument->getWrapperNode($ownerDocument);
     }
 
     protected function __get_parentElement(): ?Element {
@@ -229,7 +234,7 @@ abstract class Node implements \Stringable {
             return null;
         }
 
-        $parent = $this->innerNode->parentNode;
+        $parent = $this->_innerNode->parentNode;
         if ($parent === null) {
             return null;
         }
@@ -244,7 +249,7 @@ abstract class Node implements \Stringable {
 
         // PHP's DOM does this correctly already with the exception of Document and
         // DocumentType.
-        return $this->innerNode->textContent;
+        return $this->_innerNode->textContent;
     }
 
     protected function __set_textContent(string $value): void {
@@ -270,28 +275,28 @@ abstract class Node implements \Stringable {
             #    data is string and node document is parent’s node document.
             // string is $value
             if ($value !== '') {
-                $node = $this->innerNode->ownerDocument->createTextNode($value);
+                $node = $this->_innerNode->ownerDocument->createTextNode($value);
             }
 
             # 3. Replace all with node within parent.
-            while ($this->innerNode->hasChildNodes()) {
-                $this->innerNode->removeChild($this->innerNode->firstChild);
+            while ($this->_innerNode->hasChildNodes()) {
+                $this->_innerNode->removeChild($this->_innerNode->firstChild);
             }
 
             if ($value !== '') {
-                $this->innerNode->appendChild($node);
+                $this->_innerNode->appendChild($node);
             }
         }
         # ↪ Attr
         #      This's value
         elseif ($this instanceof Attr) {
-            $this->innerNode->value = $value;
+            $this->_innerNode->value = $value;
         }
         # ↪ CharacterData
         #      Replace data with node this, offset 0, count this’s length, and data the given
         #      value.
         elseif ($this instanceof CharacterData) {
-            $this->innerNode->data = $value;
+            $this->_innerNode->data = $value;
         }
         # ↪ Otherwise
         #      Do nothing.
@@ -301,13 +306,13 @@ abstract class Node implements \Stringable {
 
 
     protected function __construct(\DOMNode $innerNode) {
-        $this->innerNode = $innerNode;
+        $this->_innerNode = $innerNode;
     }
 
 
     public function appendChild(Node $node): Node {
         $this->preInsertionValidity($node);
-        $this->innerNode->appendChild($this->getInnerNode($node));
+        $this->_innerNode->appendChild($node->innerNode);
         $this->postInsertionBugFixes();
         return $node;
     }
@@ -336,8 +341,8 @@ abstract class Node implements \Stringable {
         # 2. Let node1 be other and node2 be this.
         $node1 = $other;
         $node2 = $this;
-        $innerNode1 = $this->getInnerNode($other);
-        $innerNode2 = $this->innerNode;
+        $innerNode1 = $other->innerNode;
+        $innerNode2 = $this->_innerNode;
         $doc = $this->getInnerDocument();
 
         # 3. Let attr1 and attr2 be null.
@@ -433,11 +438,11 @@ abstract class Node implements \Stringable {
     }
 
     public function contains(?Node $other): bool {
-        return $this->containsInner($this->innerNode, $this->getInnerNode($other));
+        return $this->containsInner($this->_innerNode, $other->innerNode);
     }
 
     public function getNodePath(): ?string {
-        return $this->innerNode->getNodePath();
+        return $this->_innerNode->getNodePath();
     }
 
     public function getRootNode(): ?Node {
@@ -449,7 +454,7 @@ abstract class Node implements \Stringable {
         # The root of an object is itself, if its parent is null, or else it is the root
         # of its parent. The root of a tree is any object participating in that tree
         # whose parent is null.
-        $node = $this->innerNode;
+        $node = $this->_innerNode;
         if ($node->parentNode === null) {
             return $this;
         }
@@ -463,14 +468,14 @@ abstract class Node implements \Stringable {
 
     public function hasChildNodes(): bool {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->hasChildNodes();
+        return $this->_innerNode->hasChildNodes();
     }
 
     public function insertBefore(Node $node, ?Node $child = null): Node {
         # The insertBefore(node, child) method steps are to return the result of
         # pre-inserting node into this before child.
         $this->preInsertionValidity($node, $child);
-        $this->innerNode->insertBefore($this->getInnerNode($node), ($child !== null) ? $this->getInnerNode($child) : null);
+        $this->_innerNode->insertBefore($node->innerNode, ($child !== null) ? $child->innerNode : null);
         $this->postInsertionBugFixes();
         return $node;
     }
@@ -488,13 +493,13 @@ abstract class Node implements \Stringable {
         # 2. Let defaultNamespace be the result of running locate a namespace for this
         #    using null.
         # 3. Return true if defaultNamespace is the same as namespace; otherwise false.
-        return ($this->locateNamespace($this->innerNode, null) === $namespace);
+        return ($this->locateNamespace($this->_innerNode, null) === $namespace);
     }
 
     public function isEqualNode(?Node $otherNode) {
         # The isEqualNode(otherNode) method steps are to return true if otherNode is
         # non-null and this equals otherNode; otherwise false.
-        return $this->isEqualInnerNode($this->innerNode, $this->getInnerNode($otherNode));
+        return $this->isEqualInnerNode($this->_innerNode, $otherNode->innerNode);
     }
 
     public function isSameNode(?Node $otherNode) {
@@ -518,7 +523,7 @@ abstract class Node implements \Stringable {
         # ↪ Element
         if ($this instanceof Element) {
             # Return the result of locating a namespace prefix for it using namespace.
-            return $this->locateNamespacePrefix($this->innerNode, $namespace);
+            return $this->locateNamespacePrefix($this->_innerNode, $namespace);
         }
 
         # ↪ Document
@@ -526,7 +531,7 @@ abstract class Node implements \Stringable {
             $documentElement = $this->documentElement;
             # Return the result of locating a namespace prefix for its document element, if
             # its document element is non-null; otherwise null.
-            return ($documentElement !== null) ? $this->locateNamespacePrefix($this->getInnerNode($documentElement), $namespace) : null;
+            return ($documentElement !== null) ? $this->locateNamespacePrefix($documentElement->innerNode, $namespace) : null;
         }
 
         # ↪ DocumentType
@@ -539,14 +544,14 @@ abstract class Node implements \Stringable {
         elseif ($this instanceof Attr) {
             # Return the result of locating a namespace prefix for its element, if its
             # element is non-null; otherwise null.
-            return $this->locateNamespacePrefix($this->getInnerNode($this->ownerElement), $namespace);
+            return $this->locateNamespacePrefix($this->ownerElement->innerNode, $namespace);
         }
 
         # ↪ Otherwise
         #      Return the result of locating a namespace prefix for its parent element,
         #      if its parent element is non-null; otherwise null.
         $parentElement = $this->parentElement;
-        return ($parentElement !== null) ? $this->locateNamespacePrefix($this->getInnerNode($parentElement), $namespace) : null;
+        return ($parentElement !== null) ? $this->locateNamespacePrefix($parentElement->innerNode, $namespace) : null;
     }
 
     public function lookupNamespaceURI(?string $prefix = null): ?string {
@@ -560,24 +565,24 @@ abstract class Node implements \Stringable {
         }
 
         # 2. Return the result of running locate a namespace for this using prefix.
-        return $this->locateNamespace($this->innerNode, $prefix);
+        return $this->locateNamespace($this->_innerNode, $prefix);
     }
 
     public function normalize(): void {
         // PHP's DOM does this correctly already.
-        $this->innerNode->normalize();
+        $this->_innerNode->normalize();
     }
 
     public function removeChild(Node $child): Node {
         // PHP's DOM does this correctly already.
-        return $this->getInnerDocument()->getWrapperNode($this->innerNode->removeChild($this->getInnerNode($child)));
+        return $this->getInnerDocument()->getWrapperNode($this->_innerNode->removeChild($child->innerNode));
     }
 
     public function replaceChild(Node $node, Node $child): Node {
         $wrapperNode = $node;
-        $node = $this->getInnerNode($node);
-        $child = $this->getInnerNode($child);
-        $inner = $this->innerNode;
+        $node = $node->innerNode;
+        $child = $child->innerNode;
+        $inner = $this->_innerNode;
 
         # The replaceChild(node, child) method steps are to return the result of
         # replacing child with node within this.
@@ -768,7 +773,7 @@ abstract class Node implements \Stringable {
             // DEVIATION: CDATA section nodes will be converted to text nodes when importing
             // into HTML documents
             if ($node instanceof \DOMCdataSection) {
-                $doc = ($this instanceof InnerDocument) ? $this : $this->innerNode;
+                $doc = ($this instanceof InnerDocument) ? $this : $this->_innerNode;
                 if (!$doc instanceof XMLDocument) {
                     return $document->createTextNode($node->data);
                 }
@@ -813,7 +818,7 @@ abstract class Node implements \Stringable {
                         $copyWrapperContent->appendChild($this->cloneWrapperNode($nodeWrapperContent, $document->wrapperNode, true));
                     }
                 } else {
-                    $copyContent = $this->getInnerNode($copyWrapperContent);
+                    $copyContent = $copyWrapperContent->innerNode;
                     $childNodes = $node->childNodes;
                     foreach ($childNodes as $child) {
                         $this->appendChildInner($copyContent, $this->cloneInnerNode($child, $document, true, true));
@@ -867,7 +872,7 @@ abstract class Node implements \Stringable {
         #      Set copy’s encoding, content type, URL, origin, type, and mode to those of node.
         if ($node instanceof Document) {
             $document = new Document();
-            $innerDocument = $this->getInnerNode($document);
+            $innerDocument = $document->innerNode;
             $import = true;
 
             if ($node->characterSet !== 'UTF-8' || $node->compatMode !== 'CSS1Compat' || $node->contentType !== 'text/html' || $node->URL !== 'about:blank') {
@@ -884,8 +889,8 @@ abstract class Node implements \Stringable {
             $innerNode = $node->innerNode;
         } else {
             $import = ($document !== $node->ownerDocument);
-            $innerNode = $this->getInnerNode($node);
-            $innerDocument = $this->getInnerNode($document);
+            $innerNode = $node->innerNode;
+            $innerDocument = $document->innerNode;
 
             if ($node instanceof Element) {
                 $copy = ($import) ? $innerDocument->importNode($innerNode) : $innerNode->cloneNode();
@@ -1013,18 +1018,7 @@ abstract class Node implements \Stringable {
     }
 
     protected function getInnerDocument(): InnerDocument {
-        return ($this instanceof Document) ? $this->innerNode : $this->innerNode->ownerDocument;
-    }
-
-    protected function getInnerNode(?Node $node = null): \DOMNode {
-        if ($node === $this) {
-            return $this->innerNode;
-        }
-
-        // Using reflection to get the inner node (for everything but documents) rather
-        // than polling the inner owner document's node map is a good bit faster. It's
-        // wrong to do this, but hey... it's faster.
-        return Reflection::getProtectedProperty($node, 'innerNode');
+        return ($this instanceof Document) ? $this->_innerNode : $this->_innerNode->ownerDocument;
     }
 
     protected function isEqualInnerNode(\DOMNode $thisNode, \DOMNode $otherNode) {
@@ -1280,10 +1274,10 @@ abstract class Node implements \Stringable {
     }
 
     protected function preInsertionValidity(Node $node, ?Node $child = null): void {
-        $parent = $this->innerNode;
-        $node = $this->getInnerNode($node);
+        $parent = $this->_innerNode;
+        $node = $node->innerNode;
         if ($child !== null) {
-            $child = $this->getInnerNode($child);
+            $child = $child->innerNode;
         }
         $doc = $this->getInnerDocument();
 
@@ -1311,7 +1305,7 @@ abstract class Node implements \Stringable {
                 if ($parentRoot instanceof \DOMDocumentFragment) {
                     $wrappedParentRoot = $parentRoot->ownerDocument->getWrapperNode($parentRoot);
                     $parentRootHost = Reflection::getProtectedProperty($wrappedParentRoot, 'host');
-                    if ($parentRootHost !== null && ($parentRootHost === $node || $this->containsInner($node, $this->getInnerNode($parentRootHost->get())))) {
+                    if ($parentRootHost !== null && ($parentRootHost === $node || $this->containsInner($node, $parentRootHost->get()->innerNode))) {
                         throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
                     }
                 }

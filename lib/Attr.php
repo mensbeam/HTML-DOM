@@ -13,7 +13,7 @@ class Attr extends Node {
     protected function __get_localName(): string {
         // PHP's DOM does this correctly already.
         // Need to uncoerce string if necessary.
-        $localName = $this->innerNode->localName;
+        $localName = $this->_innerNode->localName;
         return (!str_contains(needle: 'U', haystack: $localName)) ? $localName : $this->uncoerceName($localName);
     }
 
@@ -21,29 +21,29 @@ class Attr extends Node {
         // PHP's DOM incorrectly returns the local name instead of the qualified name
         // per the specification.
         // Need to uncoerce string if necessary.
-        $name = $this->innerNode->nodeName;
+        $name = $this->_innerNode->nodeName;
         return (!str_contains(needle: 'U', haystack: $name)) ? $name : $this->uncoerceName($name);
     }
 
     protected function __get_namespaceURI(): ?string {
-        return $this->innerNode->namespaceURI;
+        return $this->_innerNode->namespaceURI;
     }
 
     protected function __get_ownerElement(): ?Element {
         // PHP's DOM does this correctly already.
-        $innerOwnerElement = $this->innerNode->ownerElement;
+        $innerOwnerElement = $this->_innerNode->ownerElement;
 
         if ($innerOwnerElement === null) {
             return null;
         }
 
-        return $this->innerNode->ownerDocument->getWrapperNode($this->innerNode->ownerElement);
+        return $this->_innerNode->ownerDocument->getWrapperNode($this->_innerNode->ownerElement);
     }
 
     protected function __get_prefix(): string {
         // PHP's DOM does this correctly already.
         // Need to uncoerce string if necessary.
-        $prefix = $this->innerNode->prefix;
+        $prefix = $this->_innerNode->prefix;
         return (!str_contains(needle: 'U', haystack: $prefix)) ? $prefix : $this->uncoerceName($prefix);
     }
 
@@ -54,11 +54,11 @@ class Attr extends Node {
 
     protected function __get_value(): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->value;
+        return $this->_innerNode->value;
     }
 
     protected function __set_value(string $value) {
         // PHP's DOM does this correctly already.
-        $this->innerNode->value = $value;
+        $this->_innerNode->value = $value;
     }
 }

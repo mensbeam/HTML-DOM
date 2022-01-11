@@ -33,7 +33,7 @@ class Document extends Node implements \ArrayAccess {
     protected string $_URL = 'about:blank';
 
     protected function __get_body(): ?Element {
-        $documentElement = $this->innerNode->documentElement;
+        $documentElement = $this->_innerNode->documentElement;
         if ($documentElement === null) {
             return null;
         }
@@ -134,14 +134,14 @@ class Document extends Node implements \ArrayAccess {
 
     protected function __get_doctype(): ?DocumentType {
         // PHP's DOM does this correctly already.
-        $doctype = $this->innerNode->doctype;
-        return ($doctype !== null) ? $this->innerNode->getWrapperNode($doctype) : null;
+        $doctype = $this->_innerNode->doctype;
+        return ($doctype !== null) ? $this->_innerNode->getWrapperNode($doctype) : null;
     }
 
     protected function __get_documentElement(): ?Element {
         // PHP's DOM does this correctly already.
-        $documentElement = $this->innerNode->documentElement;
-        return ($documentElement !== null) ? $this->innerNode->getWrapperNode($documentElement) : null;
+        $documentElement = $this->_innerNode->documentElement;
+        return ($documentElement !== null) ? $this->_innerNode->getWrapperNode($documentElement) : null;
     }
 
     protected function __get_documentURI(): string {
@@ -154,7 +154,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//embed[namespace-uri()='$namespace']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->_innerNode, $this->_innerNode->xpath->query(".//embed[namespace-uri()='$namespace']"));
     }
 
     protected function __get_forms(): HTMLCollection {
@@ -163,7 +163,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//form[namespace-uri()='$namespace']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->_innerNode, $this->_innerNode->xpath->query(".//form[namespace-uri()='$namespace']"));
     }
 
     protected function __get_head(): ?Element {
@@ -171,12 +171,12 @@ class Document extends Node implements \ArrayAccess {
         # the html element, if there is one, or null otherwise.
         # The head attribute, on getting, must return the head element of the document
         # (a head element or null).
-        $documentElement = $this->innerNode->documentElement;
+        $documentElement = $this->_innerNode->documentElement;
         if ($documentElement !== null) {
             $children = $documentElement->childNodes;
             foreach ($children as $child) {
                 if ($child instanceof \DOMElement && $child->namespaceURI === null && $child->tagName === 'head') {
-                    return $this->innerNode->getWrapperNode($child);
+                    return $this->_innerNode->getWrapperNode($child);
                 }
             }
         }
@@ -190,7 +190,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//img[namespace-uri()='$namespace']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->_innerNode, $this->_innerNode->xpath->query(".//img[namespace-uri()='$namespace']"));
     }
 
     protected function __get_implementation(): DOMImplementation {
@@ -208,7 +208,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @href][name()='a' or name()='area']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->_innerNode, $this->_innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @href][name()='a' or name()='area']"));
     }
 
     protected function __get_plugins(): HTMLCollection {
@@ -222,7 +222,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $this->innerNode->xpath->query(".//script[namespace-uri()='$namespace']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->_innerNode, $this->_innerNode->xpath->query(".//script[namespace-uri()='$namespace']"));
     }
 
     protected function __get_title(): string {
@@ -230,7 +230,7 @@ class Document extends Node implements \ArrayAccess {
         # 1. If the document element is an SVG svg element, then let value be the child text
         #    content of the first SVG title element that is a child of the document element.
         $value = '';
-        $documentElement = $this->innerNode->documentElement;
+        $documentElement = $this->_innerNode->documentElement;
         if ($documentElement === null) {
             return '';
         }
@@ -249,7 +249,7 @@ class Document extends Node implements \ArrayAccess {
         else {
             # The title element of a document is the first title element in the document (in
             # tree order), if there is one, or null otherwise.
-            $title = $this->innerNode->getElementsByTagName('title');
+            $title = $this->_innerNode->getElementsByTagName('title');
             if ($title->length > 0) {
                 $value = $title->item(0)->textContent ?? '';
             }
@@ -264,7 +264,7 @@ class Document extends Node implements \ArrayAccess {
         # On setting, the steps corresponding to the first matching condition in the following list must be run:
         #
         # If the document element is an SVG svg element
-        $documentElement = $this->innerNode->documentElement;
+        $documentElement = $this->_innerNode->documentElement;
         if ($documentElement === null) {
             return;
         }
@@ -285,10 +285,10 @@ class Document extends Node implements \ArrayAccess {
             if ($element === null) {
                 # 1. Let element be the result of creating an element given the document element's
                 #    node document, title, and the SVG namespace.
-                $element = $this->innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
+                $element = $this->_innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
 
                 # 2. Insert element as the first child of the document element.
-                $this->innerNode->documentElement->appendChild($element);
+                $this->_innerNode->documentElement->appendChild($element);
             }
 
             # 3. String replace all with the given value within element.
@@ -303,7 +303,7 @@ class Document extends Node implements \ArrayAccess {
             # tree order), if there is one, or null otherwise.
             $title = null;
             $element = null;
-            $titles = $this->innerNode->getElementsByTagName('title');
+            $titles = $this->_innerNode->getElementsByTagName('title');
             if ($titles->length > 0) {
                 $title = $titles->item(0);
             }
@@ -331,7 +331,7 @@ class Document extends Node implements \ArrayAccess {
             else {
                 # 1. Let element be the result of creating an element given the document
                 #   element's node document, title, and the HTML namespace.
-                $element = $this->innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
+                $element = $this->_innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
 
                 # 2. Append element to the head element.
                 $head->appendChild($element);
@@ -371,7 +371,7 @@ class Document extends Node implements \ArrayAccess {
             self::$cache = new NodeCache(); //@codeCoverageIgnore
         }
 
-        self::$cache->set($this, $this->innerNode);
+        self::$cache->set($this, $this->_innerNode);
     }
 
 
@@ -404,7 +404,7 @@ class Document extends Node implements \ArrayAccess {
         }
 
         // Remove node from the inner document's node cache.
-        Reflection::getProtectedProperty($this->getInnerNode($node)->ownerDocument, 'nodeCache')->delete($node);
+        Reflection::getProtectedProperty($node->innerNode->ownerDocument, 'nodeCache')->delete($node);
 
         # 5. Return node.
         $node = $newNode;
@@ -412,7 +412,7 @@ class Document extends Node implements \ArrayAccess {
     }
 
     public function createAttribute(string $localName): Attr {
-        $innerNode = $this->innerNode;
+        $innerNode = $this->_innerNode;
 
         # The createAttribute(localName) method steps are:
         #
@@ -456,7 +456,7 @@ class Document extends Node implements \ArrayAccess {
             $attr = $this->cloneInnerNode($attr, $innerNode);
         }
 
-        return $this->innerNode->getWrapperNode($attr);
+        return $this->_innerNode->getWrapperNode($attr);
     }
 
     public function createAttributeNS(?string $namespace, string $qualifiedName): Attr {
@@ -471,7 +471,7 @@ class Document extends Node implements \ArrayAccess {
         // cannot create attribute nodes if there's no document element. So, create the
         // attribute node in a separate document which does have a document element and
         // then import
-        $target = $this->innerNode;
+        $target = $this->_innerNode;
         $documentElement = $this->documentElement;
         if ($documentElement === null) {
             $target = new \DOMDocument();
@@ -498,10 +498,10 @@ class Document extends Node implements \ArrayAccess {
         }
 
         if ($documentElement === null) {
-            $attr = $this->cloneInnerNode($attr, $this->innerNode);
+            $attr = $this->cloneInnerNode($attr, $this->_innerNode);
         }
 
-        return $this->innerNode->getWrapperNode($attr);
+        return $this->_innerNode->getWrapperNode($attr);
     }
 
     public function createCDATASection(string $data): CDATASection {
@@ -520,15 +520,15 @@ class Document extends Node implements \ArrayAccess {
 
         # 3. Return a new CDATASection node with its data set to data and node document
         #    set to this.
-        return $this->innerNode->getWrapperNode($this->innerNode->createCDATASection($data));
+        return $this->_innerNode->getWrapperNode($this->_innerNode->createCDATASection($data));
     }
 
     public function createComment(string $data): Comment {
-        return $this->innerNode->getWrapperNode($this->innerNode->createComment($data));
+        return $this->_innerNode->getWrapperNode($this->_innerNode->createComment($data));
     }
 
     public function createDocumentFragment(): DocumentFragment {
-        return $this->innerNode->getWrapperNode($this->innerNode->createDocumentFragment());
+        return $this->_innerNode->getWrapperNode($this->_innerNode->createDocumentFragment());
     }
 
     public function createElement(string $localName): Element {
@@ -559,15 +559,15 @@ class Document extends Node implements \ArrayAccess {
         #    null, is, and with the synchronous custom elements flag set.
 
         try {
-            $element = $this->innerNode->createElementNS(null, $localName);
+            $element = $this->_innerNode->createElementNS(null, $localName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            $element = $this->innerNode->createElementNS(null, $this->coerceName($localName));
+            $element = $this->_innerNode->createElementNS(null, $this->coerceName($localName));
         }
 
-        return $this->innerNode->getWrapperNode($element);
+        return $this->_innerNode->getWrapperNode($element);
     }
 
     public function createElementNS(?string $namespace, string $qualifiedName): Element {
@@ -588,33 +588,33 @@ class Document extends Node implements \ArrayAccess {
         // DEVIATION: There is no scripting in this implementation.
 
         try {
-            $element = $this->innerNode->createElementNS($namespace, $qualifiedName);
+            $element = $this->_innerNode->createElementNS($namespace, $qualifiedName);
         } catch (\DOMException $e) {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
             $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
-            $element = $this->innerNode->createElementNS($namespace, $qualifiedName);
+            $element = $this->_innerNode->createElementNS($namespace, $qualifiedName);
         }
 
-        return $this->innerNode->getWrapperNode($element);
+        return $this->_innerNode->getWrapperNode($element);
     }
 
     public function createProcessingInstruction(string $target, string $data): ProcessingInstruction {
         try {
-            $instruction = $this->innerNode->createProcessingInstruction($target, $data);
+            $instruction = $this->_innerNode->createProcessingInstruction($target, $data);
         } catch (\DOMException $e) {
             // The target is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            $instruction = $this->innerNode->createProcessingInstruction($this->coerceName($target), $data);
+            $instruction = $this->_innerNode->createProcessingInstruction($this->coerceName($target), $data);
         }
 
-        return $this->innerNode->getWrapperNode($instruction);
+        return $this->_innerNode->getWrapperNode($instruction);
     }
 
     public function createTextNode(string $data): Text {
-        return $this->innerNode->getWrapperNode($this->innerNode->createTextNode($data));
+        return $this->_innerNode->getWrapperNode($this->_innerNode->createTextNode($data));
     }
 
     public function getElementsByName(string $elementName): NodeList {
@@ -627,7 +627,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // NodeLists cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', $this->innerNode, $this->innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @name='$elementName']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', $this->_innerNode, $this->_innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @name='$elementName']"));
     }
 
     public function importNode(Node|\DOMNode $node, bool $deep = false): Node {
@@ -642,7 +642,7 @@ class Document extends Node implements \ArrayAccess {
 
         # 2. Return a clone of node, with this and the clone children flag set if deep
         #    is true.
-        return ($node instanceof \DOMNode) ? $this->innerNode->getWrapperNode($this->cloneInnerNode($node, $this->innerNode, $deep)) : $this->cloneWrapperNode($node, $this, $deep);
+        return ($node instanceof \DOMNode) ? $this->_innerNode->getWrapperNode($this->cloneInnerNode($node, $this->_innerNode, $deep)) : $this->cloneWrapperNode($node, $this, $deep);
     }
 
     public function load(string $source = null, ?string $charset = null): void {
@@ -660,11 +660,11 @@ class Document extends Node implements \ArrayAccess {
             $config->encodingFallback = Charset::fromCharset($charset);
         }
 
-        $source = Parser::parseInto($source, $this->innerNode, null, $config);
+        $source = Parser::parseInto($source, $this->_innerNode, null, $config);
         $this->_characterSet = $source->encoding;
         $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
 
-        $this->postParsingTemplatesFix($this->innerNode);
+        $this->postParsingTemplatesFix($this->_innerNode);
     }
 
     public function loadFile(string $filename, ?string $charset = null): void {
@@ -712,7 +712,7 @@ class Document extends Node implements \ArrayAccess {
         }
 
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
-        return ($this->innerNode->xpath->query(".//*[(name()='form' or name()='iframe' or name()='img') and namespace-uri()='$namespace' and @name='$offset'] | .//img[namespace-uri()='$namespace' and @id='$offset' and @name and not(@name='')] | .//embed[namespace-uri()='$namespace' and @name='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])] | .//object[namespace-uri()='$namespace' and @id='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])]")->length > 0);
+        return ($this->_innerNode->xpath->query(".//*[(name()='form' or name()='iframe' or name()='img') and namespace-uri()='$namespace' and @name='$offset'] | .//img[namespace-uri()='$namespace' and @id='$offset' and @name and not(@name='')] | .//embed[namespace-uri()='$namespace' and @name='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])] | .//object[namespace-uri()='$namespace' and @id='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])]")->length > 0);
     }
 
     public function offsetGet(mixed $offset): Element|HTMLCollection|null {
@@ -759,7 +759,7 @@ class Document extends Node implements \ArrayAccess {
         # ancestor, and, for object elements, is additionally either not showing its
         # fallback content or has no object or embed descendants.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
-        $elements = $this->innerNode->xpath->query(".//*[(name()='form' or name()='iframe' or name()='img') and namespace-uri()='$namespace' and @name='$offset'] | .//img[namespace-uri()='$namespace' and @id='$offset' and @name and not(@name='')] | .//embed[namespace-uri()='$namespace' and @name='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])] | .//object[namespace-uri()='$namespace' and @id='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])]");
+        $elements = $this->_innerNode->xpath->query(".//*[(name()='form' or name()='iframe' or name()='img') and namespace-uri()='$namespace' and @name='$offset'] | .//img[namespace-uri()='$namespace' and @id='$offset' and @name and not(@name='')] | .//embed[namespace-uri()='$namespace' and @name='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])] | .//object[namespace-uri()='$namespace' and @id='$offset' and not(ancestor::object[namespace-uri()='$namespace']) and not(descendant::*[(name()='embed' or name()='object') and namespace-uri()='$namespace'])]");
 
         # NOTE: There will be at least one such element, by definition.
         // This algorithm seems to expect user agents to keep up with a list of named
@@ -779,13 +779,13 @@ class Document extends Node implements \ArrayAccess {
 
         # 3. Otherwise, if elements has only one element, return that element.
         if ($elements->length === 1) {
-            return $this->innerNode->getWrapperNode($elements->item(0));
+            return $this->_innerNode->getWrapperNode($elements->item(0));
         }
 
         # 4. Otherwise return an HTMLCollection rooted at the Document node, whose
         #    filter matches only named elements with the name name.
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->innerNode, $elements);
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $this->_innerNode, $elements);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void {
@@ -804,17 +804,11 @@ class Document extends Node implements \ArrayAccess {
 
     public function serialize(?Node $node = null, array $config = []): string {
         $node = $node ?? $this;
-        if ($node !== $this) {
-            if ($node->ownerDocument !== $this) {
-                throw new DOMException(DOMException::WRONG_DOCUMENT);
-            }
-
-            $node = $this->getInnerNode($node);
-        } else {
-            $node = $node->innerNode;
+        if ($node !== $this && $node->ownerDocument !== $this) {
+            throw new DOMException(DOMException::WRONG_DOCUMENT);
         }
 
-        return Serializer::serialize($node, $config);
+        return Serializer::serialize($node->innerNode, $config);
     }
 
 

@@ -21,7 +21,7 @@ trait ChildNode {
         # The after(nodes) method steps are:
         #
         # 1. Let parent be this’s parent.
-        $inner = $this->innerNode;
+        $inner = $this->_innerNode;
         $parent = $this->parentNode;
 
         # 2. If parent is null, then return.
@@ -35,7 +35,7 @@ trait ChildNode {
         $viableNextSibling = null;
         while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof Node && $this->getInnerNode($nodeOrString) === $n) {
+                if ($nodeOrString instanceof Node && $nodeOrString->innerNode === $n) {
                     continue 2;
                 }
             }
@@ -59,7 +59,7 @@ trait ChildNode {
         # The before(nodes) method steps are:
         #
         # 1. Let parent be this’s parent.
-        $inner = $this->innerNode;
+        $inner = $this->_innerNode;
         $parent = $this->parentNode;
 
         # 2. If parent is null, then return.
@@ -73,7 +73,7 @@ trait ChildNode {
         $viablePreviousSibling = null;
         while ($n = $n->previousSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof Node && $this->getInnerNode($nodeOrString) === $n) {
+                if ($nodeOrString instanceof Node && $nodeOrString->innerNode === $n) {
                     continue 2;
                 }
             }
@@ -112,7 +112,7 @@ trait ChildNode {
         # The replaceWith(nodes) method steps are:
         #
         # 1. Let parent be this’s parent.
-        $inner = $this->innerNode;
+        $inner = $this->_innerNode;
         $parent = $this->parentNode;
 
         # 2. If parent is null, then return.
@@ -126,7 +126,7 @@ trait ChildNode {
         $viableNextSibling = null;
         while ($n = $n->nextSibling) {
             foreach ($nodes as $nodeOrString) {
-                if ($nodeOrString instanceof Node && $this->getInnerNode($nodeOrString) === $n) {
+                if ($nodeOrString instanceof Node && $nodeOrString->innerNode === $n) {
                     continue 2;
                 }
             }

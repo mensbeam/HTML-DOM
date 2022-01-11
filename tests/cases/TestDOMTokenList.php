@@ -87,7 +87,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_add_remove_replace_toggle___errors(\Closure $closure, int $errorCode): void {
         $this->expectException(DOMException::class);
@@ -110,9 +109,9 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -124,7 +123,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_contains() {
         $d = new Document();
@@ -149,9 +147,9 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -163,7 +161,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_count(): void {
         $d = new Document();
@@ -189,9 +186,9 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -203,7 +200,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_item(): void {
         $d = new Document();
@@ -229,9 +225,9 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -243,7 +239,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_offsetSet_offsetUnset(): void {
         $d = new Document();
@@ -274,10 +269,10 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -290,7 +285,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_replace(): void {
         $d = new Document();
@@ -324,10 +318,10 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -340,7 +334,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_remove(): void {
         $d = new Document();
@@ -375,9 +368,9 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -389,7 +382,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_supports(): void {
         // PHPUnit is supposed to support expecting of errors, but it doesn't. So let's
@@ -430,10 +422,10 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
      * @covers \MensBeam\HTML\DOM\Element::setAttribute
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -446,7 +438,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testMethod_toggle(): void {
         $d = new Document();
@@ -490,9 +481,9 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::__construct
      * @covers \MensBeam\HTML\DOM\Element::__get_classList
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -504,7 +495,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProcess_iteration(): void {
         $d = new Document();
@@ -540,10 +530,10 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::getAttribute
      * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::getRootNode
      * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
      * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
@@ -556,7 +546,6 @@ class TestDOMTokenList extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
      * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
      */
     public function testProperty_value(): void {
         // Test it with and without an attached document element

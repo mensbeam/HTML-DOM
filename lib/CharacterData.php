@@ -15,41 +15,41 @@ abstract class CharacterData extends Node {
 
     protected function __get_data(): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->data;
+        return $this->_innerNode->data;
     }
 
     protected function __set_data(string $value): void {
         // PHP's DOM does this correctly already.
-        $this->innerNode->data = $value;
+        $this->_innerNode->data = $value;
     }
 
     protected function __get_length(): int {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->length;
+        return $this->_innerNode->length;
     }
 
 
     public function appendData(string $data) {
-        $this->innerNode->data .= $data;
+        $this->_innerNode->data .= $data;
     }
 
     public function deleteData(int $offset, int $count) {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->deleteData($offset, $count);
+        return $this->_innerNode->deleteData($offset, $count);
     }
 
     public function insertData(int $offset, string $data) {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->insertData($offset, $data);
+        return $this->_innerNode->insertData($offset, $data);
     }
 
     public function replaceData(int $offset, int $count, string $data) {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->replaceData($offset, $count, $data);
+        return $this->_innerNode->replaceData($offset, $count, $data);
     }
 
     public function substringData(int $offset, int $count): string {
         // PHP's DOM does this correctly already.
-        return $this->innerNode->substringData($offset, $count);
+        return $this->_innerNode->substringData($offset, $count);
     }
 }

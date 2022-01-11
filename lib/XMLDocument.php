@@ -18,6 +18,6 @@ class XMLDocument extends Document {
             throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
 
-        $this->innerNode->loadXML($source);
+        $this->_innerNode->loadXML($source);
     }
 }

@@ -38,7 +38,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     protected function __set_value(string $value) {
         # Setting the value attribute must set an attribute value for the associated
         # element using associated attribute’s local name and the given value.
-        $element = Reflection::getProtectedProperty($this->element->get(), 'innerNode');
+        $element = $this->element->get()->innerNode;
         $element->setAttribute($this->localName, $value);
         // Also update the token set and the length.
         $this->tokenSet = $this->parseOrderedSet($value);
@@ -63,7 +63,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         $this->supportedTokens = $supportedTokens;
         # 3. Let value be the result of getting an attribute value given element and
         # localName.
-        $element = Reflection::getProtectedProperty($element, 'innerNode');
+        $element = $element->innerNode;
         $value = $element->getAttribute($attributeLocalName);
         # 4. Run the attribute change steps for element, localName, value, value, and
         # null.
@@ -326,7 +326,7 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     protected function update(): void {
         # A DOMTokenList object’s update steps are:
 
-        $element = Reflection::getProtectedProperty($this->element->get(), 'innerNode');
+        $element = $this->element->get()->innerNode;
 
         # 1. If the associated element does not have an associated attribute and token
         # set is empty, then return.

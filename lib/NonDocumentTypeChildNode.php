@@ -19,7 +19,7 @@ trait NonDocumentTypeChildNode {
         // that is an element; otherwise null.
 
         // PHP's DOM does this correctly already.
-        $inner = $this->innerNode;
+        $inner = $this->_innerNode;
         $result = $inner->nextElementSibling;
         return ($result !== null) ? $inner->ownerDocument->getWrapperNode($result) : null;
     }
@@ -29,7 +29,7 @@ trait NonDocumentTypeChildNode {
         // sibling that is an element; otherwise null.
 
         // PHP's DOM does this correctly already.
-        $inner = $this->innerNode;
+        $inner = $this->_innerNode;
         $result = $inner->previousElementSibling;
         return ($result !== null) ? $inner->ownerDocument->getWrapperNode($result) : null;
     }

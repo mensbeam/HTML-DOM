@@ -49,9 +49,9 @@ class TestNamedNodeMap extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
      * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -108,12 +108,12 @@ class TestNamedNodeMap extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
      * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_nodeName
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
      * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -185,9 +185,9 @@ class TestNamedNodeMap extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
      * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
@@ -279,8 +279,8 @@ class TestNamedNodeMap extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNode
      * @covers \MensBeam\HTML\DOM\NamedNodeMap::__construct
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
      * @covers \MensBeam\HTML\DOM\Inner\Document::__construct

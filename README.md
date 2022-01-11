@@ -6,6 +6,7 @@
 [f]: https://html.spec.whatwg.org/multipage/dom.html
 [g]: https://php.net/manual/en/book.dom.php
 [h]: https://www.php.net/manual/en/book.ctype.php
+[i]: https://code.mensbeam.com/MensBeam/Lit
 
 # HTML DOM #
 
@@ -216,6 +217,8 @@ Common namespace constants are provided in `MensBeam\HTML\DOM\Node` to make usin
 namespace MensBeam\HTML\DOM;
 
 partial abstract class Node implements \Stringable {
+    public readonly \DOMNode $innerNode;
+
     // Common namespace constants provided for convenience
     public const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
     public const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
@@ -234,6 +237,13 @@ partial abstract class Node implements \Stringable {
     public function getNodePath(): ?string;
 }
 ```
+
+#### Properties ####
+
+*innerNode*: A readonly property that returns the encapsulated inner element.
+
+**WARNING**: Manipulating this node directly can result in unexpected behavior. This is available in the public API only so the class may be interfaced with other libraries which expect a \\DOMDocument object such as [mensbeam\\lit][i].
+
 
 #### MensBeam\HTML\DOM\Node::getNodePath ####
 
@@ -352,6 +362,26 @@ Found 2 nodes with classes starting with 'subtitle':
 ```php
 partial class XPathResult implements \ArrayAccess, \Countable, \Iterator {}
 ```
+
+### MensBeam\HTML\DOM\Inner\Document ###
+
+This is the document object that is wrapped. There are a few things that are publicly available. This is only available in the public API so the class may be interfaced with other libraries which expect a \\DOMDocument object such as [mensbeam\\lit][i].
+
+```php
+namespace MensBeam\HTML\DOM\Inner;
+
+partial abstract class Document extends \DOMDocument {
+    public readonly \MensBeam\HTML\DOM\Node $wrapperNode;
+
+    public function getWrapperNode(\DOMNode $node): ?\MensBeam\HTML\DOM\Node;
+}
+```
+
+#### MensBeam\HTML\DOM\Inner\Document::getWrapperNode ####
+
+Returns the wrapper node that corresponds to the provided inner node. If one does not exist it is created.
+
+* `node`: The inner node to use to look up/create the wrapper node with.
 
 ## Limitations & Differences from Specification ##
 

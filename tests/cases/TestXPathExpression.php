@@ -40,10 +40,10 @@ class TestXPathExpression extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNodeNS
      * @covers \MensBeam\HTML\DOM\Element::setAttributeNS
      * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
      * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
      * @covers \MensBeam\HTML\DOM\Node::appendChild
      * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerNode
      * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
      * @covers \MensBeam\HTML\DOM\Node::locateNamespace
      * @covers \MensBeam\HTML\DOM\Node::lookupNamespaceURI

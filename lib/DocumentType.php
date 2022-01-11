@@ -23,8 +23,8 @@ class DocumentType extends Node {
         // itself cannot create a doctype with an empty string as the name, the HTML
         // parser can. PHP's DOM cannot handle an empty string as the name, so a single
         // space (an invalid value) is used instead and coerced to an empty string.
-        $name = $this->innerNode->name;
-        return ($name !== ' ') ? $this->innerNode->name : '';
+        $name = $this->_innerNode->name;
+        return ($name !== ' ') ? $this->_innerNode->name : '';
     }
 
     protected function __get_ownerDocument(): ?Document {
@@ -32,11 +32,11 @@ class DocumentType extends Node {
     }
 
     protected function __get_publicId(): string {
-        return $this->innerNode->publicId;
+        return $this->_innerNode->publicId;
     }
 
     protected function __get_systemId(): string {
-        return $this->innerNode->systemId;
+        return $this->_innerNode->systemId;
     }
 
 

@@ -17,22 +17,22 @@ use Symfony\Component\CssSelector\CssSelectorConverter,
 
 trait ParentNode {
     protected function __get_childElementCount(): int {
-        return $this->innerNode->childElementCount;
+        return $this->_innerNode->childElementCount;
     }
 
     protected function __get_children(): HTMLCollection {
         $doc = $this->getInnerDocument();
         // HTMLCollections cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->innerNode));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->_innerNode));
     }
 
     protected function __get_firstElementChild(): ?Element {
-        $result = $this->innerNode->firstElementChild;
+        $result = $this->_innerNode->firstElementChild;
         return ($result !== null) ? $this->getInnerDocument()->getWrapperNode($result) : null;
     }
 
     protected function __get_lastElementChild(): ?Element {
-        $result = $this->innerNode->lastElementChild;
+        $result = $this->_innerNode->lastElementChild;
         return ($result !== null) ? $this->getInnerDocument()->getWrapperNode($result) : null;
     }
 
@@ -67,8 +67,8 @@ trait ParentNode {
         $this->preInsertionValidity($node);
 
         # 3. Replace all with node within this.
-        while ($this->innerNode->hasChildNodes()) {
-            $this->innerNode->removeChild($this->innerNode->firstChild);
+        while ($this->_innerNode->hasChildNodes()) {
+            $this->_innerNode->removeChild($this->_innerNode->firstChild);
         }
 
         $this->appendChild($node);
@@ -100,7 +100,7 @@ trait ParentNode {
      */
     public function walk(?\Closure $filter = null, bool $includeReferenceNode = false): \Generator {
         if ($this instanceof DocumentFragment || (!$this instanceof DocumentFragment && !$includeReferenceNode)) {
-            $node = $this->innerNode->firstChild;
+            $node = $this->_innerNode->firstChild;
         }
 
         if ($node !== null) {
@@ -154,7 +154,7 @@ trait ParentNode {
 
         # 3. Return the result of match a selector against a tree with s and node’s root
         #    using scoping root node. [SELECTORS4].
-        $nodeList = $this->getInnerDocument()->xpath->query($s, $this->innerNode);
+        $nodeList = $this->getInnerDocument()->xpath->query($s, $this->_innerNode);
         return $nodeList;
     }
 }

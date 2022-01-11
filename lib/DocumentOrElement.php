@@ -21,7 +21,7 @@ use MensBeam\HTML\Parser\Data;
  */
 trait DocumentOrElement {
     public function getElementsByClassName(string $classNames): HTMLCollection {
-        $innerNode = $this->innerNode;
+        $innerNode = $this->_innerNode;
         $doc = $this->getInnerDocument();
         $wrapperDoc = ($this instanceof Document) ? $this : $this->ownerDocument;
 
@@ -81,7 +81,7 @@ trait DocumentOrElement {
         # 1. If qualifiedName is U+002A (*), then return a HTMLCollection rooted at
         #   root, whose filter matches only descendant elements.
         if ($qualifiedName === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->_innerNode));
         }
 
         # 2. Otherwise, if root’s node document is an HTML document, return a
@@ -94,12 +94,12 @@ trait DocumentOrElement {
         if (!$wrapperDoc instanceof XMLDocument) {
             // Because of a PHP DOM bug all HTML namespaced elements use null internally as
             // their namespace.
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//' . strtolower($qualifiedName) . "[namespace-uri()=''] | .//{$qualifiedName}[not(namespace-uri()='')]", $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//' . strtolower($qualifiedName) . "[namespace-uri()=''] | .//{$qualifiedName}[not(namespace-uri()='')]", $this->_innerNode));
         }
 
         # 3. Otherwise, return a HTMLCollection rooted at root, whose filter matches
         #    descendant elements whose qualified name is qualifiedName.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $this->innerNode->getElementsByTagNameNS(null, $qualifiedName));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $this->_innerNode->getElementsByTagNameNS(null, $qualifiedName));
     }
 
     public function getElementsByTagNameNS(?string $namespace, string $localName): HTMLCollection {
@@ -128,24 +128,24 @@ trait DocumentOrElement {
         # 2. If both namespace and localName are U+002A (*), then return a HTMLCollection
         #    rooted at root, whose filter matches descendant elements.
         if ($namespace === '*' && $localName === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query('.//*', $this->_innerNode));
         }
 
         # 3. If namespace is U+002A (*), then return a HTMLCollection rooted at root, whose
         #    filter matches descendant elements whose local name is localName.
         if ($namespace === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query(".//*[local-name()='$localName']", $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query(".//*[local-name()='$localName']", $this->_innerNode));
         }
 
         # 4. If localName is U+002A (*), then return a HTMLCollection rooted at root, whose
         #    filter matches descendant elements whose namespace is namespace.
         if ($localName === '*') {
-            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query(".//*[namespace-uri()='$namespace']", $this->innerNode));
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $doc->xpath->query(".//*[namespace-uri()='$namespace']", $this->_innerNode));
         }
 
         # 5. Return a HTMLCollection rooted at root, whose filter matches descendant
         #    elements whose namespace is namespace and local name is localName.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $this->innerNode->getElementsByTagNameNS($namespace, $localName));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\HTMLCollection', $doc, $this->_innerNode->getElementsByTagNameNS($namespace, $localName));
     }
 
 

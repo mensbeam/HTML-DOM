@@ -23,7 +23,7 @@ class XPathExpression {
             // protected properties, but neither should be exposed publicly; this is a crazy
             // polyfill hack that wouldn't normally be necessary otherwise.
             $nodeResolver = Reflection::getProtectedProperty($resolver, 'nodeResolver');
-            $innerNodeResolver = Reflection::getProtectedProperty($nodeResolver, 'innerNode');
+            $innerNodeResolver = $nodeResolver->innerNode;
             $doc = ($innerNodeResolver instanceof \DOMDocument) ? $innerNodeResolver : $innerNodeResolver->ownerDocument;
 
             foreach ($m as $prefix) {

@@ -25,7 +25,7 @@ class HTMLElement extends Element {
         # The autocapitalize getter steps are to:
         #
         # 1. Let state be the own autocapitalization hint of this.
-        $state = $this->autoCapitalizationHint($this->innerNode);
+        $state = $this->autoCapitalizationHint($this->_innerNode);
 
         # 2. If state is default, then return the empty string.
         # 3. If state is none, then return "none".
@@ -224,7 +224,7 @@ class HTMLElement extends Element {
             return true;
         }
 
-        $n = $this->innerNode;
+        $n = $this->_innerNode;
         $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
             if ($doc->getWrapperNode($n) instanceof HTMLElement && $n->hasAttribute('hidden')) {
@@ -267,7 +267,7 @@ class HTMLElement extends Element {
         $fragment = $this->getRenderedTextFragment($value);
 
         # 2. Replace all with fragment within this.
-        $innerNode = $this->innerNode;
+        $innerNode = $this->_innerNode;
         $children = $innerNode->childNodes;
         while ($innerNode->hasChildNodes()) {
             $innerNode->removeChild($innerNode->firstChild);
@@ -331,7 +331,7 @@ class HTMLElement extends Element {
             }
         }
 
-        $n = $this->innerNode;
+        $n = $this->_innerNode;
         while ($n = $n->parentNode) {
             if ($n instanceof \DOMElement) {
                 if ($n->getAttribute('contenteditable') === 'true' && $n->ownerDocument->getWrapperNode($n) instanceof HTMLElement) {
@@ -364,7 +364,7 @@ class HTMLElement extends Element {
         # The outerText setter steps are:
         # 1. If this's parent is null, then throw a "NoModificationAllowedError"
         # DOMException.
-        $innerNode = $this->innerNode;
+        $innerNode = $this->_innerNode;
         if ($this->parentNode === null) {
             throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
@@ -475,7 +475,7 @@ class HTMLElement extends Element {
             return false;
         }
 
-        $n = $this->innerNode;
+        $n = $this->_innerNode;
         $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
             // This looks weird but it's faster to check for the method here first because

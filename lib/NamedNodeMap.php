@@ -71,7 +71,7 @@ class NamedNodeMap extends Collection {
         #    2. If lowercaseName is not equal to name, remove name from names.
         # 3. Return names.
 
-        $innerElement = Reflection::getProtectedProperty($this->element, 'innerNode');
+        $innerElement = $this->element->innerNode;
         $innerDocument = $innerElement->ownerDocument;
         $attributes = $innerElement->attributes;
         if ($attributes->length > 0) {

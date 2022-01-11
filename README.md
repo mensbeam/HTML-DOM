@@ -242,7 +242,7 @@ partial abstract class Node implements \Stringable {
 
 *innerNode*: A readonly property that returns the encapsulated inner element.
 
-**WARNING**: Manipulating this node directly can result in unexpected behavior. This is available in the public API only so the class may be interfaced with other libraries which expect a \\DOMDocument object such as [mensbeam\\lit][i].
+**WARNING**: Manipulating this node directly can result in unexpected behavior. This is available in the public API only so the class may be interfaced with other libraries which expect a \\DOMDocument object such as [MensBeam\\Lit][i].
 
 
 #### MensBeam\HTML\DOM\Node::getNodePath ####
@@ -365,7 +365,7 @@ partial class XPathResult implements \ArrayAccess, \Countable, \Iterator {}
 
 ### MensBeam\HTML\DOM\Inner\Document ###
 
-This is the document object that is wrapped. There are a few things that are publicly available. This is only available in the public API so the class may be interfaced with other libraries which expect a \\DOMDocument object such as [mensbeam\\lit][i].
+This is the document object that is wrapped. There are a few things that are publicly available. This is only available in the public API so the class may be interfaced with other libraries which expect a \\DOMDocument object such as [MensBeam\Lit][i].
 
 ```php
 namespace MensBeam\HTML\DOM\Inner;
@@ -376,6 +376,10 @@ partial abstract class Document extends \DOMDocument {
     public function getWrapperNode(\DOMNode $node): ?\MensBeam\HTML\DOM\Node;
 }
 ```
+
+#### Properties ####
+
+*wrapperNode*: A readonly property that returns the wrapper element for the document.
 
 #### MensBeam\HTML\DOM\Inner\Document::getWrapperNode ####
 

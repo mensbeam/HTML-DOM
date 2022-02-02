@@ -813,9 +813,11 @@ abstract class Node implements \Stringable {
                 // contents of the node should be appended to the wrapper element's content
                 // document fragment. Otherwise, clone the content document fragment instead.
                 if (!$parsing) {
-                    $nodeWrapperContent = $node->ownerDocument->getWrapperNode($node)->content;
-                    if ($nodeWrapperContent->hasChildNodes()) {
-                        $copyWrapperContent->appendChild($this->cloneWrapperNode($nodeWrapperContent, $document->wrapperNode, true));
+                    $copyWrapperContent = $copyWrapperContent->innerNode;
+                    $nodeWrapperContent = $node->ownerDocument->getWrapperNode($node)->content->innerNode;
+                    $childNodes = $nodeWrapperContent->childNodes;
+                    foreach ($childNodes as $child) {
+                        $copyWrapperContent->appendChild($this->cloneInnerNode($child, $document, true));
                     }
                 } else {
                     $copyContent = $copyWrapperContent->innerNode;
@@ -835,7 +837,7 @@ abstract class Node implements \Stringable {
             if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
                 $childNodes = $node->childNodes;
                 foreach ($childNodes as $child) {
-                    $this->appendChildInner($copy, $this->cloneInnerNode($child, $document, true));
+                    $this->appendChildInner($copy, $this->cloneInnerNode($child, $document, true, $parsing));
                 }
             }
         }

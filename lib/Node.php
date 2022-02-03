@@ -1241,7 +1241,7 @@ abstract class Node implements \Stringable {
         // so their contents may be stored in the HTMLTemplateElement's content document
         // fragment.
         $doc = $this->getInnerDocument();
-        $templates = $doc->xpath->query('//template[not(ancestor::template)]', $contextNode);
+        $templates = $doc->xpath->query('.//template[not(ancestor::template)]', $contextNode);
         // Iterate in reverse to prevent the live nodelist from doing anything screwy
         for ($templatesCount = count($templates), $i = $templatesCount - 1; $i >= 0; $i--) {
             $t = $templates->item($i);

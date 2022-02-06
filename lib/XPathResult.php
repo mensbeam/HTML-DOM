@@ -133,7 +133,7 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
     public function offsetGet($offset): ?Node {
         $this->validateStorage();
 
-        $node = $this->storage[$this->position];
+        $node = $this->storage[$offset];
         return ($node !== null) ? $node->ownerDocument->getWrapperNode($node) : null;
     }
 

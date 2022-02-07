@@ -18,7 +18,8 @@ use MensBeam\HTML\DOM\{
     Text,
     XMLDocument
 };
-use org\bovigo\vfs\vfsStream;
+use MensBeam\HTML\DOM\Inner\Reflection,
+    org\bovigo\vfs\vfsStream;
 
 
 /** @covers \MensBeam\HTML\DOM\Document */
@@ -312,6 +313,34 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
         $d = new Document();
         $d->createElement('this will fail');
+    }
+
+
+    /**
+     * @covers \MensBeam\HTML\DOM\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Document::destroy
+     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
+     * @covers \MensBeam\HTML\DOM\Node::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::delete
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
+     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
+     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
+     */
+    public function testMethod_destroy(): void {
+        $d = new Document();
+
+        $reflection = new \ReflectionClass(Document::class);
+        $cache = $reflection->getStaticPropertyValue('cache');
+        $innerArrayCount = count(Reflection::getProtectedProperty($cache, 'innerArray'));
+        $wrapperArrayCount = count(Reflection::getProtectedProperty($cache, 'wrapperArray'));
+
+        $d->destroy();
+
+        $cache = $reflection->getStaticPropertyValue('cache');
+        $this->assertNotEquals(count(Reflection::getProtectedProperty($cache, 'innerArray')), $innerArrayCount);
+        $this->assertNotEquals(count(Reflection::getProtectedProperty($cache, 'wrapperArray')), $wrapperArrayCount);
     }
 
 

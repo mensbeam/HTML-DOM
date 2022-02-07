@@ -56,6 +56,8 @@ partial class Document extends Node implements \ArrayAccess {
         ?string $charset = null
     );
 
+    public function destroy(): void;
+
     public function registerXPathFunctions(
         string|array|null $restrict = null
     ): void;
@@ -115,6 +117,20 @@ Creates a new `MensBeam\HTML\DOM\Document` object.
   ```
   gb18030
   ```
+
+#### MensBeam\HTML\DOM\Document::destroy ####
+
+Destroys references associated with the instance so it may be garbage collected by PHP. Because of the way PHP's garbage collection is and the poor state of the library PHP DOM is based off of, references must be kept in userland for every created document. Therefore, this method should unfortunately be manually called whenever the document is not needed anymore.
+
+##### Example #####
+
+```php
+namespace MensBeam\HTML\DOM;
+
+$d = new Document();
+$d->destroy();
+unset($d);
+```
 
 #### MensBeam\HTML\DOM\Document::registerXPathFunctions ####
 

@@ -617,6 +617,11 @@ class Document extends Node implements \ArrayAccess {
         return $this->_innerNode->getWrapperNode($this->_innerNode->createTextNode($data));
     }
 
+    public function destroy(): void {
+        self::$cache->delete($this);
+        self::$cache->delete($this->_innerNode);
+    }
+
     public function getElementsByName(string $elementName): NodeList {
         # The getElementsByName(elementName) method steps are to return a live NodeList
         # containing all the HTML elements in that document that have a name attribute
@@ -812,7 +817,7 @@ class Document extends Node implements \ArrayAccess {
     }
 
 
-    public function __toString() {
+    public function __toString(): string {
         return $this->serialize();
     }
 }

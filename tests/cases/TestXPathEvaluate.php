@@ -106,6 +106,11 @@ class TestXPathEvaluate extends \PHPUnit\Framework\TestCase {
         $d->documentElement->setAttributeNS(Node::XMLNS_NAMESPACE, 'xmlns:poop', 'https://poop.poop');
         $poop = $d->body->appendChild($d->createElementNS('https://poop.poop', 'poop:poop'));
         $this->assertSame($poop, $d->evaluate('//poop:poop', $d->body, $d->createNSResolver($d->body), XPathResult::FIRST_ORDERED_NODE_TYPE)->singleNodeValue);
+
+        $svg = $d->body->appendChild($d->createElementNS(Node::SVG_NAMESPACE, 'svg'));
+        $this->assertSame($svg, $d->evaluate('//svg:svg', $d->body, function(string $prefix): ?string {
+            return ($prefix === 'svg') ? Node::SVG_NAMESPACE : null;
+        }, XPathResult::FIRST_ORDERED_NODE_TYPE)->singleNodeValue);
     }
 
 

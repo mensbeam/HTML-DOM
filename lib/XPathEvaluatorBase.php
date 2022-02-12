@@ -24,7 +24,7 @@ trait XPathEvaluatorBase {
         return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\XPathNSResolver', $nodeResolver);
     }
 
-    public function evaluate(string $expression, Node $contextNode, ?XPathNSResolver $resolver = null, int $type = XPathResult::ANY_TYPE, ?XPathResult $result = null): XPathResult {
+    public function evaluate(string $expression, Node $contextNode, \Closure|XPathNSResolver|null $resolver = null, int $type = XPathResult::ANY_TYPE, ?XPathResult $result = null): XPathResult {
         return $this->xpathEvaluate($expression, $contextNode, $resolver, $type, $result);
     }
 }

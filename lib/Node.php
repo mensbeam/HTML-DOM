@@ -813,11 +813,20 @@ abstract class Node implements \Stringable {
                 // contents of the node should be appended to the wrapper element's content
                 // document fragment. Otherwise, clone the content document fragment instead.
                 if (!$parsing) {
-                    $copyWrapperContent = $copyWrapperContent->innerNode;
+                    $copyWrapperContentInner = $copyWrapperContent->innerNode;
                     $nodeWrapperContent = $node->ownerDocument->getWrapperNode($node)->content->innerNode;
                     $childNodes = $nodeWrapperContent->childNodes;
-                    foreach ($childNodes as $child) {
-                        $copyWrapperContent->appendChild($this->cloneInnerNode($child, $document, true));
+                    if ($childNodes->length > 0) {
+                        // This garbage is necessary because the appendChildInner method
+                        // needs to be invoked on another document here. This is because of a nasty PHP
+                        // DOM bug (see Node::preInsertionBugFixes for a description).
+                        $appendChildInner = new \ReflectionMethod($copyWrapperContent->ownerDocument, 'appendChildInner');
+                        $appendChildInner->setAccessible(true);
+                        $copyWrapperContentDocument = $copyWrapperContent->ownerDocument;
+
+                        foreach ($childNodes as $child) {
+                            $appendChildInner->invoke($copyWrapperContentDocument, $copyWrapperContentInner, $this->cloneInnerNode($child, $document, true));
+                        }
                     }
                 } else {
                     $copyContent = $copyWrapperContent->innerNode;
@@ -837,7 +846,8 @@ abstract class Node implements \Stringable {
             if ($node instanceof \DOMElement || $node instanceof \DOMDocumentFragment) {
                 $childNodes = $node->childNodes;
                 foreach ($childNodes as $child) {
-                    $this->appendChildInner($copy, $this->cloneInnerNode($child, $document, true, $parsing));
+                    $clone = $this->cloneInnerNode($child, $document, true, $parsing);
+                    $this->appendChildInner($copy, $clone);
                 }
             }
         }
@@ -970,7 +980,7 @@ abstract class Node implements \Stringable {
             if ($node instanceof Element || $node instanceof DocumentFragment || $node instanceof Document) {
                 $childNodes = $innerNode->childNodes;
                 foreach ($childNodes as $child) {
-                    $copy->appendChild($this->cloneInnerNode($child, $innerDocument, true));
+                    $this->appendChildInner($copy, $this->cloneInnerNode($child, $innerDocument, true));
                 }
             }
         }

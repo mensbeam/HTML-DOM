@@ -1061,8 +1061,12 @@ abstract class Node implements \Stringable {
             # • If A is an element, each attribute in its attribute list has an attribute that
             #   equals an attribute in B’s attribute list.
             $thisNodeAttributes = $thisNode->attributes;
-            foreach ($thisNodeAttributes as $key => $attr) {
-                if (!$this->isEqualInnerNode($attr, $otherAttributes[$key])) {
+            foreach ($thisNodeAttributes as $attr) {
+                if (!($otherAttr = $otherNode->getAttributeNodeNS($attr->namespaceURI, $attr->name))) {
+                    return false;
+                }
+
+                if (!$this->isEqualInnerNode($attr, $otherAttr)) {
                     return false;
                 }
             }

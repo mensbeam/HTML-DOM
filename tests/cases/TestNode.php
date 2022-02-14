@@ -378,6 +378,11 @@ class TestNode extends \PHPUnit\Framework\TestCase {
         $this->assertFalse($html->isEqualNode($html2));
         $html->appendChild($body);
         $this->assertFalse($html->isEqualNode($html2));
+        $html = $d->createElement('html');
+        $html->setAttribute('id', 'ook');
+        $html2 = $d->createElement('html');
+        $html2->setAttribute('class', 'ook');
+        $this->assertFalse($html->isEqualNode($html2));
 
         // Different text nodes
         $this->assertFalse($d->createTextNode('ook')->isEqualNode($d->createTextNode('eek')));

@@ -30,7 +30,7 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
     protected int $_resultType;
     protected \DOMNodeList|array $storage;
 
-    protected function __get_booleanValue(): bool {
+    protected function __get_booleanValue(): ?bool {
         if ($this->_resultType !== self::BOOLEAN_TYPE) {
             throw new XPathException(XPathException::TYPE_ERROR);
         }
@@ -42,7 +42,7 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
         return $this->_invalidIteratorState;
     }
 
-    protected function __get_numberValue(): float {
+    protected function __get_numberValue(): ?float {
         if ($this->_resultType !== self::NUMBER_TYPE) {
             throw new XPathException(XPathException::TYPE_ERROR);
         }
@@ -54,13 +54,13 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
         return $this->_resultType;
     }
 
-    protected function __get_singleNodeValue(): Node {
+    protected function __get_singleNodeValue(): ?Node {
         if (!in_array($this->_resultType, [ self::ANY_UNORDERED_NODE_TYPE, self::FIRST_ORDERED_NODE_TYPE ])) {
             throw new XPathException(XPathException::TYPE_ERROR);
         }
 
         $node = $this->storage[0];
-        return $node->ownerDocument->getWrapperNode($node);
+        return ($node !== null) ? $node->ownerDocument->getWrapperNode($node) : node;
     }
 
     protected function __get_snapshotLength(): int {
@@ -71,7 +71,7 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
         return $this->count();
     }
 
-    protected function __get_stringValue(): string {
+    protected function __get_stringValue(): ?string {
         if ($this->_resultType !== self::STRING_TYPE) {
             throw new XPathException(XPathException::TYPE_ERROR);
         }

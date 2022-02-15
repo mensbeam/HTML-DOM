@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\Parser\Charset;
 
 
 class XMLDocument extends Document {

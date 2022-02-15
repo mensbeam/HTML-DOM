@@ -54,16 +54,16 @@
         },
         {
             "name": "mensbeam/html-parser",
-            "version": "1.2.3",
+            "version": "1.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mensbeam/HTML-Parser.git",
-                "reference": "c1dc4b55ceeb5c93e14a8cc0715f501caeead506"
+                "reference": "61b842fa74564280ab899bc26dcc5ca7d3f8ffaf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mensbeam/HTML-Parser/zipball/c1dc4b55ceeb5c93e14a8cc0715f501caeead506",
-                "reference": "c1dc4b55ceeb5c93e14a8cc0715f501caeead506",
+                "url": "https://api.github.com/repos/mensbeam/HTML-Parser/zipball/61b842fa74564280ab899bc26dcc5ca7d3f8ffaf",
+                "reference": "61b842fa74564280ab899bc26dcc5ca7d3f8ffaf",
                 "shasum": ""
             },
             "require": {
@@ -119,9 +119,9 @@
             ],
             "support": {
                 "issues": "https://github.com/mensbeam/HTML-Parser/issues",
-                "source": "https://github.com/mensbeam/HTML-Parser/tree/1.2.3"
+                "source": "https://github.com/mensbeam/HTML-Parser/tree/1.2.4"
             },
-            "time": "2022-02-14T15:18:44+00:00"
+            "time": "2022-02-15T18:24:04+00:00"
         },
         {
             "name": "mensbeam/intl",

@@ -18,6 +18,7 @@ class XMLDocument extends Document {
             throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
         }
 
+        $this->_innerNode->encoding = Charset::fromCharset((string)$charset) ?? 'UTF-8';
         $this->_innerNode->loadXML($source);
     }
 }

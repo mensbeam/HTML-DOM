@@ -60,7 +60,7 @@ class XPathResult implements \ArrayAccess, \Countable, \Iterator {
         }
 
         $node = $this->storage[0];
-        return ($node !== null) ? $node->ownerDocument->getWrapperNode($node) : node;
+        return ($node !== null) ? $node->ownerDocument->getWrapperNode($node) : null;
     }
 
     protected function __get_snapshotLength(): int {

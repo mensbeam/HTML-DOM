@@ -816,6 +816,15 @@ class Document extends Node implements \ArrayAccess {
         return Serializer::serialize($node->innerNode, $config);
     }
 
+    public function serializeInner(?Node $node = null, array $config = []): string {
+        $node = $node ?? $this;
+        if ($node !== $this && $node->ownerDocument !== $this) {
+            throw new DOMException(DOMException::WRONG_DOCUMENT);
+        }
+
+        return Serializer::serializeInner($node->innerNode, $config);
+    }
+
 
     public function __toString(): string {
         return $this->serialize();

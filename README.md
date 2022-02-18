@@ -66,6 +66,11 @@ partial class Document extends Node implements \ArrayAccess {
         ?Node $node = null,
         array $config = []
     ): string;
+
+    public function serializeInner(
+        ?Node $node = null,
+        array $config = []
+    ): string;
 }
 ```
 
@@ -224,6 +229,65 @@ Converts a node to a string.
     <p>Ook, eek? Ooooook. Ook.</p>
    </body>
   </html>
+  ```
+
+#### MensBeam\HTML\DOM\Document::serializeInner ####
+
+Converts a node to a string but only serializes the node's contents.
+
+* `node`: A node within the document to serialize, defaults to the document itself.
+* `config`: A configuration array with the possible keys and value types being:
+  - `booleanAttributeValues` (`bool|null`): Whether to include the values of boolean attributes on HTML elements during serialization. Per the standard this is `true` by default
+  - `foreignVoidEndTags` (`bool|null`): Whether to print the end tags of foreign void elements rather than self-closing their start tags. Per the standard this is `true` by default
+  - `groupElements` (`bool|null`): Group like "block" elements and insert extra newlines between groups
+  - `indentStep` (`int|null`): The number of spaces or tabs (depending on setting of indentStep) to indent at each step. This is `1` by default and has no effect unless `reformatWhitespace` is `true`
+  - `indentWithSpaces` (`bool|null`): Whether to use spaces or tabs to indent. This is `true` by default and has no effect unless `reformatWhitespace` is `true`
+  - `reformatWhitespace` (`bool|null`): Whether to reformat whitespace (pretty-print) or not. This is `false` by default
+
+##### Examples #####
+
+- Serializing a document (functionally identical to `Document::serialize`):
+
+  ```php
+  namespace MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d->serializeInner();
+  ```
+
+  or:
+
+  ```php
+  namespace MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html></html>');
+  echo $d;
+  ```
+
+  Output:
+
+  ```html
+  <!DOCTYPE html><html><head></head><body></body></html>
+  ```
+
+ook
+
+- Serializing an element's contents:
+
+  ```php
+  namespace MensBeam\HTML\DOM;
+
+  $d = new Document('<!DOCTYPE html><html><body><h1>Ook!</h1><p>Ook, eek? Ooooook. Ook.</body></html>');
+  $body = $d->body;
+  echo $body->serialize($body, [ 'reformatWhitespace' => true ]);
+  ```
+
+  Output:
+
+  ```html
+  <h1>Ook!</h1>
+
+  <p>Ook, eek? Ooooook. Ook.</p>
   ```
 
 ### MensBeam\HTML\DOM\Node ###

@@ -25,6 +25,7 @@
       <file>cases/TestDOMImplementation.php</file>
       <file>cases/TestDOMTokenList.php</file>
       <file>cases/TestElement.php</file>
+      <file>cases/TestException.php</file>
       <file>cases/TestHTMLCollection.php</file>
       <file>cases/TestHTMLElement.php</file>
       <file>cases/TestHTMLOrSVGElement.php</file>

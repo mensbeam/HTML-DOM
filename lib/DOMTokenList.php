@@ -8,12 +8,12 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\Parser\Data,
-    MensBeam\Framework\MagicProperties,
+    MensBeam\Foundation\GettersAndSetters,
     MensBeam\HTML\DOM\Inner\Reflection;
 
 
 class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
-    use MagicProperties;
+    use GettersAndSetters;
 
 
     protected \WeakReference $element;

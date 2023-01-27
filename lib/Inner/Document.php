@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM\Inner;
-use MensBeam\Framework\MagicProperties;
+use MensBeam\Foundation\GettersAndSetters;
 use MensBeam\HTML\DOM\{
     Document as WrapperDocument,
     DOMException,
@@ -17,7 +17,7 @@ use MensBeam\HTML\DOM\{
 
 
 class Document extends \DOMDocument {
-    use MagicProperties;
+    use GettersAndSetters;
 
     // Used for validation. Not sure where to put them where they wouldn't be
     // exposed unnecessarily to the public API.

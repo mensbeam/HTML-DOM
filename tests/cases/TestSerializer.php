@@ -125,14 +125,16 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
      * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
      */
     public function testMethod_treatAsBlockWithTemplates(): void {
-        $d = new Document('<span>ook</span><template><div>ook</div></template>');
+        $d = new Document('<span>ook</span><template><div><p>ook</p></div></template>');
 
         $this->assertSame(<<<HTML
         <body>
          <span>ook</span>
 
          <template>
-          <div>ook</div>
+          <div>
+           <p>ook</p>
+          </div>
          </template>
         </body>
         HTML, $d->serialize($d->body, [ 'reformatWhitespace' => true ]));
@@ -156,9 +158,7 @@ class TestSerializer extends \PHPUnit\Framework\TestCase {
                 },
 
                 <<<HTML
-                <g>
-                 <rect id="eek--a" width="5" height="5"></rect>
-                </g>
+                <g><rect id="eek--a" width="5" height="5"></rect></g>
                 HTML
             ],
 

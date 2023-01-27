@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties,
+use MensBeam\Foundation\GettersAndSetters,
     MensBeam\HTML\DOM\Inner\Document as InnerDocument;
 
 
@@ -30,7 +30,7 @@ use MensBeam\Framework\MagicProperties,
  * NodeList.
  */
 abstract class Collection implements \ArrayAccess, \Countable, \Iterator {
-    use MagicProperties;
+    use GettersAndSetters;
 
     protected InnerDocument $innerDocument;
     protected \DOMNodeList|\DOMNamedNodeMap $innerCollection;

@@ -7,12 +7,12 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties,
+use MensBeam\Foundation\GettersAndSetters,
     MensBeam\HTML\DOM\Inner\Reflection;
 
 
 class XPathResult implements \ArrayAccess, \Countable, \Iterator {
-    use MagicProperties;
+    use GettersAndSetters;
 
     public const ANY_TYPE = 0;
     public const NUMBER_TYPE = 1;

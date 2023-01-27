@@ -270,8 +270,6 @@ Converts a node to a string but only serializes the node's contents.
   <!DOCTYPE html><html><head></head><body></body></html>
   ```
 
-ook
-
 - Serializing an element's contents:
 
   ```php
@@ -279,7 +277,7 @@ ook
 
   $d = new Document('<!DOCTYPE html><html><body><h1>Ook!</h1><p>Ook, eek? Ooooook. Ook.</body></html>');
   $body = $d->body;
-  echo $body->serialize($body, [ 'reformatWhitespace' => true ]);
+  echo $body->serializeInner($body, [ 'reformatWhitespace' => true ]);
   ```
 
   Output:

@@ -6,8 +6,8 @@
         "php": ">=8.0.2",
         "ext-dom": "*",
         "mensbeam/html-parser": "^1.2.1",
-        "mensbeam/framework": "^1.0.4",
-        "symfony/css-selector": "^5.3"
+        "symfony/css-selector": "^5.3",
+        "mensbeam/getters-and-setters": "^1.0"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.3",

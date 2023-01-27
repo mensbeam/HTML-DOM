@@ -7,7 +7,6 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\Exception;
 
 
 class DOMException extends Exception {

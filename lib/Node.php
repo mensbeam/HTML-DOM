@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Framework\MagicProperties,
+use MensBeam\Foundation\GettersAndSetters,
     MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\NameCoercion;
 use MensBeam\HTML\DOM\Inner\{
@@ -17,7 +17,7 @@ use MensBeam\HTML\DOM\Inner\{
 
 
 abstract class Node implements \Stringable {
-    use MagicProperties, NameCoercion;
+    use GettersAndSetters, NameCoercion;
 
     // Namespace constants
     public const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
@@ -147,9 +147,26 @@ abstract class Node implements \Stringable {
         # ↪ Element
         #     Its HTML-uppercased qualified name.
         if ($this instanceof Element) {
-            $tagName = $this->tagName;
             // Uncoerce names if necessary
-            return strtoupper(!str_contains(needle: 'U', haystack: $tagName) ? $tagName : $this->uncoerceName($tagName));
+            if (!str_contains(needle: 'U', haystack: $this->tagName)) {
+                $tagName = strtoupper($this->tagName);
+            } else {
+                $tagName =  $this->uncoerceName($this->tagName);
+
+                // Prior to php8.2 locales play a role in what is uppercased, so this is necessary...
+                if (version_compare(\PHP_VERSION, '8.2', '<')) {
+                    // @codeCoverageIgnoreStart
+                    $locale = setlocale(\LC_CTYPE, 0);
+                    setlocale(\LC_CTYPE, 'C');
+                    $tagName = strtoupper($tagName);
+                    setlocale(\LC_CTYPE, $locale);
+                    // @codeCoverageIgnoreEnd
+                } else {
+                    $tagName = strtoupper($tagName);
+                }
+            }
+
+            return $tagName;
         }
         // Attribute nodes and processing instructions need the node name uncoerced if
         // necessary

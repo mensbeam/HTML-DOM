@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Foundation\GettersAndSetters,
+use MensBeam\GettersAndSetters,
     MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\NameCoercion;
 use MensBeam\HTML\DOM\Inner\{

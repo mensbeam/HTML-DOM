@@ -7,8 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\Foundation\GettersAndSetters,
-    MensBeam\HTML\DOM\Inner\Reflection;
+use MensBeam\GettersAndSetters;
 
 
 class XPathResult implements \ArrayAccess, \Countable, \Iterator {

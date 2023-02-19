@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM\Inner;
-use MensBeam\Foundation\GettersAndSetters;
+use MensBeam\GettersAndSetters;
 use MensBeam\HTML\DOM\{
     Document as WrapperDocument,
     DOMException,

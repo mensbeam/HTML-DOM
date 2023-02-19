@@ -8,7 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\Parser\Data,
-    MensBeam\Foundation\GettersAndSetters,
+    MensBeam\GettersAndSetters,
     MensBeam\HTML\DOM\Inner\Reflection;
 
 

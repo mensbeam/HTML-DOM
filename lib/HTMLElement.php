@@ -104,7 +104,7 @@ class HTMLElement extends Element {
             case 'false':
                 $this->setAttribute('contenteditable', $value);
             break;
-            default: throw new DOMException(DOMException::SYNTAX_ERROR);
+            default: throw new SyntaxError();
         }
     }
 
@@ -225,9 +225,10 @@ class HTMLElement extends Element {
         }
 
         $n = $this->_innerNode;
+        /** @var InnerDocument */
         $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
-            if ($doc->getWrapperNode($n) instanceof HTMLElement && $n->hasAttribute('hidden')) {
+            if ($doc->getWrapperNode($n) instanceof HTMLElement && $n instanceof \DOMElement && $n->hasAttribute('hidden')) {
                 return true;
             }
         }
@@ -334,7 +335,9 @@ class HTMLElement extends Element {
         $n = $this->_innerNode;
         while ($n = $n->parentNode) {
             if ($n instanceof \DOMElement) {
-                if ($n->getAttribute('contenteditable') === 'true' && $n->ownerDocument->getWrapperNode($n) instanceof HTMLElement) {
+                /** @var InnerDocument */
+                $ownerDocument = $n->ownerDocument;
+                if ($n->getAttribute('contenteditable') === 'true' && $ownerDocument->getWrapperNode($n) instanceof HTMLElement) {
                     return true;
                 }
             }
@@ -366,7 +369,7 @@ class HTMLElement extends Element {
         # DOMException.
         $innerNode = $this->_innerNode;
         if ($this->parentNode === null) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+            throw new NoModificationAllowedError();
         }
 
         # 2. Let next be this's next sibling.
@@ -391,9 +394,14 @@ class HTMLElement extends Element {
         #    with the next text node given next's previous sibling.
         if ($next !== null && $next->previousSibling instanceof \DOMText) {
             # To merge with the next text node given a Text node node:
+            // This gets confusing because this is a process that's in another section of
+            // the spec, but in this situation _node_ is next's previous sibling, so _node's
+            // next sibling_ will be next.
             # 1. Let next be node's next sibling.
             # 2. If next is not a Text node, then return.
-            // Already checked for
+            if (!$next instanceof \DOMText) {
+                return;
+            }
 
             # 3. Replace data with node, node's data's length, 0, and next's data.
             $next->previousSibling->data .= $next->data;
@@ -476,11 +484,13 @@ class HTMLElement extends Element {
         }
 
         $n = $this->_innerNode;
+        /** @var InnerDocument */
         $doc = $n->ownerDocument;
         while ($n = $n->parentNode) {
             // This looks weird but it's faster to check for the method here first because
             // getting a wrapper node causes a wrapper element to be created if it doesn't
             // already exist. Don't want to create unnecessary wrappers.
+            /** @var \DOMElement $n */
             if (method_exists($n, 'getAttribute') && $n->getAttribute('translate') === 'yes' && $doc->getWrapperNode($n) instanceof HTMLElement) {
                 return true;
             }
@@ -519,7 +529,9 @@ class HTMLElement extends Element {
 
             $n = $element;
             while ($n = $n->parentNode) {
-                if ($n->tagName === 'form' && $n->ownerDocument->getWrapperNode($n) instanceof HTMLElement) {
+                /** @var InnerDocumente */
+                $ownerDocument = $n->ownerDocument;
+                if ($ownerDocument->getWrapperNode($n) instanceof HTMLElement && $n instanceof \DOMElement && $n->tagName === 'form') {
                     return $this->autoCapitalizationHint($n);
                 }
             }

@@ -16,6 +16,7 @@ use MensBeam\HTML\Parser,
     Symfony\Component\CssSelector\Exception\SyntaxErrorException as SymfonySyntaxErrorException;
 
 
+/** @property \DOMElement $_innerNode */
 class Element extends Node {
     use ChildNode, DocumentOrElement, NonDocumentTypeChildNode, ParentNode;
 
@@ -76,11 +77,13 @@ class Element extends Node {
         // object.
         $context = $this;
         $innerContext = $this->_innerNode;
+        /** @var InnerDocument */
+        $innerOwnerDocument = $innerContext->ownerDocument;
 
         # 2. Let fragment be the result of invoking the fragment parsing algorithm with
         #    the new value as markup, and with context element.
         $innerFragment = Parser::parseFragment($innerContext, Parser::NO_QUIRKS_MODE, $value, 'UTF-8');
-        $fragment = $innerContext->ownerDocument->getWrapperNode($innerFragment);
+        $fragment = $innerOwnerDocument->getWrapperNode($innerFragment);
         $this->postParsingTemplatesFix($innerFragment);
 
         # 3. If the context object is a template element, then let context object be the
@@ -136,6 +139,8 @@ class Element extends Node {
         # 1. Let parent be the context object's parent.
         $parent = $this->parentNode;
         $innerParent = $this->_innerNode->parentNode;
+        /** @var InnerDocument */
+        $innerOwnerDocument = $this->_innerNode->ownerDocument;
 
         # 2. If parent is null, terminate these steps. There would be no way to obtain a
         #    reference to the nodes created even if the remaining steps were run.
@@ -145,7 +150,7 @@ class Element extends Node {
 
         # 3. If parent is a Document, throw a "NoModificationAllowedError" DOMException.
         if ($innerParent instanceof \DOMDocument) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+            throw new NoModificationAllowedError();
         }
 
         # 4. If parent is a DocumentFragment, let parent be a new Element with:
@@ -153,13 +158,13 @@ class Element extends Node {
         #       • The HTML namespace as its namespace, and
         #       • The context object's node document as its node document.
         if ($innerParent instanceof \DOMDocumentFragment) {
-            $innerParent = $this->_innerNode->ownerDocument->createElement('body');
+            $innerParent = $innerOwnerDocument->createElement('body');
         }
 
         # 5. Let fragment be the result of invoking the fragment parsing algorithm with
         #    the new value as markup, and parent as the context element.
         $innerFragment = Parser::parseFragment($innerParent, Parser::NO_QUIRKS_MODE, $value, 'UTF-8');
-        $fragment = $this->_innerNode->ownerDocument->getWrapperNode($innerFragment);
+        $fragment = $innerOwnerDocument->getWrapperNode($innerFragment);
         $this->postParsingTemplatesFix($innerFragment);
 
         # 6. Replace the context object with fragment within the context object's
@@ -192,7 +197,7 @@ class Element extends Node {
         } catch (\Exception $e) {
             # 2. If s is failure, throw a "SyntaxError" DOMException.
             if ($e instanceof SymfonySyntaxErrorException) {
-                throw new DOMException(DOMException::SYNTAX_ERROR);
+                throw new SyntaxError();
             }
         }
 
@@ -276,6 +281,8 @@ class Element extends Node {
         }
 
         $qualifiedName = $this->coerceName($qualifiedName);
+        /** @var InnerDocument */
+        $innerOwnerDocument = $this->_innerNode->ownerDocument;
 
         # 2. Return the first attribute in element’s attribute list whose qualified name is
         #    qualifiedName; otherwise null.
@@ -285,7 +292,7 @@ class Element extends Node {
         $attributes = $this->_innerNode->attributes;
         foreach ($attributes as $attr) {
             if ($attr->nodeName === $qualifiedName) {
-                return $this->_innerNode->ownerDocument->getWrapperNode($attr);
+                return $innerOwnerDocument->getWrapperNode($attr);
             }
         }
 
@@ -307,6 +314,8 @@ class Element extends Node {
         }
 
         $localName = $this->coerceName($localName);
+        /** @var InnerDocument */
+        $innerOwnerDocument = $this->_innerNode->ownerDocument;
 
         # 2. Return the attribute in element’s attribute list whose namespace is namespace
         #    and local name is localName, if any; otherwise null.
@@ -316,7 +325,7 @@ class Element extends Node {
         $attributes = $this->_innerNode->attributes;
         foreach ($attributes as $attr) {
             if ($attr->namespaceURI === $namespace && $attr->localName === $localName) {
-                return $this->_innerNode->ownerDocument->getWrapperNode($attr);
+                return $innerOwnerDocument->getWrapperNode($attr);
             }
         }
 
@@ -419,7 +428,7 @@ class Element extends Node {
 
                 # If context is null or a Document, throw a "NoModificationAllowedError" DOMException.
                 if ($context === null || $context instanceof Document) {
-                    throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+                    throw new NoModificationAllowedError();
                 }
             break;
             case 'afterbegin':
@@ -428,7 +437,7 @@ class Element extends Node {
                 $context = $this;
                 $innerContext = $this->_innerNode;
             break;
-            default: throw new DOMException(DOMException::SYNTAX_ERROR);
+            default: throw new SyntaxError();
         }
 
         # 2. If context is not an Element or the following are all true:
@@ -495,7 +504,7 @@ class Element extends Node {
         } catch (\Exception $e) {
             # 2. If s is failure, throw a "SyntaxError" DOMException.
             if ($e instanceof SymfonySyntaxErrorException) {
-                throw new DOMException(DOMException::SYNTAX_ERROR);
+                throw new SyntaxError();
             }
         }
 
@@ -503,9 +512,11 @@ class Element extends Node {
         #    :scope element this, returns success, then return true; otherwise, return
         #    false. [SELECTORS4]
         $innerNode = $this->_innerNode;
+        /** @var InnerDocument */
+        $innerOwnerDocument = $innerNode->ownerDocument;
         // Query the parent as the context node, yes. This is due to how the XPath
         // queries are generated from Symfony.
-        return ($innerNode->ownerDocument->xpath->query($s, $innerNode->parentNode)->item(0) === $innerNode);
+        return ($innerOwnerDocument->xpath->query($s, $innerNode->parentNode)->item(0) === $innerNode);
     }
 
     public function removeAttribute(string $qualifiedName): void {
@@ -527,14 +538,20 @@ class Element extends Node {
         # The removeAttributeNode(attr) method steps are:
         # 1. If this’s attribute list does not contain attr, then throw a
         #    "NotFoundError" DOMException.
-        // PHP's DOM does this already. Will catch its exception and rethrow as HTML-DOM
+        // PHP's DOM does this already. Will catch its exceptions and rethrow as HTML-DOM
         // DOMException.
 
         # 2. Remove attr.
         try {
             $this->_innerNode->removeAttributeNode($attr->innerNode);
         } catch (\DOMException $e) {
-            throw new DOMException($e->code);
+            switch ($e->getCode()) {
+                case 8: throw new NotFoundError();
+                break;
+                case 9: throw new NotSupportedError();
+                break;
+                default: throw new UnknownException();
+            }
         }
 
         # 3. Return attr.
@@ -560,7 +577,7 @@ class Element extends Node {
         # 1. If qualifiedName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
         if (!preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $qualifiedName)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 2. If this is in the HTML namespace and its node document is an HTML document,
@@ -603,7 +620,7 @@ class Element extends Node {
         #    "InUseAttributeError" DOMException.
         $ownerElement = $attr->ownerElement;
         if ($ownerElement !== null && $ownerElement !== $this) {
-            throw new DOMException(DOMException::IN_USE_ATTRIBUTE);
+            throw new InUseAttributeError();
         }
 
         // PHP's DOM doesn't do this method correctly. It returns the old node if it is
@@ -756,7 +773,7 @@ class Element extends Node {
                 return $element->parentNode->insertBefore($node, $element->nextSibling);
             break;
 
-            default: throw new DOMException(DOMException::SYNTAX_ERROR);
+            default: throw new SyntaxError();
         }
     }
 }

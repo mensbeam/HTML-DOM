@@ -8,20 +8,21 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\DOM\Inner\Reflection,
-    MensBeam\HTML\Parser;
-use MensBeam\HTML\Parser\{
-    Config,
-    Serializer as ParserSerializer
-};
+    MensBeam\HTML\Parser,
+    MensBeam\HTML\Parser\Serializer as ParserSerializer;
 
 
 class Serializer extends ParserSerializer {
     protected static function fragmentHasHost(\DOMDocumentFragment $fragment): bool {
-        return (Reflection::getProtectedProperty($fragment->ownerDocument->getWrapperNode($fragment), 'host') !== null);
+        /** @var InnerDocument */
+        $ownerDocument = $fragment->ownerDocument;
+        return (Reflection::getProtectedProperty($ownerDocument->getWrapperNode($fragment), 'host') !== null);
     }
 
     protected static function getTemplateContent(\DOMElement $node): \DOMNode {
-        return $node->ownerDocument->getWrapperNode($node)->content->innerNode;
+        /** @var InnerDocument */
+        $ownerDocument = $node->ownerDocument;
+        return $ownerDocument->getWrapperNode($node)->content->innerNode;
     }
 
     protected static function isPreformattedContent(\DOMNode $node): bool {
@@ -32,7 +33,9 @@ class Serializer extends ParserSerializer {
                     return true;
                 }
             } elseif ($n instanceof \DOMDocumentFragment) {
-                $host = Reflection::getProtectedProperty($node->ownerDocument->getWrapperNode($n), 'host');
+                /** @var InnerDocument */
+                $ownerDocument = $node->ownerDocument;
+                $host = Reflection::getProtectedProperty($ownerDocument->getWrapperNode($n), 'host');
                 if ($host !== null) {
                     $n = $host->get()->innerNode;
                 }
@@ -43,6 +46,7 @@ class Serializer extends ParserSerializer {
     }
 
     protected static function treatAsBlockWithTemplates(\DOMNode $node): bool {
+        /** @var InnerDocument */
         $document = $node->ownerDocument;
         $xpath = $document->xpath;
         $templates = $xpath->query('.//template[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"][not(ancestor::iframe[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::listing[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noembed[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noframes[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::noscript[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::plaintext[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::pre[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::style[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::script[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::textarea[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::title[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"] or ancestor::xmp[namespace-uri()="" or namespace-uri()="http://www.w3.org/1999/xhtml"])]', $node);

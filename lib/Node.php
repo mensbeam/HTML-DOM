@@ -8,7 +8,6 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\GettersAndSetters,
-    MensBeam\HTML\Parser,
     MensBeam\HTML\Parser\NameCoercion;
 use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
@@ -227,11 +226,12 @@ abstract class Node implements \Stringable {
         # otherwise this’s node document.
         // PHP's DOM does this correctly on everything but document types. That's taken
         // care of in DocumentType.
-        if ($this instanceof Document || !$ownerDocument = $this->_innerNode->ownerDocument) {
+        /** @var InnerDocument $ownerDocument */
+        if ($this instanceof Document || !($ownerDocument = $this->_innerNode->ownerDocument)) {
             return null;
         }
 
-        return $this->_innerNode->ownerDocument->getWrapperNode($ownerDocument);
+        return $ownerDocument->getWrapperNode($ownerDocument);
     }
 
     protected function __get_parentElement(): ?Element {
@@ -376,6 +376,7 @@ abstract class Node implements \Stringable {
         # 5. If node2 is an attribute, then:
         if ($node2 instanceof Attr) {
             # 1. Set attr2 to node2 and node2 to attr2’s element.
+            /** @var \DOMAttr $innerNode2 */
             $attr2 = $innerNode2;
             $node2 = $attr2->ownerElement;
             $innerNode2 = $innerNode2->ownerElement;
@@ -480,7 +481,13 @@ abstract class Node implements \Stringable {
         while ($n = $n->parentNode) {
             $root = $n;
         }
-        return (!$root instanceof InnerDocument) ? $root->ownerDocument->getWrapperNode($root) : $root->wrapperNode;
+
+        if (!$root instanceof InnerDocument) {
+            /** @var Node $root */
+            return $root->ownerDocument->getWrapperNode($root);
+        }
+
+        return $root->wrapperNode;
     }
 
     public function hasChildNodes(): bool {
@@ -612,7 +619,7 @@ abstract class Node implements \Stringable {
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" DOMException.
         if (!$inner instanceof InnerDocument && !$inner instanceof \DOMDocumentFragment && !$inner instanceof \DOMElement) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 2. If node is a host-including inclusive ancestor of parent, then throw a
@@ -621,25 +628,25 @@ abstract class Node implements \Stringable {
         // host-including inclusive ancestor of child, but it should. All browsers check
         // for this.
         if ($this->containsInner($node, $inner) || $this->containsInner($node, $child)) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 3. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
         if ($child->parentNode !== $inner) {
-            throw new DOMException(DOMException::NOT_FOUND);
+            throw new NotFoundError();
         }
 
         # 4. If node is not a DocumentFragment, DocumentType, Element, or CharacterData
         #    node, then throw a "HierarchyRequestError" DOMException.
         if (!$node instanceof \DOMDocumentFragment && !$node instanceof \DOMDocumentType && !$node instanceof \DOMElement && !$node instanceof \DOMCharacterData) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 5. If either node is a Text node and parent is a document, or node is a
         #    doctype and parent is not a document, then throw a "HierarchyRequestError"
         #    DOMException.
         if (($node instanceof \DOMText && $inner instanceof InnerDocument) || ($node instanceof \DOMDocumentType && !$inner instanceof InnerDocument)) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 6. If parent is a document, and any of the statements below, switched on the
@@ -653,14 +660,14 @@ abstract class Node implements \Stringable {
             if ($node instanceof \DOMDocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    throw new HierarchyRequestError();
                 }
 
                 $n = $node->firstChild;
                 if ($n !== null) {
                     do {
                         if ($n instanceof \DOMText) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         }
                     } while ($n = $n->nextSibling);
                 }
@@ -671,7 +678,7 @@ abstract class Node implements \Stringable {
                         $beforeChild = ($n !== $child);
                         do {
                             if (($n instanceof \DOMElement && $n !== $child) || (!$beforeChild && $n instanceof \DOMDocumentType)) {
-                                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                                throw new HierarchyRequestError();
                             } elseif ($n === $child) {
                                 $beforeChild = false;
                             }
@@ -689,7 +696,7 @@ abstract class Node implements \Stringable {
                     $beforeChild = ($n !== $child);
                     do {
                         if (($n instanceof \DOMElement && $n !== $child) || (!$beforeChild && $n instanceof \DOMDocumentType)) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         } elseif ($n === $child) {
                             $beforeChild = false;
                         }
@@ -706,7 +713,7 @@ abstract class Node implements \Stringable {
                     $beforeChild = ($n !== $child);
                     do {
                         if (($n instanceof \DOMDocumentType && $n !== $child) || $beforeChild && $n instanceof \DOMElement) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         } elseif ($n === $child) {
                             $beforeChild = false;
                         }
@@ -824,14 +831,18 @@ abstract class Node implements \Stringable {
                 #    with the clone children flag set.
                 # 3. Append copied contents to copy's template contents.
                 // Template contents are stored in the wrapper nodes.
-                $copyWrapperContent = $copy->ownerDocument->getWrapperNode($copy)->content;
+                /** @var InnerDocument */
+                $copyOwnerDocument = $copy->ownerDocument;
+                $copyWrapperContent = $copyOwnerDocument->getWrapperNode($copy)->content;
 
                 // If the cloning is called for as a result of parsing serialized markup the
                 // contents of the node should be appended to the wrapper element's content
                 // document fragment. Otherwise, clone the content document fragment instead.
                 if (!$parsing) {
                     $copyWrapperContentInner = $copyWrapperContent->innerNode;
-                    $nodeWrapperContent = $node->ownerDocument->getWrapperNode($node)->content->innerNode;
+                    /** @var InnerDocument */
+                    $nodeWrapperOwnerDocument = $node->ownerDocument;
+                    $nodeWrapperContent = $nodeWrapperOwnerDocument->getWrapperNode($node)->content->innerNode;
                     $childNodes = $nodeWrapperContent->childNodes;
                     if ($childNodes->length > 0) {
                         // This garbage is necessary because the appendChildInner method
@@ -1063,6 +1074,7 @@ abstract class Node implements \Stringable {
         # ↪ DocumentType
         #      Its name, public ID, and system ID.
         if ($thisNode instanceof \DOMDocumentType) {
+            /** @var \DOMDocumentType $otherNode */
             if ($thisNode->name !== $otherNode->name || $thisNode->publicId !== $otherNode->publicId || $thisNode->systemId !== $thisNode->publicId) {
                 return false;
             }
@@ -1070,6 +1082,7 @@ abstract class Node implements \Stringable {
         # ↪ Element
         #      Its namespace, namespace prefix, local name, and its attribute list’s size.
         elseif ($thisNode instanceof \DOMElement) {
+            /** @var \DOMElement $otherNode */
             $otherAttributes = $otherNode->attributes;
             if ($thisNode->namespaceURI !== $otherNode->namespaceURI || $thisNode->prefix !== $otherNode->prefix || $thisNode->localName !== $otherNode->localName || $thisNode->attributes->length !== $otherAttributes->length) {
                 return false;
@@ -1091,6 +1104,7 @@ abstract class Node implements \Stringable {
         # ↪ Attr
         #       Its namespace, local name, and value.
         elseif ($thisNode instanceof \DOMAttr) {
+            /** @var \DOMAttr $otherNode */
             if ($thisNode->namespaceURI !== $otherNode->namespaceURI || $thisNode->localName !== $otherNode->localName || $thisNode->value !== $otherNode->value) {
                 return false;
             }
@@ -1099,12 +1113,14 @@ abstract class Node implements \Stringable {
         # ↪ Comment
         #      Its data.
         elseif ($thisNode instanceof \DOMText || $thisNode instanceof \DOMComment) {
+            /** @var \DOMText|\DOMComment $otherNode */
             if ($thisNode->data !== $otherNode->data) {
                 return false;
             }
         }
 
         if ($thisNode instanceof \DOMDocument || $thisNode instanceof \DOMDocumentFragment || $thisNode instanceof \DOMElement) {
+            /** @var \DOMDocument|\DOMDocumentFragment|\DOMElement $otherNode */
             # • A and B have the same number of children.
             if ($thisNode->childNodes->length !== $otherNode->childNodes->length) {
                 return false;
@@ -1129,7 +1145,9 @@ abstract class Node implements \Stringable {
         # ↪ Element
         if ($node instanceof \DOMElement) {
             // Work around PHP DOM HTML namespace bug
-            if ($node->namespaceURI === null && !$node->ownerDocument->getWrapperNode($node->ownerDocument) instanceof XMLDocument) {
+            /** @var \InnerDocument */
+            $ownerDocument = $node->ownerDocument;
+            if ($node->namespaceURI === null && !$ownerDocument->getWrapperNode($ownerDocument) instanceof XMLDocument) {
                 $namespace = self::HTML_NAMESPACE;
             } else {
                 $namespace = $node->namespaceURI;
@@ -1289,7 +1307,9 @@ abstract class Node implements \Stringable {
         // below walks through this node and temporarily replaces foreign descendants
         // with bullshit elements which are then replaced once the node is inserted.
         if ($element->namespaceURI === null && ($this instanceof DocumentFragment || $this->getRootNode() !== null) && $element->hasChildNodes()) {
-            $foreign = $element->ownerDocument->xpath->query('.//*[parent::*[namespace-uri()=""] and not(namespace-uri()="") and name()=local-name()]', $element);
+            /** @var InnerDocument */
+            $ownerDocument = $element->ownerDocument;
+            $foreign = $ownerDocument->xpath->query('.//*[parent::*[namespace-uri()=""] and not(namespace-uri()="") and name()=local-name()]', $element);
             $this->bullshitReplacements = [];
             if ($foreign->length > 0) {
                 $count = 0;
@@ -1317,7 +1337,7 @@ abstract class Node implements \Stringable {
         # 1. If parent is not a Document, DocumentFragment, or Element node, then throw
         #    a "HierarchyRequestError" Exception.
         if (!$parent instanceof InnerDocument && !$parent instanceof \DOMDocumentFragment && !$parent instanceof \DOMElement) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 2. If node is a host-including inclusive ancestor of parent, then throw a
@@ -1328,7 +1348,7 @@ abstract class Node implements \Stringable {
         # host-including inclusive ancestor of B’s root’s host.
         if ($node->parentNode !== null) {
             if ($parent->parentNode !== null && ($parent === $node || $this->containsInner($node, $parent))) {
-                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                throw new HierarchyRequestError();
             } else {
                 $n = $parent;
                 do {
@@ -1336,10 +1356,12 @@ abstract class Node implements \Stringable {
                 } while ($n = $n->parentNode);
 
                 if ($parentRoot instanceof \DOMDocumentFragment) {
-                    $wrappedParentRoot = $parentRoot->ownerDocument->getWrapperNode($parentRoot);
+                    /** @var InnerDocument */
+                    $ownerDocument = $parentRoot->ownerDocument;
+                    $wrappedParentRoot = $ownerDocument->getWrapperNode($parentRoot);
                     $parentRootHost = Reflection::getProtectedProperty($wrappedParentRoot, 'host');
                     if ($parentRootHost !== null && ($parentRootHost === $node || $this->containsInner($node, $parentRootHost->get()->innerNode))) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        throw new HierarchyRequestError();
                     }
                 }
             }
@@ -1348,21 +1370,21 @@ abstract class Node implements \Stringable {
         # 3. If child is non-null and its parent is not parent, then throw a
         #    "NotFoundError" Exception.
         if ($child !== null && ($child->parentNode === null || $child->parentNode !== $parent)) {
-            throw new DOMException(DOMException::NOT_FOUND);
+            throw new NotFoundError();
         }
 
         # 4. If node is not a DocumentFragment, DocumentType, Element, Text,
         #    ProcessingInstruction, or Comment node, then throw a "HierarchyRequestError"
         #    Exception.
         if (!$node instanceof \DOMDocumentFragment && !$node instanceof \DOMDocumentType && !$node instanceof \DOMElement && !$node instanceof \DOMText && !$node instanceof \DOMProcessingInstruction && !$node instanceof \DOMComment) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 5. If either node is a Text node and parent is a document, or node is a
         #    doctype and parent is not a document, then throw a "HierarchyRequestError"
         #    Exception.
         if (($node instanceof \DOMText && $parent instanceof \DOMDocument) || ($node instanceof \DOMDocumentType && !$parent instanceof InnerDocument)) {
-            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+            throw new HierarchyRequestError();
         }
 
         # 6. If parent is a document, and any of the statements below, switched on the
@@ -1377,13 +1399,13 @@ abstract class Node implements \Stringable {
             if ($node instanceof \DOMDocumentFragment) {
                 $nodeChildElementCount = $node->childElementCount;
                 if ($nodeChildElementCount > 1) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    throw new HierarchyRequestError();
                 } else {
                     $n = $node->firstChild;
                     if ($n !== null) {
                         do {
                             if ($n instanceof \DOMText) {
-                                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                                throw new HierarchyRequestError();
                             }
                         } while ($n = $n->nextSibling);
                     }
@@ -1391,14 +1413,14 @@ abstract class Node implements \Stringable {
 
                 if ($nodeChildElementCount === 1) {
                     if ($parent->childElementCount > 0 || $child instanceof \DOMDocumentType) {
-                        throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                        throw new HierarchyRequestError();
                     }
 
                     if ($child !== null) {
                         $n = $child;
                         while ($n = $n->nextSibling) {
                             if ($n instanceof \DOMDocumentType) {
-                                throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                                throw new HierarchyRequestError();
                             }
                         }
                     }
@@ -1410,14 +1432,14 @@ abstract class Node implements \Stringable {
             #      doctype is following child.
             elseif ($node instanceof \DOMElement) {
                 if ($child instanceof \DOMDocumentType) {
-                    throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                    throw new HierarchyRequestError();
                 }
 
                 if ($child !== null) {
                     $n = $child;
                     while ($n = $n->nextSibling) {
                         if ($n instanceof \DOMDocumentType) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         }
                     }
                 }
@@ -1426,7 +1448,7 @@ abstract class Node implements \Stringable {
                     $n = $parent->firstChild;
                     do {
                         if ($n instanceof \DOMElement) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         }
                     } while ($n = $n->nextSibling);
                 }
@@ -1441,7 +1463,7 @@ abstract class Node implements \Stringable {
                     $n = $firstChild;
                     do {
                         if ($n instanceof \DOMDocumentType || ($child === null && $n instanceof \DOMElement)) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         }
                     } while ($n = $n->nextSibling);
                 }
@@ -1450,7 +1472,7 @@ abstract class Node implements \Stringable {
                     $n = $child;
                     while ($n = $n->previousSibling) {
                         if ($n instanceof \DOMElement) {
-                            throw new DOMException(DOMException::HIERARCHY_REQUEST_ERROR);
+                            throw new HierarchyRequestError();
                         }
                     }
                 }

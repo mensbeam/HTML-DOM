@@ -9,7 +9,10 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
+/** @property \DOMAttr $_innerNode */
 class Attr extends Node {
+    protected \DOMAttr $_innerNode;
+
     protected function __get_localName(): string {
         // PHP's DOM does this correctly already.
         // Need to uncoerce string if necessary.
@@ -37,7 +40,9 @@ class Attr extends Node {
             return null;
         }
 
-        return $this->_innerNode->ownerDocument->getWrapperNode($this->_innerNode->ownerElement);
+        /** @var MensBeam\HTML\DOM\Inner\Document $innerOwnerDocument */
+        $innerOwnerDocument = $this->_innerNode->ownerDocument;
+        return $innerOwnerDocument->getWrapperNode($this->_innerNode->ownerElement);
     }
 
     protected function __get_prefix(): string {

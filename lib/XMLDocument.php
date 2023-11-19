@@ -16,7 +16,7 @@ class XMLDocument extends Document {
 
     public function load(string $source = null, ?string $charset = null): void {
         if ($this->hasChildNodes()) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+            throw new NoModificationAllowedError();
         }
 
         $this->_innerNode->encoding = Charset::fromCharset((string)$charset) ?? 'UTF-8';

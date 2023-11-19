@@ -7,11 +7,8 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\Inner\{
-    Document as InnerDocument,
-    Reflection
-};
-use MensBeam\HTML\Parser\NameCoercion;
+use MensBeam\HTML\DOM\Inner\Document as InnerDocument,
+    MensBeam\HTML\Parser\NameCoercion;
 
 
 class NamedNodeMap extends Collection {
@@ -124,7 +121,7 @@ class NamedNodeMap extends Collection {
 
         # 2. If attr is null, then throw a "NotFoundError" DOMException.
         if ($attr === null) {
-            throw new DOMException(DOMException::NOT_FOUND);
+            throw new NotFoundError();
         }
 
         # 3. Return attr.

@@ -82,7 +82,7 @@ class DOMImplementation {
                 $contentType = 'application/xml';
         }
 
-        Reflection::setProtectedProperties($document, ['_contentType' => $contentType ]);
+        Reflection::setProtectedProperties($document, [ '_contentType' => $contentType ]);
 
         # 8. Return document.
         return $document;
@@ -95,7 +95,7 @@ class DOMImplementation {
         #    To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
         #    qualifiedName does not match the QName production.
         if (!preg_match(InnerDocument::QNAME_PRODUCTION_REGEX, $qualifiedName)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 2. Return a new doctype, with qualifiedName as its name, publicId as its
@@ -145,7 +145,7 @@ class DOMImplementation {
         $documentElement->appendChild($doc->createElement('body'));
 
         # 8. doc’s origin is this’s associated document’s origin.
-        // Not necessary. No scripting in this implementation.
+        // DEVIATION: There is no scripting in this implementation.
 
         # 9. Return doc.
         return $doc;

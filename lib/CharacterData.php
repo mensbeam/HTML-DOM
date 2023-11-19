@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
+/** @property \DOMCharacterData $_innerNode */
 abstract class CharacterData extends Node {
     use ChildNode, NonDocumentTypeChildNode;
 

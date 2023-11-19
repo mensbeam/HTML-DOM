@@ -82,7 +82,7 @@ trait XPathEvaluate {
                     $resultType = XPathResult::ORDERED_NODE_ITERATOR_TYPE;
                 break;
                 default:
-                    throw new DOMException(DOMException::NOT_SUPPORTED);
+                    throw new NotSupportedError();
             }
         } else {
             switch ($type) {
@@ -148,7 +148,7 @@ trait XPathEvaluate {
                     $result = $result->item(0);
                 break;
 
-                default: throw new DOMException(DOMException::NOT_SUPPORTED);
+                default: throw new NotSupportedError();
             }
 
             $resultType = $type;

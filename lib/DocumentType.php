@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
+/** @property \DOMDocumentType $_innerNode */
 class DocumentType extends Node {
     use ChildNode;
 

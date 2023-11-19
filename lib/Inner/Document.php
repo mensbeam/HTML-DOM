@@ -68,7 +68,7 @@ class Document extends \DOMDocument {
         }
 
         if ($node instanceof \DOMDocument) {
-            throw new DOMException(DOMException::NOT_SUPPORTED);
+            throw new NotSupportedError();
         }
 
         // There's no way to see whether unappended doctypes are owned by a document in
@@ -76,7 +76,7 @@ class Document extends \DOMDocument {
         // document. This is worked around in the wrapper DOM but a problem here when
         // creating the wrapper node.
         if (!$node instanceof \DOMDocumentType && $node->ownerDocument !== $this) {
-            throw new DOMException(DOMException::WRONG_DOCUMENT);
+            throw new WrongDocumentError();
         }
 
         // If the wrapper node already exists then return that.

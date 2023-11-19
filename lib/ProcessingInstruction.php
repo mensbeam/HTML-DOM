@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
 
+/** @property \DOMProcessingInstruction $_innerNode */
 class ProcessingInstruction extends CharacterData {
     protected function __get_target(): string {
         // Need to uncoerce string if necessary.

@@ -20,6 +20,7 @@ use MensBeam\HTML\Parser\{
 };
 
 
+/** @property InnerDocument $_innerNode */
 class Document extends Node implements \ArrayAccess {
     use DocumentOrElement, NonElementParentNode, ParentNode, XPathEvaluatorBase;
 
@@ -45,7 +46,7 @@ class Document extends Node implements \ArrayAccess {
         if ($n !== null) {
             do {
                 if ($n instanceof \DOMElement && $n->namespaceURI === null && ($n->nodeName === 'body' || $n->nodeName === 'frameset')) {
-                    return $n->ownerDocument->getWrapperNode($n);
+                    return $this->_innerNode->getWrapperNode($n);
                 }
             } while ($n = $n->nextSibling);
         }
@@ -328,19 +329,19 @@ class Document extends Node implements \ArrayAccess {
                 $element = $title;
             }
             # 3. Otherwise:
-            else {
+            elseif ($head !== null) {
                 # 1. Let element be the result of creating an element given the document
                 #   element's node document, title, and the HTML namespace.
                 $element = $this->_innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
 
                 # 2. Append element to the head element.
                 $head->appendChild($element);
-            }
 
-            # 4. String replace all with the given value within element.
-            // This is basically what textContent will do for us...
-            if ($element !== null) {
-                $element->textContent = $value;
+                # 4. String replace all with the given value within element.
+                // This is basically what textContent will do for us...
+                if ($element !== null) {
+                    $element->textContent = $value;
+                }
             }
         }
 
@@ -380,7 +381,7 @@ class Document extends Node implements \ArrayAccess {
         #
         # 1. If node is a document, then throw a "NotSupportedError" DOMException.
         if ($node instanceof Document) {
-            throw new DOMException(DOMException::NOT_SUPPORTED);
+            throw new NotSupportedError();
         }
 
         # 2. If node is a shadow root, then throw a "HierarchyRequestError" DOMException.
@@ -390,7 +391,7 @@ class Document extends Node implements \ArrayAccess {
         // DEVIATION: One can't just return here?
         if ($node instanceof DocumentFragment) {
             $host = Reflection::getProtectedProperty($node, 'host');
-            if ($host !== null || $host->get() !== null) {
+            if ($host instanceof \WeakReference && $host->get() !== null || $host !== null) {
                 return $node;
             }
         }
@@ -419,7 +420,7 @@ class Document extends Node implements \ArrayAccess {
         # 1. If localName does not match the Name production in XML, then throw an
         #    "InvalidCharacterError" DOMException.
         if (preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $localName) !== 1) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 2. If this is an HTML document, then set localName to localName in ASCII
@@ -509,13 +510,13 @@ class Document extends Node implements \ArrayAccess {
         #
         # 1. If this is an HTML document, then throw a "NotSupportedError" DOMException.
         if (!$this instanceof XMLDocument) {
-            throw new DOMException(DOMException::NOT_SUPPORTED);
+            throw new NotSupportedError();
         }
 
         # 2. If data contains the string "]]>", then throw an "InvalidCharacterError"
         #    DOMException.
         if (str_contains(needle: ']]>', haystack: $data)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 3. Return a new CDATASection node with its data set to data and node document
@@ -539,12 +540,12 @@ class Document extends Node implements \ArrayAccess {
         # 1. If localName does not match the Name production, then throw an
         #    "InvalidCharacterError" DOMException.
         if (!preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $localName)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 2. If this is an HTML document, then set localName to localName in ASCII
         #    lowercase.
-        if (!$this instanceof XMLElement) {
+        if (!$this instanceof XMLDocument) {
             $localName = strtolower($localName);
         }
 
@@ -642,7 +643,7 @@ class Document extends Node implements \ArrayAccess {
         #    DOMException.
         // Because this can import from PHP's DOM we must check for more stuff.
         if ($node instanceof Document || $node instanceof \DOMDocument || ($node instanceof \DOMNode && $node->ownerDocument::class !== 'DOMDocument') || $node instanceof \DOMEntityReference) {
-            throw new DOMException(DOMException::NOT_SUPPORTED);
+            throw new NotSupportedError();
         }
 
         # 2. Return a clone of node, with this and the clone children flag set if deep
@@ -652,7 +653,7 @@ class Document extends Node implements \ArrayAccess {
 
     public function load(string $source = null, ?string $charset = null): void {
         if ($this->hasChildNodes()) {
-            throw new DOMException(DOMException::NO_MODIFICATION_ALLOWED);
+            throw new NoModificationAllowedError();
         }
 
         $config = new ParserConfig();
@@ -675,7 +676,7 @@ class Document extends Node implements \ArrayAccess {
     public function loadFile(string $filename, ?string $charset = null): void {
         $f = @fopen($filename, 'r');
         if (!$f) {
-            throw new DOMException(DOMException::FILE_NOT_FOUND);
+            throw new FileNotFoundException();
         }
 
         $data = stream_get_contents($f);
@@ -810,7 +811,7 @@ class Document extends Node implements \ArrayAccess {
     public function serialize(?Node $node = null, array $config = []): string {
         $node = $node ?? $this;
         if ($node !== $this && $node->ownerDocument !== $this) {
-            throw new DOMException(DOMException::WRONG_DOCUMENT);
+            throw new WrongDocumentError();
         }
 
         return Serializer::serialize($node->innerNode, $config);
@@ -819,7 +820,7 @@ class Document extends Node implements \ArrayAccess {
     public function serializeInner(?Node $node = null, array $config = []): string {
         $node = $node ?? $this;
         if ($node !== $this && $node->ownerDocument !== $this) {
-            throw new DOMException(DOMException::WRONG_DOCUMENT);
+            throw new WrongDocumentError();
         }
 
         return Serializer::serializeInner($node->innerNode, $config);

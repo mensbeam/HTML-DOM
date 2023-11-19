@@ -7,10 +7,7 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\Inner\{
-    Document as InnerDocument,
-    Reflection
-};
+use MensBeam\HTML\DOM\Inner\Reflection;
 use Symfony\Component\CssSelector\CssSelectorConverter,
     Symfony\Component\CssSelector\Exception\SyntaxErrorException as SymfonySyntaxErrorException;
 
@@ -121,7 +118,7 @@ trait ParentNode {
                     continue 2;
                     case Node::WALK_REJECT:
                     break;
-                    default: throw new DOMException(DOMException::SYNTAX_ERROR);
+                    default: throw new SyntaxError();
                 }
 
                 if ($node->parentNode !== null && $node->hasChildNodes()) {
@@ -146,7 +143,7 @@ trait ParentNode {
             // so only throw exception when an actual syntax error, otherwise return an
             // empty nodelist.
             if ($e instanceof SymfonySyntaxErrorException) {
-                throw new DOMException(DOMException::SYNTAX_ERROR);
+                throw new SyntaxError();
             }
 
             return new \DOMNodeList;

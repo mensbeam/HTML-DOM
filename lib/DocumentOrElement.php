@@ -160,7 +160,7 @@ trait DocumentOrElement {
         #    To validate a qualifiedName, throw an "InvalidCharacterError" DOMException if
         #    qualifiedName does not match the QName production.
         if (preg_match(InnerDocument::QNAME_PRODUCTION_REGEX, $qualifiedName) !== 1) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 3. Let prefix be null.
@@ -190,7 +190,7 @@ trait DocumentOrElement {
             (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespace !== self::XMLNS_NAMESPACE) ||
             ($namespace === self::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
         ) {
-            throw new DOMException(DOMException::NAMESPACE_ERROR);
+            throw new NamespaceError();
         }
 
         # 10. Return namespace, prefix, and localName.

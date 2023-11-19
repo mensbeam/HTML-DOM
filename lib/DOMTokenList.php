@@ -8,8 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 use MensBeam\HTML\Parser\Data,
-    MensBeam\GettersAndSetters,
-    MensBeam\HTML\DOM\Inner\Reflection;
+    MensBeam\GettersAndSetters;
 
 
 class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
@@ -95,13 +94,13 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         foreach ($tokens as $token) {
             # 1. If token is the empty string, then throw a "SyntaxError" DOMException.
             if ($token === '') {
-                throw new DOMException(DOMException::SYNTAX_ERROR);
+                throw new SyntaxError();
             }
 
             # 2. If token contains any ASCII whitespace, then throw an
             # "InvalidCharacterError" DOMException.
             if (preg_match(Data::WHITESPACE_REGEX, $token)) {
-                throw new DOMException(DOMException::INVALID_CHARACTER);
+                throw new InvalidCharacterError();
             }
         }
 
@@ -176,13 +175,13 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         foreach ($tokens as $token) {
             # 1. If token is the empty string, then throw a "SyntaxError" DOMException.
             if ($token === '') {
-                throw new DOMException(DOMException::SYNTAX_ERROR);
+                throw new SyntaxError();
             }
 
             # 2. If token contains any ASCII whitespace, then throw an
             # "InvalidCharacterError" DOMException.
             if (preg_match(Data::WHITESPACE_REGEX, $token)) {
-                throw new DOMException(DOMException::INVALID_CHARACTER);
+                throw new InvalidCharacterError();
             }
         }
 
@@ -210,13 +209,13 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
         # 1. If either token or newToken is the empty string, then throw a "SyntaxError"
         # DOMException.
         if ($token === '' || $newToken === '') {
-            throw new DOMException(DOMException::SYNTAX_ERROR);
+            throw new SyntaxError();
         }
 
         # 2. If either token or newToken contains any ASCII whitespace, then throw an
         # "InvalidCharacterError" DOMException.
         if (preg_match(Data::WHITESPACE_REGEX, $token) || preg_match(Data::WHITESPACE_REGEX, $newToken)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 3. If this’s token set does not contain token, then return false.
@@ -268,13 +267,13 @@ class DOMTokenList implements \ArrayAccess, \Countable, \Iterator {
     public function toggle(string $token, ?bool $force = null): bool {
         # 1. If token is the empty string, then throw a "SyntaxError" DOMException.
         if ($token === '') {
-            throw new DOMException(DOMException::SYNTAX_ERROR);
+            throw new SyntaxError();
         }
 
         # 2. If token contains any ASCII whitespace, then throw an
         # "InvalidCharacterError" DOMException.
         if (preg_match(Data::WHITESPACE_REGEX, $token)) {
-            throw new DOMException(DOMException::INVALID_CHARACTER);
+            throw new InvalidCharacterError();
         }
 
         # 3. If this’s token set[token] exists, then:

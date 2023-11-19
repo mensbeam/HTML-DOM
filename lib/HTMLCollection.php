@@ -7,7 +7,6 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\Parser;
 
 
 # An HTMLCollection object is a collection of elements.

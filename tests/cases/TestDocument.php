@@ -1,224 +1,92 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017 Dustin Wilson, J. King, et al.
+ * Copyright 2022 Dustin Wilson, et al.
  * See LICENSE and AUTHORS files for details
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\TestCase;
-
+namespace MensBeam\HTML\DOM\Test;
 use MensBeam\HTML\DOM\{
+    CDataSection,
+    Comment,
     Document,
-    DOMException,
+    DocumentFragment,
     DOMImplementation,
     Element,
-    HTMLElement,
+    FileNotFoundException,
+    HTMLCollection,
+    InvalidArgumentException,
     Node,
-    Text,
-    XMLDocument
+    ProcessingInstruction,
+    XMLDocument,
+    XPathException
 };
-use MensBeam\HTML\DOM\Inner\Reflection,
-    org\bovigo\vfs\vfsStream;
+use MensBeam\HTML\DOM\DOMException\{
+    InvalidCharacterError,
+    NoModificationAllowedError,
+    NotSupportedError,
+    WrongDocumentError,
+};
+use PHPUnit\Framework\{
+    TestCase,
+    Attributes\CoversClass,
+    Attributes\DataProvider
+};
+use org\bovigo\vfs\vfsStream;
 
 
-/** @covers \MensBeam\HTML\DOM\Document */
-class TestDocument extends \PHPUnit\Framework\TestCase {
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::offsetExists
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     */
-    public function testMethod_offsetExists(): void {
-        $d = new Document('<!DOCTYPE html><html><body><img name="ook"></body></html>');
-        $this->assertTrue(isset($d['ook']));
+#[CoversClass('MensBeam\HTML\DOM\Document')]
+#[CoversClass('MensBeam\HTML\DOM\Attr')]
+#[CoversClass('MensBeam\HTML\DOM\Collection')]
+#[CoversClass('MensBeam\HTML\DOM\DocumentFragment')]
+#[CoversClass('MensBeam\HTML\DOM\DocumentOrElement')]
+#[CoversClass('MensBeam\HTML\DOM\DocumentType')]
+#[CoversClass('MensBeam\HTML\DOM\DOMImplementation')]
+#[CoversClass('MensBeam\HTML\DOM\Element')]
+#[CoversClass('MensBeam\HTML\DOM\FileNotFoundException')]
+#[CoversClass('MensBeam\HTML\DOM\HTMLElement')]
+#[CoversClass('MensBeam\HTML\DOM\HTMLTemplateElement')]
+#[CoversClass('MensBeam\HTML\DOM\Node')]
+#[CoversClass('MensBeam\HTML\DOM\Text')]
+#[CoversClass('MensBeam\HTML\DOM\XMLDocument')]
+#[CoversClass('MensBeam\HTML\DOM\XPathException')]
+#[CoversClass('MensBeam\HTML\DOM\DOMException\InvalidCharacterError')]
+#[CoversClass('MensBeam\HTML\DOM\DOMException\NoModificationAllowedError')]
+#[CoversClass('MensBeam\HTML\DOM\DOMException\NotSupportedError')]
+#[CoversClass('MensBeam\HTML\DOM\DOMException\WrongDocumentError')]
+#[CoversClass('MensBeam\HTML\DOM\Inner\Document')]
+#[CoversClass('MensBeam\HTML\DOM\Inner\NodeCache')]
+#[CoversClass('MensBeam\HTML\DOM\Inner\Reflection')]
+class TestDocument extends TestCase {
+    public function testConstructor(): void {
+        // Simple construction
+        $d = new Document('<!DOCTYPE html><html></html>');
+        $this->assertInstanceOf(Document::class, $d);
+        $this->assertSame('CSS1Compat', $d->compatMode);
+        $d->destroy();
+
+        // Construction with charset
+        $d = new Document('<!DOCTYPE html><html></html>', 'gb2312');
+        $this->assertSame('GBK', $d->charset);
+        $this->assertSame('GBK', $d->characterSet);
+        $this->assertSame('GBK', $d->inputEncoding);
+        $d->destroy();
+
+        // Empty document with charset
+        $d = new Document(charset: 'gb2312');
+        $this->assertSame('GBK', $d->charset);
+        $this->assertSame('GBK', $d->characterSet);
+        $this->assertSame('GBK', $d->inputEncoding);
+        $this->assertSame('CSS1Compat', $d->compatMode);
+        $d->destroy();
+
+        // Quirks mode
+        $d = new Document('<doctype html><html><body></body></html>');
+        $this->assertSame('BackCompat', $d->compatMode);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::offsetExists
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     */
-    public function testMethod_offsetExists__errors(): void {
-        // PHPUnit is supposed to support expecting of errors, but it doesn't. So let's
-        // write a bunch of bullshit so we can catch and assert errors instead.
-        set_error_handler(function($errno) {
-            if ($errno === \E_USER_ERROR) {
-                $this->assertEquals(\E_USER_ERROR, $errno);
-            }
-        });
-
-        $d = new Document();
-        isset($d[0]);
-
-        restore_error_handler();
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::offsetGet
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
-    public function testMethod_offsetGet(): void {
-        $d = new Document('<!DOCTYPE html><html><body><img name="ook"><img name="eek"><img id="eek" name="ack"><embed name="eek"><object id="ook"><embed name="eek"><object name="ookeek"></object></object><iframe name="eek"></iframe><object id="eek"></object></body></html>');
-        $this->assertSame(HTMLElement::class, $d['ook']::class);
-        $this->assertEquals(5, $d['eek']->length);
-        $this->assertNull($d['ookeek']);
-
-        $d['ook'] = 'fail';
-        $this->assertSame(HTMLElement::class, $d['ook']::class);
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::offsetGet
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     */
-    public function testMethod_offsetGet__errors(): void {
-        // PHPUnit is supposed to support expecting of errors, but it doesn't. So let's
-        // write a bunch of bullshit so we can catch and assert errors instead.
-        set_error_handler(function($errno) {
-            if ($errno === \E_USER_ERROR) {
-                $this->assertEquals(\E_USER_ERROR, $errno);
-            }
-        });
-
-        $d = new Document();
-        $fail = $d[0];
-
-        restore_error_handler();
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::offsetSet
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\Document::offsetGet
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
-    public function testMethod_offsetSet(): void {
-        $d = new Document('<!DOCTYPE html><html><body><img name="ook"></body></html>');
-        $d['ook'] = 'fail';
-        $this->assertSame(HTMLElement::class, $d['ook']::class);
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::offsetUnset
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\Document::offsetGet
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
-    public function testMethod_offsetUnset(): void {
-        $d = new Document('<!DOCTYPE html><html><body><img name="ook"></body></html>');
-        unset($d['ook']);
-        $this->assertSame(HTMLElement::class, $d['ook']::class);
-    }
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::adoptNode
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::importNode
-     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::__get_parentNode
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\Node::removeChild
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::delete
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testMethod_adoptNode(): void {
         $d = new Document();
         $documentElement = $d->appendChild($d->createElement('html'));
@@ -231,660 +99,282 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
 
         $d2->adoptNode($template->content);
         $this->assertSame($d, $template->content->ownerDocument);
+        $d->destroy();
+        $d2->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::adoptNode
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testMethod_adoptNode__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
-        $d = new Document();
-        $d2 = new Document();
-        $d2->adoptNode($d);
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::createAttribute
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testMethod_createAttribute__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
-        $d = new Document();
-        $d->createAttribute('this will fail');
-    }
-
-
-    public function provideMethod_createCDATASection__errors(): iterable {
-        return [
-            [ function () {
-                $d = new Document();
-                $d->createCDATASection('ook');
-            }, DOMException::NOT_SUPPORTED ],
-            [ function () {
-                $d = new XMLDocument();
-                $d->createCDATASection('ook]]>');
-            }, DOMException::INVALID_CHARACTER ],
-        ];
-    }
-
-    /**
-     * @dataProvider provideMethod_createCDATASection__errors
-     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testMethod_createCDATASection__errors(\Closure $closure, int $errorCode): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode($errorCode);
-        $closure();
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testMethod_createElement__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::INVALID_CHARACTER);
-        $d = new Document();
-        $d->createElement('this will fail');
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::destroy
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::delete
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     */
-    public function testMethod_destroy(): void {
-        $d = new Document();
-
-        $reflection = new \ReflectionClass(Document::class);
-        $cache = $reflection->getStaticPropertyValue('cache');
-        $innerArrayCount = count(Reflection::getProtectedProperty($cache, 'innerArray'));
-        $wrapperArrayCount = count(Reflection::getProtectedProperty($cache, 'wrapperArray'));
-
+    public function testMethod_createAttribute(): void {
+        // Attributes are lowercased in HTML documents
+        $d = new Document('<!DOCTYPE html><html></html>');
+        $a = $d->createAttribute('LANG');
+        $this->assertSame('lang', $a->localName);
         $d->destroy();
 
-        $cache = $reflection->getStaticPropertyValue('cache');
-        $this->assertNotEquals(count(Reflection::getProtectedProperty($cache, 'innerArray')), $innerArrayCount);
-        $this->assertNotEquals(count(Reflection::getProtectedProperty($cache, 'wrapperArray')), $wrapperArrayCount);
-    }
+        // They're not in XML documents
+        $d = new XMLDocument('<ook></ook>');
+        $a = $d->createAttribute('LANG');
+        $this->assertSame('LANG', $a->localName);
+        $d->destroy();
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::getElementsByName
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
-    public function testMethod_getElementsByName() {
-        $d = new Document('<!DOCTYPE html><html><body><div name="ook"></div><div name="ook"></div><svg><g name="ook"></g></svg></body></html>');
-        $this->assertEquals(2, $d->getElementsByName('ook')->length);
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::importNode
-     *
-     * @covers \MensBeam\HTML\DOM\CharacterData::__get_data
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createCDATASection
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_firstChild
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::cloneWrapperNode
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     */
-    public function testMethod_importNode(): void {
+        // PHP normally can't create attributes if there's no document element, but
+        // HTML-DOM can
         $d = new Document();
-        $d2 = new XMLDocument();
-        $d3 = new \DOMDocument();
+        $a = $d->createAttribute('LANG');
+        $this->assertSame('lang', $a->localName);
+        $this->assertSame($d, $a->ownerDocument);
 
-        // Test importing of PHP DOM node
-        $div = $d3->createElement('div');
-        $div = $d->importNode($div);
-        $this->assertTrue($div instanceof Element);
-
-        // Test importing of CDATA section node
-        $cdata = $d2->createCDATASection('ook');
-        $cdata = $d->importNode($cdata);
-        $this->assertSame(Text::class, $cdata::class);
-
-        // Test importing of element containing CDATA section node
-        $div = $d2->createElement('div');
-        $div->appendChild($d2->createCDATASection('ook'));
-        $div = $d->importNode($div, true);
-        $this->assertSame(Text::class, $div->firstChild::class);
+        // PHP doesn't support unicode characters as attribute names, but HTML-DOM can
+        // by internally replacing the characters
+        $a = $d->createAttribute('💩');
+        $this->assertSame('💩', $a->localName);
+        $d->destroy();
     }
 
-
-    public function provideMethod_importNode__errors(): iterable {
-        return [
-            [ function () {
-                $d = new Document();
-                $d->importNode(new Document());
-            } ],
-            [ function () {
-                $d = new Document();
-                $d->importNode(new \DOMDocument());
-            } ],
-            [ function () {
-                $d = new Document();
-                $d2 = new class extends \DOMDocument {};
-                $d2->createTextNode('fail');
-                $d->importNode($d2);
-            } ],
-            [ function () {
-                $d = new Document();
-                $d2 = new \DOMDocument();
-                $d2->createEntityReference('nbsp');
-                $d->importNode($d2);
-            } ],
-        ];
-    }
-
-    /**
-     * @dataProvider provideMethod_importNode__errors
-     * @covers \MensBeam\HTML\DOM\Document::importNode
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testMethod_importNode__errors(\Closure $closure): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::NOT_SUPPORTED);
-        $closure();
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::load
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     */
-    public function testMethod_load__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::NO_MODIFICATION_ALLOWED);
+    public function testMethod_createAttributeNS(): void {
+        // Local names are NOT lowercased in HTML documents
         $d = new Document();
-        $d->appendChild($d->createElement('html'));
-        $d->load('this will fail');
+        $a = $d->createAttributeNS('https://💩.com', '💩:POO');
+        $this->assertSame('POO', $a->localName);
+        $this->assertSame('https://💩.com', $a->namespaceURI);
+        $this->assertSame('💩', $a->prefix);
+
+        // Empty string namespaces and empty prefixes are supposed to be null
+        $a = $d->createAttributeNS('', '💩');
+        $this->assertSame('💩', $a->localName);
+        $this->assertSame(null, $a->namespaceURI);
+        $this->assertSame(null, $a->prefix);
+        $d->destroy();
     }
 
+    public function testMethod_createCDATASection(): void {
+        $d = new XMLDocument();
+        $c = $d->createCDATASection('💩poo');
+        $this->assertSame('💩poo', $c->data);
+        $this->assertInstanceOf(CDataSection::class, $c);
+        $d->destroy();
+    }
 
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::loadFile
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_charset
-     * @covers \MensBeam\HTML\DOM\Document::__get_URL
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
+    public function testMethod_createComment(): void {
+        $d = new Document();
+        $c = $d->createComment('💩poo');
+        $this->assertSame('💩poo', $c->data);
+        $this->assertInstanceOf(Comment::class, $c);
+        $d->destroy();
+    }
+
+    public function testMethod_createDocumentFragment(): void {
+        $d = new Document();
+        $f = $d->createDocumentFragment();
+        $t = $d->createTextNode('ook');
+        $f->appendChild($t);
+        $this->assertSame($t, $f->firstChild);
+        $this->assertInstanceOf(DocumentFragment::class, $f);
+        $d->destroy();
+    }
+
+    public function testMethod_createElement(): void {
+        $d = new Document();
+        $c = $d->createElement('poo💩');
+        $this->assertSame('poo💩', $c->localName);
+        $this->assertInstanceOf(Element::class, $c);
+        $d->destroy();
+    }
+
+    public function testMethod_createElementNS(): void {
+        // Local names ARE lowercased in HTML documents when namespaced
+        $d = new Document();
+        $a = $d->createElementNS('https://💩.com', '💩:POO');
+        $this->assertSame('POO', $a->localName);
+        $this->assertSame('https://💩.com', $a->namespaceURI);
+        $this->assertSame('💩', $a->prefix);
+
+        // Empty string namespaces and empty prefixes are supposed to be null even in
+        // HTML documents
+        $a = $d->createElementNS('', '💩');
+        $this->assertSame('💩', $a->localName);
+        $this->assertSame(null, $a->namespaceURI);
+        $this->assertSame(null, $a->prefix);
+        $d->destroy();
+    }
+
+    public function testMethod_createProcessingInstruction(): void {
+        $d = new Document();
+        $c = $d->createProcessingInstruction('💩', '💩poo');
+        $this->assertSame('💩', $c->target);
+        $this->assertSame('💩poo', $c->data);
+        $this->assertInstanceOf(ProcessingInstruction::class, $c);
+        $d->destroy();
+    }
+
+    public function testMethod_evaluate(): void {
+        $d = new Document('<!DOCTYPE html><html><body><poo💩>ook</poo💩><poo💩>eek</poo💩><div id="poo"><poo💩>ack</poo💩></div></body></html>');
+        // NodeList return value (XPath is NOT coerced)
+        $r = $d->evaluate('//pooU01F4A9//text()');
+        $this->assertEquals(3, count($r));
+        // Number return value (XPath is NOT coerced)
+        $r = $d->evaluate('count(//pooU01F4A9//text())');
+        $this->assertEquals(3, $r);
+        // String return value (XPath is NOT coerced)
+        $r = $d->evaluate('name(//pooU01F4A9)');
+        $this->assertSame('poo💩', $r);
+        // Context node - NodeList return value (XPath is NOT coerced)
+        $r = $d->evaluate('./pooU01F4A9//text()', $d->getElementById('poo'));
+        $this->assertEquals(1, count($r));
+        $d->destroy();
+    }
+
+    public function testMethod_getElementsByName(): void {
+        $d = new Document('<!DOCTYPE html><html><body><div name="poo💩">ook</div><div name="poo💩">eek</div><div name="poo💩">ack</div></body></html>');
+        $l = $d->getElementsByName('poo💩');
+        $this->assertEquals(3, $l->length);
+        $this->assertEquals('<div name="poo💩">ook</div>', (string)$l[0]);
+        $d->destroy();
+    }
+
     public function testMethod_loadFile(): void {
+        // Test with a local file
         $d = new Document();
+        $d->loadFile(__DIR__ . '/../misc/test.html');
+        $this->assertSame('ISO-2022-JP', $d->charset);
+        $this->assertStringEndsWith('tests/misc/test.html', $d->URL);
+        $d->destroy();
 
-        $vfs = vfsStream::setup('DOM', 0777, [ 'test.html' => <<<HTML
-        <!DOCTYPE html>
-        <html>
-         <head>
-          <meta charset="ISO-2022-JP">
-          <title>Ook</title>
-         </head>
-        </html>
-        HTML ]);
-        $f = $vfs->url() . '/test.html';
+        // Test with a virtual stream
+        $d = new Document();
+        $v = vfsStream::setup('ook', 0777, [
+            '1.html' => <<<HTML
+            <!DOCTYPE html>
+            <html>
+             <head>
+              <meta charset="ISO-2022-JP">
+              <title>Ook</title>
+             </head>
+            </html>
+            HTML
+        ]);
 
-        // Test loading of virtual file
-        $d->loadFile($f);
+        $d->loadFile($v->url() . '/1.html');
         $this->assertSame('ISO-2022-JP', $d->charset);
         $this->assertStringStartsWith('vfs://', $d->URL);
+        $d->destroy();
 
-        // Test loading of local file
+        // Test with an http stream
         $d = new Document();
-        $d->loadFile(dirname(__FILE__) . '/../test.html', 'UTF-8');
-        $this->assertSame('ISO-2022-JP', $d->charset);
-        $this->assertStringStartsWith('file://', $d->URL);
+        $d->loadFile('https://google.com');
+        $this->assertSame('https://google.com', $d->documentURI);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::loadFile
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testMethod_loadFile__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::FILE_NOT_FOUND);
-        $d = new Document();
-        $d->loadFile('fail.html');
+    public function testMethod_offsetExists(): void {
+        $d = new Document('<!DOCTYPE html><html><body><img name="poo💩"></body></html>');
+        $this->assertTrue(isset($d['poo💩']));
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::serialize
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
-    public function testMethod_serialize__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
-        $d = new XMLDocument();
-        $d2 = new Document();
-        $d2->serialize($d->createTextNode('ook'));
+    public function testMethod_offsetGet(): void {
+        $d = new Document('<!DOCTYPE html><html><body><img id="ook" name="poo💩"><iframe name="poo💩"></iframe><form name="poo💩"></form></body></html>');
+        // Returning an HTMLCollection
+        $this->assertInstanceOf(HTMLCollection::class, $d['poo💩']);
+        $this->assertEquals(3, $d['poo💩']->length);
+        // Returning one element
+        $this->assertInstanceOf(Element::class, $d['ook']);
+        $this->assertSame('IMG', $d['ook']->nodeName);
+        // Returning null
+        $this->assertNull($d['eek']);
+        $d->destroy();
     }
 
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::serializeInner
-     * 
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
+    public function testMethod_registerXPathFunctions(): void {
+        $d = new Document('<!DOCTYPE html><html><body><h1>Ook</h1><p class="poo💩">ook</p><p class="poo💩poo💩">eek</p></body></html>');
+        $d->registerXPathFunctions();
+        $r = $d->evaluate('//*[php:functionString("substr", @class, 0, 7) = "poo💩"]', $d);
+        $this->assertEquals(2, $r->length);
+        $d->destroy();
+    }
+
+    public function testMethod_register_unregisterXPathNamespaces(): void {
+        $d = new Document('<!DOCTYPE html><html><body><svg xmlns="http://www.w3.org/2000/svg"><text x="20" y="0">Ook</text></svg></body></html>');
+        $d->registerXPathNamespaces([ 'svg' => Node::SVG_NAMESPACE ]);
+        $r = $d->evaluate('//svg:svg/svg:text/text()', $d);
+        $this->assertSame('Ook', $r[0]->textContent);
+        $d->unregisterXPathNamespaces('svg');
+        $r = $d->evaluate('//svg:svg/svg:text/text()', $d);
+        $this->assertEquals(0, $r->length);
+        $d->destroy();
+    }
+
     public function testMethod_serializeInner(): void {
-        $d = new Document();
-        $e = $d->createElement('p');
-        $e->textContent = 'ook';
-
-        $this->assertSame('ook', $d->serializeInner($e));
+        $d = new Document('<!DOCTYPE html><html><body><svg xmlns="http://www.w3.org/2000/svg"><text x="20" y="0">Ook</text></svg></body></html>');
+        $this->assertSame('<svg xmlns="http://www.w3.org/2000/svg"><text x="20" y="0">Ook</text></svg>', $d->serializeInner($d->body));
+        $d->destroy();
     }
 
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::serializeInner
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createTextNode
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Text::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
-    public function testMethod_serializeInner__errors(): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode(DOMException::WRONG_DOCUMENT);
-        $d = new XMLDocument();
-        $d2 = new Document();
-        $d2->serializeInner($d->createTextNode('ook'));
+    public function testMethod_toString(): void {
+        $d = new Document('<!DOCTYPE html><html><body><svg xmlns="http://www.w3.org/2000/svg"><text x="20" y="0">Ook</text></svg></body></html>');
+        $this->assertSame('<!DOCTYPE html><html><head></head><body><svg xmlns="http://www.w3.org/2000/svg"><text x="20" y="0">Ook</text></svg></body></html>', (string)$d);
+        $d->destroy();
     }
 
 
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_body
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     */
-    public function testProperty_body() {
+    public function testProperty_body(): void {
         $d = new Document();
-
-        // Document::body without document element
         $this->assertNull($d->body);
-
         $d->appendChild($d->createElement('html'));
-
-        // Document::body without body
         $this->assertNull($d->body);
-
-        $body = $d->documentElement->appendChild($d->createElement('body'));
-
-        // Document::body with body
-        $this->assertSame($body, $d->body);
+        $d->documentElement->appendChild($d->createElement('body'));
+        $this->assertNotNull($d->body);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_charset
-     * @covers \MensBeam\HTML\DOM\Document::__get_inputEncoding
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testProperty_charset() {
-        $d = new Document('<!DOCTYPE html><html><head><meta charset="gb2312"></head></html>');
-        $this->assertSame('GBK', $d->charset);
-        $this->assertSame('GBK', $d->inputEncoding);
+    public function testProperty_contentType(): void {
+        $d = new Document();
+        $this->assertSame('text/html', $d->contentType);
+        $d->destroy();
+        $d = new XMLDocument();
+        $this->assertSame('application/xml', $d->contentType);
+        $d->destroy();
     }
 
+    public function testProperty_designMode(): void {
+        $d = new Document();
+        $this->assertSame('off', $d->designMode);
+        $d->designMode = 'on';
+        $this->assertSame('on', $d->designMode);
+        $d->designMode = 'off';
+        $this->assertSame('off', $d->designMode);
+        $d->destroy();
+    }
 
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_dir
-     * @covers \MensBeam\HTML\DOM\Document::__set_dir
-     *
-     * @covers \MensBeam\HTML\DOM\Attr::__get_value
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__get_localName
-     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
-     * @covers \MensBeam\HTML\DOM\Element::__get_prefix
-     * @covers \MensBeam\HTML\DOM\Element::__get_tagName
-     * @covers \MensBeam\HTML\DOM\Element::getAttribute
-     * @covers \MensBeam\HTML\DOM\Element::getAttributeNode
-     * @covers \MensBeam\HTML\DOM\Element::setAttribute
-     * @covers \MensBeam\HTML\DOM\HTMLElement::__get_dir
-     * @covers \MensBeam\HTML\DOM\HTMLElement::__set_dir
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
     public function testProperty_dir(): void {
         $d = new Document('<!DOCTYPE html><html dir="ltr"></html>');
         $this->assertSame('ltr', $d->dir);
         $d->dir = 'bullshit';
         $this->assertSame('', $d->dir);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_doctype
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_implementation
-     * @covers \MensBeam\HTML\DOM\DocumentType::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocumentType
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testProperty_doctype() {
         $d = new Document();
         $this->assertNull($d->doctype);
 
         $doctype = $d->appendChild($d->implementation->createDocumentType('html', '', ''));
         $this->assertSame($doctype, $d->doctype);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_documentURI
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\Document::loadFile
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     */
-    public function testProperty_documentURI() {
-        $d = new Document();
-        $d->loadFile('https://google.com');
-        $this->assertSame('https://google.com', $d->documentURI);
-    }
-
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_embeds
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_plugins
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
     public function testProperty_embeds() {
         $d = new Document('<!DOCTYPE html><html><body><embed></embed><embed></embed><embed></embed><div><div><div><embed></embed></div></div></div></body></html>');
         $this->assertEquals(4, $d->embeds->length);
         $this->assertEquals(4, $d->plugins->length);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_forms
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testProperty_forms() {
         $d = new Document('<!DOCTYPE html><html><body><form></form><form></form><form></form><div><div><div><form></form></div></div></div><template><form></form></template></body></html>');
         $this->assertEquals(4, $d->forms->length);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_head
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     */
     public function testProperty_head() {
         $d = new Document();
         $this->assertNull($d->head);
@@ -893,176 +383,33 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $head = $de->appendChild($d->createElement('head'));
 
         $this->assertSame($head, $d->head);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_images
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testProperty_images() {
         $d = new Document('<!DOCTYPE html><html><body><img><img><img><div><div><div><img></div></div></div><template><img></template></body></html>');
         $this->assertEquals(4, $d->images->length);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_links
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testProperty_links() {
         $d = new Document('<!DOCTYPE html><html><body><a href=""></a><a href=""></a><a href=""></a><div><div><div><area href=""></area></div></div></div><template><a href=""></a></template></body></html>');
         $this->assertEquals(4, $d->links->length);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_scripts
-     *
-     * @covers \MensBeam\HTML\DOM\Collection::__construct
-     * @covers \MensBeam\HTML\DOM\Collection::__get_length
-     * @covers \MensBeam\HTML\DOM\Collection::count
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createDocumentFragment
-     * @covers \MensBeam\HTML\DOM\Document::load
-     * @covers \MensBeam\HTML\DOM\DocumentFragment::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__construct
-     * @covers \MensBeam\HTML\DOM\HTMLTemplateElement::__get_content
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::appendChildInner
-     * @covers \MensBeam\HTML\DOM\Node::cloneInnerNode
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::hasChildNodes
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::postParsingTemplatesFix
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_xpath
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testProperty_scripts() {
         $d = new Document('<!DOCTYPE html><html><body><script></script><script></script><script></script><div><div><div><script></script></div></div></div><template><script></script></template></body></html>');
         $this->assertEquals(4, $d->scripts->length);
+        $d->destroy();
     }
 
-
-    /**
-     * @covers \MensBeam\HTML\DOM\Document::__get_title
-     * @covers \MensBeam\HTML\DOM\Document::__set_title
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::__get_documentElement
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\Document::createElementNS
-     * @covers \MensBeam\HTML\DOM\DocumentOrElement::validateAndExtract
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::createDocument
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__get_namespaceURI
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Node::__get_ownerDocument
-     * @covers \MensBeam\HTML\DOM\Node::appendChild
-     * @covers \MensBeam\HTML\DOM\Node::getInnerDocument
-     * @covers \MensBeam\HTML\DOM\Node::getRootNode
-     * @covers \MensBeam\HTML\DOM\Node::postInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionBugFixes
-     * @covers \MensBeam\HTML\DOM\Node::preInsertionValidity
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__get_wrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::getProtectedProperty
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::setProtectedProperties
-     */
     public function testProperty_title() {
         $d = new Document();
         $this->assertSame('', $d->title);
         $d->title = 'fail';
         $this->assertSame('', $d->title);
+        $d->destroy();
 
         $d = (new DOMImplementation)->createDocument(Node::SVG_NAMESPACE, 'svg');
         $this->assertSame('', $d->title);
@@ -1071,6 +418,7 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame('Ook', $d->title);
         $d->title = '   Ee  k  ';
         $this->assertSame('Ee k', $d->title);
+        $d->destroy();
 
         $d = new Document();
         $de = $d->appendChild($d->createElement('html'));
@@ -1082,5 +430,180 @@ class TestDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame('Ook', $d->title);
         $d->title = 'Eek';
         $this->assertSame('Eek', $d->title);
+    }
+
+
+    #[DataProvider('provideFatalErrors')]
+    public function testFatalErrors(string $throwableClassName, \Closure $closure): void {
+        $this->expectException($throwableClassName);
+        $d = new Document();
+        $closure($d);
+        $d->destroy();
+    }
+
+    public static function provideFatalErrors(): iterable {
+        $iterable = [
+            // Attempting to adopt a Document
+            [
+                NotSupportedError::class,
+                function (Document $d): void {
+                    $d->adoptNode($d);
+                }
+            ],
+            // Invalid attribute name
+            [
+                InvalidCharacterError::class,
+                function (Document $d): void {
+                    $d->createAttribute(' ');
+                }
+            ],
+            // Loading into a non-empty document
+            [
+                NoModificationAllowedError::class,
+                function (Document $d): void {
+                    $d->load('<!DOCTYPE html><html></html>');
+                    $d->load('fail');
+                }
+            ],
+            // Importing a Document
+            [
+                NotSupportedError::class,
+                function (Document $d): void {
+                    $d->importNode(new Document());
+                }
+            ],
+            // Importing a \DOMElement without an owner document
+            [
+                NotSupportedError::class,
+                function (Document $d): void {
+                    $d->importNode(new \DOMElement('fail'));
+                }
+            ],
+            // Importing a \DOMNode with a non-\DOMDocument owner
+            [
+                NotSupportedError::class,
+                function (Document $d): void {
+                    $d2 = new class extends \DOMDocument {};
+                    $d->importNode($d2->createTextNode('fail'));
+                }
+            ],
+            // Importing a \DOMEntityReference
+            [
+                NotSupportedError::class,
+                function (Document $d): void {
+                    $d2 = new \DOMDocument();
+                    $d->importNode($d2->createEntityReference('nbsp'));
+                }
+            ],
+            // Creating a CDataSection on an HTML document
+            [
+                NotSupportedError::class,
+                function (Document $d): void {
+                    $d->createCDATASection('fail');
+                }
+            ],
+            // Creating a CDataSection with ']]>' in the data
+            [
+                InvalidCharacterError::class,
+                function (Document $d): void {
+                    $d = new XMLDocument();
+                    $d->createCDATASection(']]>');
+                    $d->destroy();
+                }
+            ],
+            // Invalid element name
+            [
+                InvalidCharacterError::class,
+                function (Document $d): void {
+                    $d->createElement(' ');
+                }
+            ],
+            // Invalid HTML element name
+            [
+                InvalidCharacterError::class,
+                function (Document $d): void {
+                    $d->createElement('💩poo');
+                }
+            ],
+            // Invalid XPath expression
+            [
+                XPathException::class,
+                function (Document $d): void {
+                    $d->evaluate(' ');
+                }
+            ],
+            // Undefined namespace prefix
+            [
+                XPathException::class,
+                function (Document $d): void {
+                    $d->evaluate('//svg:svg');
+                }
+            ],
+            // Loading file when Document isn't empty
+            [
+                NoModificationAllowedError::class,
+                function (Document $d): void {
+                    $d->appendChild($d->createElement('html'));
+                    $d->loadFile('fail.html');
+                }
+            ],
+            // File not found when loading
+            [
+                FileNotFoundException::class,
+                function (Document $d): void {
+                    $d->loadFile('fail.html');
+                }
+            ],
+            // Isset on an invalid named property
+            [
+                InvalidArgumentException::class,
+                function (Document $d): void {
+                    isset($d[0]);
+                }
+            ],
+            // Getting an invalid named property
+            [
+                InvalidArgumentException::class,
+                function (Document $d): void {
+                    $d[0];
+                }
+            ],
+            // Invalid prefix array
+            [
+                InvalidArgumentException::class,
+                function (Document $d): void {
+                    $d->registerXPathNamespaces([ 42, 'fail' ]);
+                }
+            ],
+            // Invalid prefix array
+            [
+                InvalidArgumentException::class,
+                function (Document $d): void {
+                    $d->registerXPathNamespaces([ 'fail', 42 ]);
+                }
+            ],
+            // Serializing wrong document
+            [
+                WrongDocumentError::class,
+                function (Document $d): void {
+                    $d2 = new Document();
+                    $e = $d2->createElement('fail');
+                    $d->serialize($e);
+                }
+            ],
+            // Serializing wrong document
+            [
+                WrongDocumentError::class,
+                function (Document $d): void {
+                    $d2 = new Document();
+                    $e = $d2->createElement('fail');
+                    $d->serializeInner($e);
+                }
+            ]
+        ];
+
+        foreach ($iterable as $i) {
+            yield $i;
+        }
     }
 }

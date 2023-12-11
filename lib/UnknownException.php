@@ -8,6 +8,7 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
+/** @codeCoverageIgnore */
 class UnknownException extends \LogicException {
     public function __construct(int $code = 0, ?\Throwable $previous = null) {
         parent::__construct('The program reached an invalid state; this error should be reported', $code, $previous);

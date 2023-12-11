@@ -11,8 +11,6 @@ namespace MensBeam\HTML\DOM;
 
 /** @property \DOMAttr $_innerNode */
 class Attr extends Node {
-    protected \DOMAttr $_innerNode;
-
     protected function __get_localName(): string {
         // PHP's DOM does this correctly already.
         // Need to uncoerce string if necessary.
@@ -45,11 +43,12 @@ class Attr extends Node {
         return $innerOwnerDocument->getWrapperNode($this->_innerNode->ownerElement);
     }
 
-    protected function __get_prefix(): string {
-        // PHP's DOM does this correctly already.
-        // Need to uncoerce string if necessary.
+    protected function __get_prefix(): ?string {
+        // PHP's DOM returns an empty string instead of null prefix
         $prefix = $this->_innerNode->prefix;
-        return (!str_contains(needle: 'U', haystack: $prefix)) ? $prefix : $this->uncoerceName($prefix);
+        $prefix = ($prefix !== '') ? $prefix : null;
+        // Need to uncoerce string if necessary.
+        return (!str_contains(needle: 'U', haystack: (string)$prefix)) ? $prefix : $this->uncoerceName($prefix);
     }
 
     protected function __get_specified(): bool {

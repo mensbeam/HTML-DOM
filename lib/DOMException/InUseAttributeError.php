@@ -6,7 +6,9 @@
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM;
+namespace MensBeam\HTML\DOM\DOMException;
+use MensBeam\HTML\DOM\DOMException;
+
 
 class InUseAttributeError extends DOMException {
     public function __construct(?\Throwable $previous = null) {

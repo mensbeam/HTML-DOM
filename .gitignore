@@ -5,6 +5,8 @@ node_modules
 /test*.php
 old
 tests/cases/old
+tests/coverage
+tests/.phpunit.cache
 
 # General
 *.DS_Store

@@ -1,39 +1,42 @@
 <?php
 /**
  * @license MIT
- * Copyright 2017 Dustin Wilson, J. King, et al.
+ * Copyright 2022 Dustin Wilson, et al.
  * See LICENSE and AUTHORS files for details
  */
 
 declare(strict_types=1);
-namespace MensBeam\HTML\DOM\TestCase;
-
+namespace MensBeam\HTML\DOM\Test;
 use MensBeam\HTML\DOM\{
     Document,
-    DOMException,
     HTMLElement,
     HTMLPreElement,
-    HTMLUnknownElement
+    HTMLTemplateElement,
+    HTMLUnknownElement,
+    MathMLElement,
+    Node,
+    SVGElement
 };
+use MensBeam\HTML\DOM\DOMException\WrongDocumentError;
+use PHPUnit\Framework\{
+    TestCase,
+    Attributes\CoversClass,
+    Attributes\DataProvider
+};
+// use org\bovigo\vfs\vfsStream;
 
 
-/** @covers \MensBeam\HTML\DOM\Inner\Document */
-class TestInnerDocument extends \PHPUnit\Framework\TestCase {
-    /**
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Document::createElement
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Element::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::get
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     * @covers \MensBeam\HTML\DOM\Inner\Reflection::createFromProtectedConstructor
-     */
+#[CoversClass('MensBeam\HTML\DOM\Inner\Document')]
+#[CoversClass('MensBeam\HTML\DOM\Document')]
+#[CoversClass('MensBeam\HTML\DOM\HTMLElement')]
+#[CoversClass('MensBeam\HTML\DOM\HTMLPreElement')]
+#[CoversClass('MensBeam\HTML\DOM\HTMLTemplateElement')]
+#[CoversClass('MensBeam\HTML\DOM\HTMLUnknownElement')]
+#[CoversClass('MensBeam\HTML\DOM\MathMLElement')]
+#[CoversClass('MensBeam\HTML\DOM\Node')]
+#[CoversClass('MensBeam\HTML\DOM\SVGElement')]
+#[CoversClass('MensBeam\HTML\DOM\DOMException\WrongDocumentError')]
+class TestInnerDocument extends TestCase {
     public function testMethod_getWrapperNode(): void {
         // Everything tests this method thoroughly except some element interfaces.
         $d = new Document();
@@ -41,41 +44,42 @@ class TestInnerDocument extends \PHPUnit\Framework\TestCase {
         $this->assertSame(HTMLElement::class, $d->createElement('noembed')::class);
         $this->assertSame(HTMLPreElement::class, $d->createElement('xmp')::class);
         $this->assertSame(HTMLPreElement::class, $d->createElement('pre')::class);
+        $this->assertSame(MathMLElement::class, $d->createElementNS(Node::MATHML_NAMESPACE, 'math')::class);
+        $this->assertSame(HTMLTemplateElement::class, $d->createElement('template')::class);
         $this->assertSame(HTMLElement::class, $d->createElement('p-icon')::class);
+        $this->assertSame(SVGElement::class, $d->createElementNS(Node::SVG_NAMESPACE, 'svg')::class);
     }
 
 
-    public function provideMethod_getWrapperNode__errors(): iterable {
-        return [
-            [ function () {
-                $d = new Document();
-                $d->innerNode->getWrapperNode(new \DOMDocument());
-            }, DOMException::NOT_SUPPORTED ],
-            [ function () {
-                $d = new Document();
-                $d2 = new Document();
-                $d->innerNode->getWrapperNode($d2->innerNode->createTextNode('fail'));
-            }, DOMException::WRONG_DOCUMENT ],
-        ];
-    }
-
-    /**
-     * @dataProvider provideMethod_getWrapperNode__errors
-     * @covers \MensBeam\HTML\DOM\Inner\Document::getWrapperNode
-     *
-     * @covers \MensBeam\HTML\DOM\Document::__construct
-     * @covers \MensBeam\HTML\DOM\DOMException::__construct
-     * @covers \MensBeam\HTML\DOM\DOMImplementation::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__construct
-     * @covers \MensBeam\HTML\DOM\Node::__get_innerNode
-     * @covers \MensBeam\HTML\DOM\Inner\Document::__construct
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::has
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::key
-     * @covers \MensBeam\HTML\DOM\Inner\NodeCache::set
-     */
-    public function testMethod_getWrapperNode__errors(\Closure $closure, int $errorCode): void {
-        $this->expectException(DOMException::class);
-        $this->expectExceptionCode($errorCode);
+    #[DataProvider('provideFatalErrors')]
+    public function testFatalErrors(string $throwableClassName, \Closure $closure): void {
+        $this->expectException($throwableClassName);
         $closure();
+    }
+
+    public static function provideFatalErrors(): iterable {
+        $iterable = [
+            // Attempting to get the wrapper node of another document
+            [
+                WrongDocumentError::class,
+                function (): void {
+                    $d = new Document();
+                    $d->innerNode->getWrapperNode(new \DOMDocument());
+                }
+            ],
+            // Attempting to get the wrapper node of another document's node
+            [
+                WrongDocumentError::class,
+                function (): void {
+                    $d = new Document();
+                    $d2 = new Document();
+                    $d->innerNode->getWrapperNode($d2->innerNode->createTextNode('fail'));
+                }
+            ]
+        ];
+
+        foreach ($iterable as $i) {
+            yield $i;
+        }
     }
 }

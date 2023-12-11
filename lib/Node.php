@@ -7,6 +7,11 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\DOM\DOMException\{
+    HierarchyRequestError,
+    NotFoundError,
+    NotSupportedError
+};
 use MensBeam\GettersAndSetters,
     MensBeam\HTML\Parser\NameCoercion;
 use MensBeam\HTML\DOM\Inner\{
@@ -460,7 +465,7 @@ abstract class Node implements \Stringable {
     }
 
     public function getNodePath(): ?string {
-        return $this->_innerNode->getNodePath();
+        return $this->uncoerceName($this->_innerNode->getNodePath());
     }
 
     public function getRootNode(): ?Node {
@@ -765,6 +770,11 @@ abstract class Node implements \Stringable {
         #              1. Let copyAttribute be a clone of attribute.
         #              2. Append copyAttribute to copy.
         if ($node instanceof \DOMElement) {
+            // This prohibits importing elements which have invalid HTML element names.
+            if ($import && !$document instanceof XMLDocument && preg_match('/^U[0-9A-F]{6}/', $node->localName, $m)) {
+                throw new NotSupportedError();
+            }
+
             $copy = ($import) ? $document->importNode($node) : $node->cloneNode();
 
             // PHP DOM doesn't import id attributes where

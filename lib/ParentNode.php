@@ -7,7 +7,8 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
-use MensBeam\HTML\DOM\Inner\Reflection;
+use MensBeam\HTML\DOM\DOMException\SyntaxError,
+    MensBeam\HTML\DOM\Inner\Reflection;
 use Symfony\Component\CssSelector\CssSelectorConverter,
     Symfony\Component\CssSelector\Exception\SyntaxErrorException as SymfonySyntaxErrorException;
 

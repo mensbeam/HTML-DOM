@@ -7,12 +7,19 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\DOM\DOMException\{
+    InvalidCharacterError,
+    NoModificationAllowedError,
+    NotSupportedError,
+    WrongDocumentError
+};
 use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     NodeCache,
     Reflection
 };
-use MensBeam\HTML\Parser;
+use MensBeam\HTML\Parser,
+    MensBeam\Intl\Encoding\UTF8;
 use MensBeam\HTML\Parser\{
     Charset,
     Data,
@@ -22,7 +29,7 @@ use MensBeam\HTML\Parser\{
 
 /** @property InnerDocument $_innerNode */
 class Document extends Node implements \ArrayAccess {
-    use DocumentOrElement, NonElementParentNode, ParentNode, XPathEvaluatorBase;
+    use DocumentOrElement, NonElementParentNode, ParentNode;
 
 
     protected static ?NodeCache $cache = null;
@@ -30,6 +37,7 @@ class Document extends Node implements \ArrayAccess {
     protected string $_compatMode = 'CSS1Compat';
     protected string $_contentType = 'text/html';
     protected bool $designModeEnabled = false;
+    protected ?XPathException $__lastXPathException = null;
     protected DOMImplementation $_implementation;
     protected string $_URL = 'about:blank';
 
@@ -264,7 +272,6 @@ class Document extends Node implements \ArrayAccess {
     protected function __set_title(string $value): void {
         # On setting, the steps corresponding to the first matching condition in the following list must be run:
         #
-        # If the document element is an SVG svg element
         $documentElement = $this->_innerNode->documentElement;
         if ($documentElement === null) {
             return;
@@ -332,16 +339,16 @@ class Document extends Node implements \ArrayAccess {
             elseif ($head !== null) {
                 # 1. Let element be the result of creating an element given the document
                 #   element's node document, title, and the HTML namespace.
-                $element = $this->_innerNode->createElementNS(Node::SVG_NAMESPACE, 'title');
+                $element = $this->_innerNode->createElement('title');
 
                 # 2. Append element to the head element.
                 $head->appendChild($element);
+            }
 
-                # 4. String replace all with the given value within element.
-                // This is basically what textContent will do for us...
-                if ($element !== null) {
-                    $element->textContent = $value;
-                }
+            # 4. String replace all with the given value within element.
+            // This is basically what textContent will do for us...
+            if ($element !== null) {
+                $element->textContent = $value;
             }
         }
 
@@ -367,14 +374,11 @@ class Document extends Node implements \ArrayAccess {
         // This cache is used to prevent "must not be accessed before initialization"
         // errors because of PHP's garbage... garbage collection.
         if (self::$cache === null) {
-            // Pcov for some reason doesn't mark this line as being covered when it clearly
-            // is...
-            self::$cache = new NodeCache(); //@codeCoverageIgnore
+            self::$cache = new NodeCache();
         }
 
         self::$cache->set($this, $this->_innerNode);
     }
-
 
     public function adoptNode(Node &$node): Node {
         # The adoptNode(node) method steps are:
@@ -539,7 +543,12 @@ class Document extends Node implements \ArrayAccess {
 
         # 1. If localName does not match the Name production, then throw an
         #    "InvalidCharacterError" DOMException.
-        if (!preg_match(InnerDocument::NAME_PRODUCTION_REGEX, $localName)) {
+        // DEVIATION: The DOM spec states clearly that the localName should match the
+        // Name production, but HTML is more restrictive in naming, only allowing A-Za-z
+        // as the first character. All browsers prohibit creation of elements in HTML
+        // documents which have non-ASCII alpha characters as the first character, so we
+        // will do so here as well.
+        if (!preg_match((!$this instanceof XMLDocument) ? InnerDocument::HTML_ELEMENT_NAME_REGEX : InnerDocument::NAME_PRODUCTION_REGEX, $localName)) {
             throw new InvalidCharacterError();
         }
 
@@ -594,11 +603,25 @@ class Document extends Node implements \ArrayAccess {
             // The element name is invalid for XML
             // Replace any offending characters with "UHHHHHH" where H are the
             // uppercase hexadecimal digits of the character's code point
-            $qualifiedName = $this->coerceName($prefix) . ':' . $this->coerceName($localName);
-            $element = $this->_innerNode->createElementNS($namespace, $qualifiedName);
+            $localName = $this->coerceName($localName);
+            $element = $this->_innerNode->createElementNS($namespace, ($prefix !== null) ? $this->coerceName($prefix) . ':' . $localName : $localName);
         }
 
-        return $this->_innerNode->getWrapperNode($element);
+        $result = $this->_innerNode->getWrapperNode($element);
+        // Due to a PHP bug which severely degrades performance with large documents and
+        // in consideration of existing PHP software and because of bizarre
+        // uncircumventable `xmlns` attribute bugs when the document is in the HTML
+        // namespace, HTML elements in HTML documents are placed in the null namespace
+        // internally rather than in the HTML namespace. This presents a problem in this
+        // case where if an element is explicitly created with a null namespace then it
+        // should show null when using Element::namespaceURI. Element::isNullNamespace
+        // exists to rectify this.
+        if ($namespace === null) {
+            Reflection::setProtectedProperties($result, [
+                'isNullNamespace' => true
+            ]);
+        }
+        return $result;
     }
 
     public function createProcessingInstruction(string $target, string $data): ProcessingInstruction {
@@ -623,8 +646,35 @@ class Document extends Node implements \ArrayAccess {
         self::$cache->delete($this->_innerNode);
     }
 
-    public function getElementsByName(string $elementName): NodeList {
-        # The getElementsByName(elementName) method steps are to return a live NodeList
+    public function evaluate(string $expression, ?Node $contextNode = null): int|float|string|NodeList {
+        $contextNode = ($contextNode === null) ? $this : $contextNode;
+        $innerContextNode = $contextNode->innerNode;
+        $doc = ($innerContextNode instanceof \DOMDocument) ? $innerContextNode : $innerContextNode->ownerDocument;
+
+        // PHP's DOM XPath incorrectly issues warnings rather than exceptions when
+        // expressions are incorrect, so we must use a custom error handler here to
+        // "catch" it and throw an exception in its place.
+        set_error_handler(__CLASS__ . '::xpathErrorHandler');
+        $result = $doc->xpath->evaluate($expression, $innerContextNode);
+        restore_error_handler();
+        if ($this->__lastXPathException) {
+            $e = $this->__lastXPathException;
+            $this->__lastXPathException = null;
+            throw $e;
+        }
+
+        if ($result instanceof \DOMNodeList) {
+            // NodeLists cannot be created from their constructors normally.
+            return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', $this->_innerNode, $result);
+        } elseif (is_string($result)) {
+            $result = $this->uncoerceName($result);
+        }
+
+        return $result;
+    }
+
+    public function getElementsByName(string $name): NodeList {
+        # The getElementsByName(name) method steps are to return a live NodeList
         # containing all the HTML elements in that document that have a name attribute
         # whose value is identical to the elementName argument, in tree order. When the
         # method is invoked on a Document object again with the same argument, the user
@@ -633,7 +683,7 @@ class Document extends Node implements \ArrayAccess {
         // Because of how namespaces are handled internally they're null when a HTML document.
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
         // NodeLists cannot be created from their constructors normally.
-        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', $this->_innerNode, $this->_innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @name='$elementName']"));
+        return Reflection::createFromProtectedConstructor(__NAMESPACE__ . '\\NodeList', $this->_innerNode, $this->_innerNode->xpath->query(".//*[namespace-uri()='$namespace' and @name='$name']"));
     }
 
     public function importNode(Node|\DOMNode $node, bool $deep = false): Node {
@@ -642,7 +692,7 @@ class Document extends Node implements \ArrayAccess {
         # 1. If node is a document or shadow root, then throw a "NotSupportedError"
         #    DOMException.
         // Because this can import from PHP's DOM we must check for more stuff.
-        if ($node instanceof Document || $node instanceof \DOMDocument || ($node instanceof \DOMNode && $node->ownerDocument::class !== 'DOMDocument') || $node instanceof \DOMEntityReference) {
+        if ($node instanceof Document || $node instanceof \DOMDocument || ($node instanceof \DOMNode && ($node->ownerDocument === null || $node->ownerDocument::class !== 'DOMDocument')) || $node instanceof \DOMEntityReference) {
             throw new NotSupportedError();
         }
 
@@ -661,11 +711,8 @@ class Document extends Node implements \ArrayAccess {
         // specification, but since this library is not a browser it should be able to
         // read and print processing instructions.
         $config->processingInstructions = true;
-
-        if ($charset !== null) {
-            $config->encodingFallback = Charset::fromCharset($charset);
-        }
-
+        // The parser spec defaults to windows-1252, but the DOM spec defaults to UTF-8
+        $config->encodingFallback = Charset::fromCharset($charset ?? 'UTF-8');
         $source = Parser::parseInto($source, $this->_innerNode, null, $config);
         $this->_characterSet = $source->encoding;
         $this->_compatMode = ($source->quirksMode === Parser::NO_QUIRKS_MODE || $source->quirksMode === Parser::LIMITED_QUIRKS_MODE) ? 'CSS1Compat' : 'BackCompat';
@@ -674,6 +721,10 @@ class Document extends Node implements \ArrayAccess {
     }
 
     public function loadFile(string $filename, ?string $charset = null): void {
+        if ($this->hasChildNodes()) {
+            throw new NoModificationAllowedError();
+        }
+
         $f = @fopen($filename, 'r');
         if (!$f) {
             throw new FileNotFoundException();
@@ -714,7 +765,7 @@ class Document extends Node implements \ArrayAccess {
         // Because PHP is dumb and won't let us implement ArrayAccess with a more
         // specific type than its interface...
         if (!is_string($offset)) {
-            trigger_error('Type error; ' . __CLASS__ . ' keys may only be strings', \E_USER_ERROR);
+            throw new InvalidArgumentException('Argument #1 ($offset) must be a string');
         }
 
         $namespace = (!$this instanceof XMLDocument) ? '' : Node::HTML_NAMESPACE;
@@ -725,7 +776,7 @@ class Document extends Node implements \ArrayAccess {
         // Because PHP is dumb and won't let us implement ArrayAccess with a more
         // specific type than its interface...
         if (!is_string($offset)) {
-            trigger_error('Type error; ' . __CLASS__ . ' keys may only be strings', \E_USER_ERROR);
+            throw new InvalidArgumentException('Argument #1 ($offset) must be a string');
         }
 
         // In JavaScript this part of the Document interface is implemented as
@@ -797,15 +848,31 @@ class Document extends Node implements \ArrayAccess {
     public function offsetSet(mixed $offset, mixed $value): void {
         // The specification is vague as to what to do here. Browsers silently fail, so
         // that's what we're going to do.
-    }
+    } //@codeCoverageIgnore
 
     public function offsetUnset(mixed $offset): void {
         // The specification is vague as to what to do here. Browsers silently fail, so
         // that's what we're going to do.
-    }
+    } //@codeCoverageIgnore
 
     public function registerXPathFunctions(string|array|null $restrict = null): void {
-        $this->xpathRegisterPhpFunctions($this, $restrict);
+        $xpath = $this->innerNode->xpath;
+        $xpath->registerNamespace('php', 'http://php.net/xpath');
+        $xpath->registerPhpFunctions($restrict);
+    }
+
+    public function registerXPathNamespaces(array $lookup): void {
+        foreach ($lookup as $prefix => $namespaceURI) {
+            if (is_string($prefix) && $prefix !== '' && is_string($namespaceURI)) {
+                continue;
+            }
+
+            throw new InvalidArgumentException('Argument #1 ($lookup) must be an array with a non-empty string key and string value');
+        }
+
+        foreach ($lookup as $prefix => $namespaceURI) {
+            $this->innerNode->xpath->registerNamespace($prefix, $namespaceURI);
+        }
     }
 
     public function serialize(?Node $node = null, array $config = []): string {
@@ -824,6 +891,29 @@ class Document extends Node implements \ArrayAccess {
         }
 
         return Serializer::serializeInner($node->innerNode, $config);
+    }
+
+    public function unregisterXPathNamespaces(string ...$prefix): void {
+        foreach ($prefix as $p) {
+            $this->innerNode->xpath->registerNamespace($p, '');
+        }
+    }
+
+
+    /** @internal */
+    public function xpathErrorHandler(int $errno, string $errstr, string $errfile, int $errline) {
+        if ($this->__lastXPathException) {
+            return true; // @codeCoverageIgnore
+        }
+
+        $lowerErrstr = strtolower($errstr);
+        if (str_contains(needle: 'undefined namespace prefix', haystack: $lowerErrstr)) {
+            $this->__lastXPathException = new XPathException(XPathException::UNRESOLVABLE_NAMESPACE_PREFIX);
+        } elseif (str_contains(needle: 'invalid expression', haystack: $lowerErrstr)) {
+            $this->__lastXPathException = new XPathException(XPathException::INVALID_EXPRESSION);
+        }
+
+        return true;
     }
 
 

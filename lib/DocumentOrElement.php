@@ -7,6 +7,10 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\DOM\DOMException\{
+    InvalidCharacterError,
+    NamespaceError
+};
 use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     Reflection
@@ -188,7 +192,7 @@ trait DocumentOrElement {
             ($prefix !== null && $namespace === null) ||
             ($prefix === 'xml' && $namespace !== self::XML_NAMESPACE) ||
             (($qualifiedName === 'xmlns' || $prefix === 'xmlns') && $namespace !== self::XMLNS_NAMESPACE) ||
-            ($namespace === self::XMLNS_NAMESPACE && $qualifiedName !== 'xmlns' && $prefix !== 'xmlns')
+            ($namespace === self::XMLNS_NAMESPACE && ($qualifiedName !== 'xmlns' && $prefix !== 'xmlns'))
         ) {
             throw new NamespaceError();
         }

@@ -4,7 +4,6 @@
         "psr-4": {
             "MensBeam\\HTML\\DOM\\": [
                 "lib/",
-                "lib/DOMException",
                 "lib/Exception",
                 "lib/HTMLElement"
             ]
@@ -24,8 +23,14 @@
         }
     ],
     "require": {
+        "php": "8.2.* || >8.3.0",
         "mensbeam/html-parser": "^1.3",
         "symfony/css-selector": "^6.3",
         "mensbeam/getters-and-setters": "^1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.4",
+        "phake/phake": "^4.4",
+        "mikey179/vfsstream": "^1.6"
     }
 }

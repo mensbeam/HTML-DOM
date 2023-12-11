@@ -7,6 +7,10 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\DOM\DOMException\{
+    NoModificationAllowedError,
+    SyntaxError
+};
 
 
 class HTMLElement extends Element {

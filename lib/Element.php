@@ -7,6 +7,14 @@
 
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
+use MensBeam\HTML\DOM\DOMException\{
+    InUseAttributeError,
+    InvalidCharacterError,
+    NoModificationAllowedError,
+    NotFoundError,
+    NotSupportedError,
+    SyntaxError
+};
 use MensBeam\HTML\DOM\Inner\{
     Document as InnerDocument,
     Reflection
@@ -19,6 +27,8 @@ use MensBeam\HTML\Parser,
 /** @property \DOMElement $_innerNode */
 class Element extends Node {
     use ChildNode, DocumentOrElement, NonDocumentTypeChildNode, ParentNode;
+
+    protected bool $isNullNamespace = false;
 
 
     protected function __get_attributes(): NamedNodeMap {
@@ -110,8 +120,7 @@ class Element extends Node {
     }
 
     protected function __get_localName(): ?string {
-        // PHP's DOM does this correctly already.
-        return $this->_innerNode->localName;
+        return (!str_contains(needle: 'U', haystack: $this->_innerNode->localName)) ? $this->_innerNode->localName : $this->uncoerceName($this->_innerNode->localName);
     }
 
     protected function __get_namespaceURI(): ?string {
@@ -120,7 +129,11 @@ class Element extends Node {
         // around because of the wrapper classes; So, use the null namespace internally
         // but print out the HTML namespace instead.
         $namespace = $this->_innerNode->namespaceURI;
-        return (!$this->ownerDocument instanceof XMLDocument && $namespace === null) ? self::HTML_NAMESPACE : $namespace;
+        if ($this->ownerDocument instanceof XMLDocument) {
+            return $namespace;
+        }
+
+        return ($namespace === null && !$this->isNullNamespace) ? self::HTML_NAMESPACE : $namespace;
     }
 
     protected function __get_outerHTML(): string {
@@ -174,7 +187,12 @@ class Element extends Node {
 
     protected function __get_prefix(): ?string {
         $prefix = $this->_innerNode->prefix;
-        return ($prefix !== '') ? $prefix : null;
+
+        if ($prefix !== null && $prefix !== '') {
+            return (!str_contains(needle: 'U', haystack: $this->_innerNode->prefix)) ? $this->_innerNode->prefix : $this->uncoerceName($this->_innerNode->prefix);
+        }
+
+        return null;
     }
 
     protected function __get_tagName(): string {
@@ -250,7 +268,7 @@ class Element extends Node {
 
         # 3. Return attr’s value.
         // Uncoerce the value if necessary
-        return $attr->value;
+        return (!str_contains(needle: 'U', haystack: $attr->value)) ? $attr->value : $this->uncoerceName($attr->value);
     }
 
     public function getAttributeNames(): array {

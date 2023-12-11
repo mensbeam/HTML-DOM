@@ -8,5 +8,4 @@
 declare(strict_types=1);
 namespace MensBeam\HTML\DOM;
 
-
-class HTMLUnknownElement extends HTMLElement {}
+class InvalidArgumentException extends \OutOfBoundsException {}
